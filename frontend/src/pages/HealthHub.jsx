@@ -40,7 +40,8 @@ const recordTypeConfig = {
   surgery: { icon: FileText, color: 'bg-orange-100 text-orange-700' }
 };
 
-export const HealthHub = ({ user }) => {
+// Health Content Component to handle hooks properly
+const HealthContent = ({ user, selectedDog }) => {
   const [records, setRecords] = useState([]);
   const [activeTab, setActiveTab] = useState('records');
   const [addRecordOpen, setAddRecordOpen] = useState(false);
@@ -75,6 +76,12 @@ export const HealthHub = ({ user }) => {
       console.error('Failed to fetch records:', error);
     }
   };
+
+  useEffect(() => {
+    if (selectedDog) {
+      fetchRecords(selectedDog.dog_id);
+    }
+  }, [selectedDog]);
 
   const handleAddRecord = async (dogId) => {
     if (!newRecord.title || !newRecord.description) {
@@ -134,6 +141,16 @@ export const HealthHub = ({ user }) => {
       setCurrentSymptom('');
     }
   };
+
+  if (!selectedDog) {
+    return (
+      <div className="text-center py-16" data-testid="no-dog-message">
+        <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+        <h2 className="font-heading font-semibold text-xl mb-2">No Dog Selected</h2>
+        <p className="text-muted-foreground">Please add a dog from the dashboard to track health.</p>
+      </div>
+    );
+  }
 
   return (
     <AppLayout user={user}>
