@@ -19,6 +19,7 @@ import { TokenShop } from "@/pages/TokenShop";
 import { VirtualPet } from "@/pages/VirtualPet";
 import { Achievements } from "@/pages/Achievements";
 import { VoiceLog } from "@/pages/VoiceLog";
+import { Leaderboard } from "@/pages/Leaderboard";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -193,6 +194,11 @@ function AppRouter() {
         <Route path="/voice-log" element={
           <ProtectedRoute>
             {({ user }) => <VoiceLog user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/leaderboard" element={
+          <ProtectedRoute>
+            {({ user }) => <Leaderboard user={user} />}
           </ProtectedRoute>
         } />
       </Routes>
