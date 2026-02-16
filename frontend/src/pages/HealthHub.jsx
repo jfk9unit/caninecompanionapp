@@ -485,9 +485,16 @@ const HealthContent = ({ user, selectedDog }) => {
             </Tabs>
           </div>
         );
-      }}
-    </AppLayout>
-  );
-};
+      };
+
+      export const HealthHub = ({ user }) => {
+        return (
+          <AppLayout user={user}>
+            {({ selectedDog }) => (
+              <HealthContent user={user} selectedDog={selectedDog} />
+            )}
+          </AppLayout>
+        );
+      };
 
 export default HealthHub;
