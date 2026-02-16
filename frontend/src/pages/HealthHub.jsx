@@ -153,37 +153,18 @@ const HealthContent = ({ user, selectedDog }) => {
   }
 
   return (
-    <AppLayout user={user}>
-      {({ selectedDog }) => {
-        useEffect(() => {
-          if (selectedDog) {
-            fetchRecords(selectedDog.dog_id);
-          }
-        }, [selectedDog]);
-
-        if (!selectedDog) {
-          return (
-            <div className="text-center py-16" data-testid="no-dog-message">
-              <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h2 className="font-heading font-semibold text-xl mb-2">No Dog Selected</h2>
-              <p className="text-muted-foreground">Please add a dog from the dashboard to track health.</p>
-            </div>
-          );
-        }
-
-        return (
-          <div className="space-y-8 animate-fade-in" data-testid="health-hub">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="font-heading font-bold text-2xl sm:text-3xl text-foreground">
-                  Health Hub
-                </h1>
-                <p className="text-muted-foreground mt-1">
-                  Track {selectedDog.name}'s health records and symptoms
-                </p>
-              </div>
-            </div>
+    <div className="space-y-8 animate-fade-in" data-testid="health-hub">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="font-heading font-bold text-2xl sm:text-3xl text-foreground">
+            Health Hub
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Track {selectedDog.name}'s health records and symptoms
+          </p>
+        </div>
+      </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="bg-accent p-1 rounded-full">
