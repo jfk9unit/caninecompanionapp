@@ -1,0 +1,163 @@
+{
+  "brand_identity": {
+    "name": "CanineCompass",
+    "tone": "Trustworthy, Energetic, Organized, Encouraging",
+    "archetype": "Organic & Earthy (Modernized)",
+    "keywords": ["Growth", "Bond", "Clarity", "Health", "Play"]
+  },
+  "typography": {
+    "headings": {
+      "family": "Outfit, sans-serif",
+      "weights": ["600", "700"],
+      "usage": "Use for all section titles, hero text, and card headings. Tracking tight (-0.02em)."
+    },
+    "body": {
+      "family": "DM Sans, sans-serif",
+      "weights": ["400", "500"],
+      "usage": "Use for paragraphs, labels, and UI text. High legibility."
+    },
+    "monospaced": {
+      "family": "JetBrains Mono, monospace",
+      "usage": "Use for data values (IDs, specific metrics) or 'technical' labels."
+    }
+  },
+  "colors": {
+    "primary": {
+      "DEFAULT": "#166534", 
+      "foreground": "#FFFFFF",
+      "hover": "#14532D",
+      "description": "Forest Green - Represents health, nature, growth."
+    },
+    "secondary": {
+      "DEFAULT": "#F97316",
+      "foreground": "#FFFFFF",
+      "hover": "#EA580C",
+      "description": "Sunset Orange - Represents play, energy, training alerts."
+    },
+    "accent": {
+      "DEFAULT": "#F3F4F6",
+      "foreground": "#1F2937",
+      "description": "Soft Grey/Mist - For backgrounds to reduce eye strain."
+    },
+    "background": "#FFFFFF",
+    "foreground": "#1F2937",
+    "muted": "#9CA3AF",
+    "border": "#E5E7EB",
+    "success": "#22C55E",
+    "warning": "#EAB308",
+    "error": "#EF4444"
+  },
+  "visual_enhancers": {
+    "radius": {
+      "default": "1rem (16px)",
+      "sm": "0.5rem (8px)",
+      "lg": "1.5rem (24px)",
+      "full": "9999px"
+    },
+    "shadows": {
+      "card": "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
+      "hover": "0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)",
+      "float": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+    },
+    "glassmorphism": {
+      "nav": "bg-white/80 backdrop-blur-md border-b border-gray-100",
+      "overlay": "bg-black/20 backdrop-blur-sm"
+    },
+    "gradients": {
+      "hero": "bg-gradient-to-br from-green-50 to-orange-50",
+      "primary_action": "bg-gradient-to-r from-green-700 to-green-600"
+    }
+  },
+  "layout_strategies": {
+    "dashboard_grid": {
+      "type": "Bento Grid (Mode B)",
+      "classes": "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6",
+      "description": "Use high density grid for data. Spanning rules: Summary (1x1), Charts (2x2), Feed (1x2)."
+    },
+    "landing_grid": {
+      "type": "Tetris Grid (Mode A)",
+      "classes": "grid grid-cols-1 md:grid-cols-12 gap-8",
+      "description": "Asymmetrical layout for visual interest. Mix text-heavy blocks with image blocks."
+    },
+    "spacing": {
+      "container": "container mx-auto px-4 sm:px-6 lg:px-8",
+      "section_vertical": "py-16 md:py-24",
+      "card_padding": "p-6 md:p-8"
+    }
+  },
+  "component_rules": {
+    "buttons": {
+      "styles": "rounded-full font-semibold transition-transform active:scale-95",
+      "primary": "bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20",
+      "secondary": "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50",
+      "ghost": "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+    },
+    "cards": {
+      "styles": "bg-white rounded-2xl border border-gray-100 shadow-card hover:shadow-hover transition-shadow duration-300",
+      "content_spacing": "p-6 space-y-4"
+    },
+    "inputs": {
+      "styles": "rounded-xl border-gray-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+    }
+  },
+  "gamification_elements": {
+    "progress_bars": "Use 'h-3 rounded-full bg-gray-100' with 'bg-primary' indicator. Add striped animation for active states.",
+    "badges": "Small pill-shaped tags. 'bg-green-100 text-green-700' for success, 'bg-orange-100 text-orange-700' for training levels.",
+    "streaks": "Fire icon (Lucide) with count. Animate 'pulse' on update."
+  },
+  "assets": {
+    "icons": {
+      "library": "lucide-react",
+      "style": "Stroke width 1.5px or 2px. Rounded caps.",
+      "usage": "Use specifically for navigation and actions. Use Emojis SPARINGLY (only for user content)."
+    },
+    "images": {
+      "hero_main": "https://images.unsplash.com/photo-1648304889006-ab61f5e7d124?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "activity_play": "https://images.unsplash.com/photo-1646640238205-e3c5bb4ba9d9?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "travel_walk": "https://images.unsplash.com/photo-1668522907255-62950845ff46?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "travel_beach": "https://images.unsplash.com/photo-1648210322850-f8b67288cfd7?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "training_field": "https://images.unsplash.com/photo-1638766211363-96560786b7c1?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "snow_dog_1": "https://images.unsplash.com/photo-1649938027263-8426cb19b0f3?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "snow_dog_group": "https://images.unsplash.com/photo-1669222075956-5bc3399593cd?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "snow_dog_2": "https://images.unsplash.com/photo-1611865442379-9438f192ab4b?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "snow_dog_3": "https://images.unsplash.com/photo-1669222074613-5775be64030c?crop=entropy&cs=srgb&fm=jpg&q=85"
+    }
+  },
+  "accessibility": {
+    "contrast_check": "Ensure all text on 'primary' background is White. Text on 'accent' background must be Gray-900.",
+    "focus_states": "All interactive elements must have 'focus-visible:ring-2 focus-visible:ring-offset-2 ring-primary'.",
+    "text_size": "Minimum body text size 16px (text-base). Labels can be 14px (text-sm)."
+  },
+  "motion": {
+    "page_transition": "initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}",
+    "hover_lift": "hover:-translate-y-1 transition-transform duration-200",
+    "button_tap": "active:scale-95 transition-transform duration-100"
+  },
+  "instructions_to_main_agent": [
+    "Install 'lucide-react' for icons.",
+    "Use 'Outfit' font from Google Fonts for headings (import in index.css).",
+    "Use 'DM Sans' font from Google Fonts for body (import in index.css).",
+    "Implement the 'Bento Grid' for the Dashboard page to show 'Daily Tasks', 'Health Status', 'Training Progress' simultaneously.",
+    "Use the provided image URLs for specific sections. 'Hero Main' for Landing Page, 'Activity Play' for Games section.",
+    "Do NOT use gradients for text. Keep text solid for readability.",
+    "Use 'sonner' for all toast notifications (success/error).",
+    "Ensure the 'Travel Checklist' uses checkbox components with strikethrough animation on completion.",
+    "Health records should look like a medical timeline (clean, vertical line, dates on left).",
+    "Training modules should use a 'Level' card system (Beginner -> Advanced) with progress bars.",
+    "Update tailwind.config.js to include the custom colors (Forest Green, Sunset Orange)."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. Avoid this.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
+    "Don't make generic centered layouts. Use grids.",
+    "Every interaction needs micro-animations.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Subtle grain textures, noise overlays, custom cursors separates good from extraordinary.",
+    "Main agent relies on these image URLs. Missing categories = main agent will use placeholder text which is FORBIDDEN.",
+    "Prioritize using pre-existing components from src/components/ui when applicable.",
+    "Components MUST use named exports.",
+    "Pages MUST use default exports.",
+    "Use 'sonner' for toasts.",
+    "Add 'data-testid' to all interactive elements."
+  ]
+}
