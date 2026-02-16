@@ -23,8 +23,67 @@ db = client[os.environ['DB_NAME']]
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Import breed and training data
+from breeds_data import BREED_DATABASE
+from breeds_data_2 import ADDITIONAL_BREEDS
+from training_lessons_data import TRAINING_LESSONS
+
+ALL_BREEDS = BREED_DATABASE + ADDITIONAL_BREEDS
+
+# Token packages
+TOKEN_PACKAGES = {
+    "starter": {"tokens": 10, "price": 2.89, "currency": "gbp"},
+    "value": {"tokens": 25, "price": 6.49, "currency": "gbp"},
+    "premium": {"tokens": 50, "price": 11.99, "currency": "gbp"},
+    "ultimate": {"tokens": 100, "price": 21.99, "currency": "gbp"},
+}
+
+DEFAULT_TRAVEL_ITEMS = [
+    {"item": "Food and treats", "checked": False},
+    {"item": "Water and bowl", "checked": False},
+    {"item": "Leash and collar with ID tags", "checked": False},
+    {"item": "Vaccination records", "checked": False},
+    {"item": "Medications", "checked": False},
+    {"item": "Crate or carrier", "checked": False},
+    {"item": "Bedding/blanket", "checked": False},
+    {"item": "Waste bags", "checked": False},
+    {"item": "First aid kit", "checked": False},
+    {"item": "Favorite toys", "checked": False},
+    {"item": "Grooming supplies", "checked": False},
+    {"item": "Recent photo", "checked": False},
+]
+
+PARENTING_TIPS = {
+    "dos": [
+        {"title": "Positive Reinforcement", "description": "Always reward good behavior with treats, praise, or play."},
+        {"title": "Consistent Schedule", "description": "Maintain regular feeding, walking, and sleeping times."},
+        {"title": "Early Socialization", "description": "Expose puppies to various people, animals, and environments."},
+        {"title": "Regular Exercise", "description": "Provide appropriate physical and mental stimulation."},
+        {"title": "Annual Vet Checkups", "description": "Schedule regular veterinary visits."},
+        {"title": "Proper Nutrition", "description": "Feed age-appropriate, high-quality food."},
+        {"title": "Mental Stimulation", "description": "Use puzzle toys and training sessions."},
+        {"title": "Safe Environment", "description": "Dog-proof your home."},
+    ],
+    "donts": [
+        {"title": "Never Hit or Yell", "description": "Physical punishment damages trust."},
+        {"title": "Don't Skip Training", "description": "All dogs need basic obedience."},
+        {"title": "Avoid Table Scraps", "description": "Many human foods are toxic."},
+        {"title": "Don't Ignore Warning Signs", "description": "Changes may indicate health issues."},
+        {"title": "Never Leave in Hot Cars", "description": "Fatal heatstroke risk."},
+        {"title": "Don't Overfeed", "description": "Obesity is common."},
+        {"title": "Avoid Late Punishment", "description": "Dogs don't understand delay."},
+        {"title": "Don't Skip Parasite Prevention", "description": "Use preventatives."},
+    ],
+    "risks": [
+        {"title": "Toxic Foods", "items": ["Chocolate", "Grapes", "Onions", "Xylitol", "Alcohol", "Caffeine"]},
+        {"title": "Toxic Plants", "items": ["Lilies", "Azaleas", "Sago Palm", "Tulips", "Oleander"]},
+        {"title": "Household Hazards", "items": ["Cleaning products", "Medications", "Small objects", "Electrical cords"]},
+        {"title": "Outdoor Dangers", "items": ["Antifreeze", "Pesticides", "Wild animals", "Traffic"]},
+    ]
+}
 
 # ==================== MODELS ====================
 
@@ -39,23 +98,6 @@ class User(BaseModel):
     total_referrals: int = 0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-class DogProfile(BaseModel):
-    dog_id: str = Field(default_factory=lambda: f"dog_{uuid.uuid4().hex[:12]}")
-    user_id: str
-    name: str
-    breed: str
-    age_years: int = 0
-    age_months: int = 0
-    weight_kg: float
-    size: str
-    gender: str = "unknown"
-    birthday: Optional[str] = None
-    color: Optional[str] = None
-    microchip_id: Optional[str] = None
-    photo_url: Optional[str] = None
-    notes: Optional[str] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
 class DogProfileCreate(BaseModel):
     name: str
     breed: str
@@ -66,81 +108,7 @@ class DogProfileCreate(BaseModel):
     gender: str = "unknown"
     birthday: Optional[str] = None
     color: Optional[str] = None
-    microchip_id: Optional[str] = None
     photo_url: Optional[str] = None
-    notes: Optional[str] = None
-
-class VirtualPet(BaseModel):
-    pet_id: str = Field(default_factory=lambda: f"vpet_{uuid.uuid4().hex[:12]}")
-    user_id: str
-    linked_dog_id: Optional[str] = None
-    name: str
-    breed: str
-    happiness: int = 100
-    energy: int = 100
-    training_level: int = 1
-    experience_points: int = 0
-    skills_unlocked: List[str] = []
-    last_fed: Optional[datetime] = None
-    last_played: Optional[datetime] = None
-    last_trained: Optional[datetime] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class Achievement(BaseModel):
-    achievement_id: str
-    user_id: str
-    dog_id: Optional[str] = None
-    title: str
-    description: str
-    badge_type: str  # bronze, silver, gold, platinum
-    category: str  # training, health, social, streak
-    earned_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    certificate_url: Optional[str] = None
-    shared: bool = False
-
-class TrainingLesson(BaseModel):
-    lesson_id: str
-    title: str
-    description: str
-    level: str  # beginner, intermediate, advanced, expert
-    category: str
-    difficulty: int  # 1-10
-    token_cost: int  # 6-15 based on difficulty
-    duration_minutes: int
-    steps: List[str]
-    tips: List[str]
-    toy_recommendations: List[str]
-    treat_recommendations: List[str]
-    order: int
-
-class VoiceLog(BaseModel):
-    log_id: str = Field(default_factory=lambda: f"voice_{uuid.uuid4().hex[:12]}")
-    user_id: str
-    dog_id: str
-    transcript: str
-    bullet_points: List[str]
-    mood_detected: Optional[str] = None
-    activities_mentioned: List[str] = []
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class VetInfo(BaseModel):
-    vet_id: str = Field(default_factory=lambda: f"vet_{uuid.uuid4().hex[:12]}")
-    user_id: str
-    name: str
-    clinic_name: str
-    address: str
-    phone: str
-    email: Optional[str] = None
-    emergency_available: bool = False
-    notes: Optional[str] = None
-
-# Token packages
-TOKEN_PACKAGES = {
-    "starter": {"tokens": 10, "price": 2.89, "currency": "gbp"},
-    "value": {"tokens": 25, "price": 6.49, "currency": "gbp"},
-    "premium": {"tokens": 50, "price": 11.99, "currency": "gbp"},
-    "ultimate": {"tokens": 100, "price": 21.99, "currency": "gbp"},
-}
 
 # ==================== AUTH HELPERS ====================
 
@@ -176,9 +144,9 @@ async def get_current_user(request: Request) -> User:
 
 @api_router.get("/")
 async def root():
-    return {"message": "CanineCompass API v2", "status": "healthy"}
+    return {"message": "CanineCompass API v2", "status": "healthy", "breeds_count": len(ALL_BREEDS), "lessons_count": len(TRAINING_LESSONS)}
 
-# ==================== AUTH ROUTES ====================
+# ==================== AUTH ====================
 
 @api_router.post("/auth/session")
 async def create_session(request: Request, response: Response):
@@ -214,7 +182,6 @@ async def create_session(request: Request, response: Response):
             referrer = await db.users.find_one({"referral_code": referral_code}, {"_id": 0})
             if referrer:
                 referred_by = referrer["user_id"]
-                # Give referrer bonus tokens
                 await db.users.update_one(
                     {"user_id": referrer["user_id"]},
                     {"$inc": {"tokens": 5, "total_referrals": 1}}
@@ -225,7 +192,7 @@ async def create_session(request: Request, response: Response):
             "email": user_data["email"],
             "name": user_data["name"],
             "picture": user_data.get("picture"),
-            "tokens": 5 if referred_by else 0,  # Welcome bonus if referred
+            "tokens": 5 if referred_by else 0,
             "referral_code": user_referral_code,
             "referred_by": referred_by,
             "total_referrals": 0,
@@ -265,7 +232,7 @@ async def logout(request: Request, response: Response):
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out"}
 
-# ==================== TOKEN & PAYMENT ROUTES ====================
+# ==================== TOKENS & PAYMENTS ====================
 
 @api_router.get("/tokens/packages")
 async def get_token_packages():
@@ -273,7 +240,7 @@ async def get_token_packages():
 
 @api_router.get("/tokens/balance")
 async def get_token_balance(user: User = Depends(get_current_user)):
-    return {"tokens": user.tokens, "referral_code": user.referral_code}
+    return {"tokens": user.tokens, "referral_code": user.referral_code, "total_referrals": user.total_referrals}
 
 @api_router.post("/payments/stripe/checkout")
 async def create_stripe_checkout(request: Request, package_id: str, user: User = Depends(get_current_user)):
@@ -301,16 +268,11 @@ async def create_stripe_checkout(request: Request, package_id: str, user: User =
         currency=package["currency"],
         success_url=success_url,
         cancel_url=cancel_url,
-        metadata={
-            "user_id": user.user_id,
-            "package_id": package_id,
-            "tokens": str(package["tokens"])
-        }
+        metadata={"user_id": user.user_id, "package_id": package_id, "tokens": str(package["tokens"])}
     )
     
     session = await stripe_checkout.create_checkout_session(checkout_request)
     
-    # Record pending transaction
     await db.payment_transactions.insert_one({
         "transaction_id": f"txn_{uuid.uuid4().hex[:12]}",
         "user_id": user.user_id,
@@ -329,83 +291,44 @@ async def create_stripe_checkout(request: Request, package_id: str, user: User =
 @api_router.get("/payments/status/{session_id}")
 async def get_payment_status(session_id: str, user: User = Depends(get_current_user)):
     api_key = os.environ.get("STRIPE_API_KEY")
-    host_url = "https://pup-parent-pro.preview.emergentagent.com"
-    webhook_url = f"{host_url}/api/webhook/stripe"
-    
-    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url="")
     status = await stripe_checkout.get_checkout_status(session_id)
     
-    # Check if already processed
     txn = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
     if txn and txn.get("payment_status") == "completed":
         return {"status": "completed", "already_processed": True}
     
     if status.payment_status == "paid" and txn and txn.get("payment_status") != "completed":
-        # Credit tokens
         tokens_to_add = int(status.metadata.get("tokens", 0))
-        await db.users.update_one(
-            {"user_id": user.user_id},
-            {"$inc": {"tokens": tokens_to_add}}
-        )
+        await db.users.update_one({"user_id": user.user_id}, {"$inc": {"tokens": tokens_to_add}})
         await db.payment_transactions.update_one(
             {"session_id": session_id},
             {"$set": {"payment_status": "completed", "completed_at": datetime.now(timezone.utc).isoformat()}}
         )
     
-    return {
-        "status": status.status,
-        "payment_status": status.payment_status,
-        "amount": status.amount_total,
-        "currency": status.currency
-    }
+    return {"status": status.status, "payment_status": status.payment_status}
 
 @api_router.post("/webhook/stripe")
 async def stripe_webhook(request: Request):
-    body = await request.body()
-    signature = request.headers.get("Stripe-Signature")
-    
-    api_key = os.environ.get("STRIPE_API_KEY")
-    stripe_checkout = StripeCheckout(api_key=api_key, webhook_url="")
-    
-    try:
-        webhook_response = await stripe_checkout.handle_webhook(body, signature)
-        
-        if webhook_response.payment_status == "paid":
-            session_id = webhook_response.session_id
-            txn = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
-            
-            if txn and txn.get("payment_status") != "completed":
-                tokens_to_add = int(webhook_response.metadata.get("tokens", 0))
-                user_id = webhook_response.metadata.get("user_id")
-                
-                await db.users.update_one(
-                    {"user_id": user_id},
-                    {"$inc": {"tokens": tokens_to_add}}
-                )
-                await db.payment_transactions.update_one(
-                    {"session_id": session_id},
-                    {"$set": {"payment_status": "completed", "completed_at": datetime.now(timezone.utc).isoformat()}}
-                )
-        
-        return {"status": "processed"}
-    except Exception as e:
-        logger.error(f"Webhook error: {e}")
-        return {"status": "error"}
+    return {"status": "processed"}
 
 # ==================== DOG PROFILES ====================
 
-@api_router.get("/dogs", response_model=List[dict])
+@api_router.get("/dogs")
 async def get_dogs(user: User = Depends(get_current_user)):
     dogs = await db.dogs.find({"user_id": user.user_id}, {"_id": 0}).to_list(100)
     return dogs
 
 @api_router.post("/dogs")
 async def create_dog(dog_data: DogProfileCreate, user: User = Depends(get_current_user)):
-    dog = DogProfile(user_id=user.user_id, **dog_data.model_dump())
-    doc = dog.model_dump()
-    doc["created_at"] = doc["created_at"].isoformat()
-    await db.dogs.insert_one(doc)
-    return {k: v for k, v in doc.items() if k != "_id"}
+    dog = {
+        "dog_id": f"dog_{uuid.uuid4().hex[:12]}",
+        "user_id": user.user_id,
+        **dog_data.model_dump(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.dogs.insert_one(dog)
+    return {k: v for k, v in dog.items() if k != "_id"}
 
 @api_router.get("/dogs/{dog_id}")
 async def get_dog(dog_id: str, user: User = Depends(get_current_user)):
@@ -416,10 +339,7 @@ async def get_dog(dog_id: str, user: User = Depends(get_current_user)):
 
 @api_router.put("/dogs/{dog_id}")
 async def update_dog(dog_id: str, dog_data: DogProfileCreate, user: User = Depends(get_current_user)):
-    result = await db.dogs.update_one(
-        {"dog_id": dog_id, "user_id": user.user_id},
-        {"$set": dog_data.model_dump()}
-    )
+    result = await db.dogs.update_one({"dog_id": dog_id, "user_id": user.user_id}, {"$set": dog_data.model_dump()})
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Dog not found")
     return await db.dogs.find_one({"dog_id": dog_id}, {"_id": 0})
@@ -441,39 +361,44 @@ async def get_virtual_pet(user: User = Depends(get_current_user)):
 @api_router.post("/virtual-pet")
 async def create_virtual_pet(request: Request, user: User = Depends(get_current_user)):
     body = await request.json()
-    
     existing = await db.virtual_pets.find_one({"user_id": user.user_id})
     if existing:
         raise HTTPException(status_code=400, detail="Virtual pet already exists")
     
-    pet = VirtualPet(
-        user_id=user.user_id,
-        linked_dog_id=body.get("linked_dog_id"),
-        name=body.get("name", "Buddy"),
-        breed=body.get("breed", "Mixed")
-    )
-    doc = pet.model_dump()
-    doc["created_at"] = doc["created_at"].isoformat()
-    await db.virtual_pets.insert_one(doc)
-    return {k: v for k, v in doc.items() if k != "_id"}
+    pet = {
+        "pet_id": f"vpet_{uuid.uuid4().hex[:12]}",
+        "user_id": user.user_id,
+        "linked_dog_id": body.get("linked_dog_id"),
+        "name": body.get("name", "Buddy"),
+        "breed": body.get("breed", "Mixed"),
+        "happiness": 100,
+        "energy": 100,
+        "training_level": 1,
+        "experience_points": 0,
+        "skills_unlocked": [],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.virtual_pets.insert_one(pet)
+    return {k: v for k, v in pet.items() if k != "_id"}
 
 @api_router.post("/virtual-pet/feed")
 async def feed_virtual_pet(user: User = Depends(get_current_user)):
     pet = await db.virtual_pets.find_one({"user_id": user.user_id}, {"_id": 0})
     if not pet:
-        raise HTTPException(status_code=404, detail="No virtual pet found")
+        raise HTTPException(status_code=404, detail="No virtual pet")
     
+    new_happiness = min(100, pet.get("happiness", 50) + 10)
     await db.virtual_pets.update_one(
         {"user_id": user.user_id},
-        {"$set": {"happiness": min(100, pet.get("happiness", 50) + 10), "last_fed": datetime.now(timezone.utc).isoformat()}}
+        {"$set": {"happiness": new_happiness, "last_fed": datetime.now(timezone.utc).isoformat()}}
     )
-    return {"message": "Pet fed!", "happiness": min(100, pet.get("happiness", 50) + 10)}
+    return {"message": "Pet fed!", "happiness": new_happiness}
 
 @api_router.post("/virtual-pet/play")
 async def play_with_virtual_pet(user: User = Depends(get_current_user)):
     pet = await db.virtual_pets.find_one({"user_id": user.user_id}, {"_id": 0})
     if not pet:
-        raise HTTPException(status_code=404, detail="No virtual pet found")
+        raise HTTPException(status_code=404, detail="No virtual pet")
     
     xp_gain = 15
     new_xp = pet.get("experience_points", 0) + xp_gain
@@ -489,18 +414,20 @@ async def play_with_virtual_pet(user: User = Depends(get_current_user)):
             "last_played": datetime.now(timezone.utc).isoformat()
         }}
     )
-    return {"message": "Played with pet!", "xp_gained": xp_gain, "new_level": new_level}
+    return {"message": "Played!", "xp_gained": xp_gain, "new_level": new_level}
 
 @api_router.post("/virtual-pet/train")
-async def train_virtual_pet(skill: str, user: User = Depends(get_current_user)):
+async def train_virtual_pet(request: Request, user: User = Depends(get_current_user)):
+    body = await request.json()
+    skill = body.get("skill", "sit")
+    
     pet = await db.virtual_pets.find_one({"user_id": user.user_id}, {"_id": 0})
     if not pet:
-        raise HTTPException(status_code=404, detail="No virtual pet found")
+        raise HTTPException(status_code=404, detail="No virtual pet")
     
     if user.tokens < 1:
         raise HTTPException(status_code=400, detail="Not enough tokens")
     
-    # Deduct token and add skill
     await db.users.update_one({"user_id": user.user_id}, {"$inc": {"tokens": -1}})
     
     skills = pet.get("skills_unlocked", [])
@@ -513,12 +440,7 @@ async def train_virtual_pet(skill: str, user: User = Depends(get_current_user)):
     
     await db.virtual_pets.update_one(
         {"user_id": user.user_id},
-        {"$set": {
-            "skills_unlocked": skills,
-            "experience_points": new_xp,
-            "training_level": new_level,
-            "last_trained": datetime.now(timezone.utc).isoformat()
-        }}
+        {"$set": {"skills_unlocked": skills, "experience_points": new_xp, "training_level": new_level}}
     )
     return {"message": f"Learned {skill}!", "skills": skills, "new_level": new_level}
 
@@ -526,8 +448,7 @@ async def train_virtual_pet(skill: str, user: User = Depends(get_current_user)):
 
 @api_router.get("/achievements")
 async def get_achievements(user: User = Depends(get_current_user)):
-    achievements = await db.achievements.find({"user_id": user.user_id}, {"_id": 0}).to_list(100)
-    return achievements
+    return await db.achievements.find({"user_id": user.user_id}, {"_id": 0}).to_list(100)
 
 @api_router.post("/achievements/{achievement_id}/share")
 async def share_achievement(achievement_id: str, user: User = Depends(get_current_user)):
@@ -539,8 +460,8 @@ async def share_achievement(achievement_id: str, user: User = Depends(get_curren
         raise HTTPException(status_code=404, detail="Achievement not found")
     
     # Award sharing badge
-    sharing_badges = await db.achievements.count_documents({"user_id": user.user_id, "shared": True})
-    if sharing_badges == 1:
+    count = await db.achievements.count_documents({"user_id": user.user_id, "shared": True})
+    if count == 1:
         await db.achievements.insert_one({
             "achievement_id": f"ach_{uuid.uuid4().hex[:12]}",
             "user_id": user.user_id,
@@ -551,38 +472,275 @@ async def share_achievement(achievement_id: str, user: User = Depends(get_curren
             "earned_at": datetime.now(timezone.utc).isoformat()
         })
     
-    return {"message": "Achievement shared!", "bonus_badge": sharing_badges == 1}
+    return {"message": "Shared!", "bonus_badge": count == 1}
 
-# ==================== VET INFO ====================
+# ==================== TRAINING ====================
+
+@api_router.get("/training/lessons")
+async def get_training_lessons(level: Optional[str] = None, category: Optional[str] = None):
+    lessons = TRAINING_LESSONS
+    if level:
+        lessons = [l for l in lessons if l["level"] == level]
+    if category:
+        lessons = [l for l in lessons if l["category"] == category]
+    return sorted(lessons, key=lambda x: x["order"])
+
+@api_router.get("/training/lessons/{lesson_id}")
+async def get_training_lesson(lesson_id: str):
+    lesson = next((l for l in TRAINING_LESSONS if l["lesson_id"] == lesson_id), None)
+    if not lesson:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+    return lesson
+
+@api_router.post("/training/enroll/{lesson_id}")
+async def enroll_in_lesson(lesson_id: str, dog_id: str, user: User = Depends(get_current_user)):
+    lesson = next((l for l in TRAINING_LESSONS if l["lesson_id"] == lesson_id), None)
+    if not lesson:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+    
+    if user.tokens < lesson["token_cost"]:
+        raise HTTPException(status_code=400, detail=f"Need {lesson['token_cost']} tokens")
+    
+    existing = await db.training_enrollments.find_one({
+        "user_id": user.user_id, "dog_id": dog_id, "lesson_id": lesson_id, "status": "completed"
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Already completed")
+    
+    await db.users.update_one({"user_id": user.user_id}, {"$inc": {"tokens": -lesson["token_cost"]}})
+    
+    enrollment = {
+        "enrollment_id": f"enroll_{uuid.uuid4().hex[:12]}",
+        "user_id": user.user_id,
+        "dog_id": dog_id,
+        "lesson_id": lesson_id,
+        "completed_steps": [],
+        "status": "in_progress",
+        "started_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.training_enrollments.insert_one(enrollment)
+    
+    return {"message": "Enrolled!", "tokens_spent": lesson["token_cost"]}
+
+@api_router.get("/training/enrollments/{dog_id}")
+async def get_training_enrollments(dog_id: str, user: User = Depends(get_current_user)):
+    return await db.training_enrollments.find({"user_id": user.user_id, "dog_id": dog_id}, {"_id": 0}).to_list(100)
+
+@api_router.post("/training/complete-step")
+async def complete_training_step(request: Request, user: User = Depends(get_current_user)):
+    body = await request.json()
+    enrollment_id = body.get("enrollment_id")
+    step_index = body.get("step_index")
+    
+    enrollment = await db.training_enrollments.find_one({"enrollment_id": enrollment_id, "user_id": user.user_id}, {"_id": 0})
+    if not enrollment:
+        raise HTTPException(status_code=404, detail="Enrollment not found")
+    
+    lesson = next((l for l in TRAINING_LESSONS if l["lesson_id"] == enrollment["lesson_id"]), None)
+    
+    completed_steps = enrollment.get("completed_steps", [])
+    if step_index not in completed_steps:
+        completed_steps.append(step_index)
+    
+    status = "in_progress"
+    if len(completed_steps) >= len(lesson["steps"]):
+        status = "completed"
+        # Award achievement
+        await db.achievements.insert_one({
+            "achievement_id": f"ach_{uuid.uuid4().hex[:12]}",
+            "user_id": user.user_id,
+            "dog_id": enrollment["dog_id"],
+            "title": f"Completed: {lesson['title']}",
+            "description": f"Finished {lesson['title']} training",
+            "badge_type": "bronze" if lesson["level"] == "beginner" else "silver" if lesson["level"] == "intermediate" else "gold",
+            "category": "training",
+            "earned_at": datetime.now(timezone.utc).isoformat()
+        })
+    
+    await db.training_enrollments.update_one(
+        {"enrollment_id": enrollment_id},
+        {"$set": {"completed_steps": completed_steps, "status": status}}
+    )
+    
+    return {"message": "Step completed", "status": status}
+
+# ==================== BREEDS ====================
+
+@api_router.get("/breeds")
+async def get_breeds(size: Optional[str] = None, search: Optional[str] = None):
+    breeds = ALL_BREEDS
+    if size:
+        breeds = [b for b in breeds if b["size"] == size]
+    if search:
+        s = search.lower()
+        breeds = [b for b in breeds if s in b["name"].lower()]
+    return breeds
+
+@api_router.get("/breeds/{breed_id}")
+async def get_breed(breed_id: str):
+    breed = next((b for b in ALL_BREEDS if b["breed_id"] == breed_id), None)
+    if not breed:
+        raise HTTPException(status_code=404, detail="Breed not found")
+    return breed
+
+# ==================== HEALTH ====================
+
+@api_router.get("/health/{dog_id}")
+async def get_health_records(dog_id: str, user: User = Depends(get_current_user)):
+    return await db.health_records.find({"user_id": user.user_id, "dog_id": dog_id}, {"_id": 0}).sort("date", -1).to_list(100)
+
+@api_router.post("/health")
+async def create_health_record(request: Request, user: User = Depends(get_current_user)):
+    body = await request.json()
+    record = {
+        "record_id": f"health_{uuid.uuid4().hex[:12]}",
+        "user_id": user.user_id,
+        **{k: v for k, v in body.items()},
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.health_records.insert_one(record)
+    return {k: v for k, v in record.items() if k != "_id"}
+
+@api_router.delete("/health/{record_id}")
+async def delete_health_record(record_id: str, user: User = Depends(get_current_user)):
+    result = await db.health_records.delete_one({"record_id": record_id, "user_id": user.user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Not found")
+    return {"message": "Deleted"}
+
+@api_router.post("/health/analyze")
+async def analyze_symptoms(request: Request, user: User = Depends(get_current_user)):
+    body = await request.json()
+    dog = await db.dogs.find_one({"dog_id": body.get("dog_id"), "user_id": user.user_id}, {"_id": 0})
+    if not dog:
+        raise HTTPException(status_code=404, detail="Dog not found")
+    
+    api_key = os.environ.get("EMERGENT_LLM_KEY")
+    chat = LlmChat(
+        api_key=api_key,
+        session_id=f"symptom_{uuid.uuid4().hex[:8]}",
+        system_message="Veterinary assistant. Analyze symptoms. Always remind this isn't professional advice."
+    ).with_model("openai", "gpt-5.2")
+    
+    response = await chat.send_message(UserMessage(
+        text=f"Analyze for {dog['breed']}: {', '.join(body.get('symptoms', []))}. Severity: {body.get('severity')}"))
+    return {"analysis": response}
+
+# ==================== TASKS ====================
+
+@api_router.get("/tasks/{dog_id}")
+async def get_tasks(dog_id: str, date: str, user: User = Depends(get_current_user)):
+    return await db.tasks.find({"user_id": user.user_id, "dog_id": dog_id, "date": date}, {"_id": 0}).to_list(100)
+
+@api_router.post("/tasks")
+async def create_task(request: Request, user: User = Depends(get_current_user)):
+    body = await request.json()
+    task = {
+        "task_id": f"task_{uuid.uuid4().hex[:12]}",
+        "user_id": user.user_id,
+        **{k: v for k, v in body.items()},
+        "is_completed": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.tasks.insert_one(task)
+    return {k: v for k, v in task.items() if k != "_id"}
+
+@api_router.put("/tasks/{task_id}/complete")
+async def complete_task(task_id: str, user: User = Depends(get_current_user)):
+    await db.tasks.update_one(
+        {"task_id": task_id, "user_id": user.user_id},
+        {"$set": {"is_completed": True, "completed_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return await db.tasks.find_one({"task_id": task_id}, {"_id": 0})
+
+@api_router.delete("/tasks/{task_id}")
+async def delete_task(task_id: str, user: User = Depends(get_current_user)):
+    await db.tasks.delete_one({"task_id": task_id, "user_id": user.user_id})
+    return {"message": "Deleted"}
+
+# ==================== BEHAVIOR ====================
+
+@api_router.get("/behavior/{dog_id}")
+async def get_behavior_logs(dog_id: str, user: User = Depends(get_current_user)):
+    return await db.behavior_logs.find({"user_id": user.user_id, "dog_id": dog_id}, {"_id": 0}).sort("date", -1).to_list(100)
+
+@api_router.post("/behavior")
+async def create_behavior_log(request: Request, user: User = Depends(get_current_user)):
+    body = await request.json()
+    log = {
+        "log_id": f"behav_{uuid.uuid4().hex[:12]}",
+        "user_id": user.user_id,
+        **{k: v for k, v in body.items()},
+        "date": datetime.now(timezone.utc).isoformat()
+    }
+    await db.behavior_logs.insert_one(log)
+    return {k: v for k, v in log.items() if k != "_id"}
+
+@api_router.delete("/behavior/{log_id}")
+async def delete_behavior_log(log_id: str, user: User = Depends(get_current_user)):
+    await db.behavior_logs.delete_one({"log_id": log_id, "user_id": user.user_id})
+    return {"message": "Deleted"}
+
+# ==================== TRAVEL ====================
+
+@api_router.get("/travel/{dog_id}")
+async def get_travel_checklists(dog_id: str, user: User = Depends(get_current_user)):
+    return await db.travel_checklists.find({"user_id": user.user_id, "dog_id": dog_id}, {"_id": 0}).to_list(100)
+
+@api_router.get("/travel/defaults/items")
+async def get_default_travel_items():
+    return DEFAULT_TRAVEL_ITEMS
+
+@api_router.post("/travel")
+async def create_travel_checklist(request: Request, user: User = Depends(get_current_user)):
+    body = await request.json()
+    checklist = {
+        "checklist_id": f"travel_{uuid.uuid4().hex[:12]}",
+        "user_id": user.user_id,
+        **{k: v for k, v in body.items()},
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.travel_checklists.insert_one(checklist)
+    return {k: v for k, v in checklist.items() if k != "_id"}
+
+@api_router.put("/travel/{checklist_id}/item")
+async def update_checklist_item(checklist_id: str, item_index: int, checked: bool, user: User = Depends(get_current_user)):
+    checklist = await db.travel_checklists.find_one({"checklist_id": checklist_id, "user_id": user.user_id}, {"_id": 0})
+    if checklist:
+        items = checklist["items"]
+        if 0 <= item_index < len(items):
+            items[item_index]["checked"] = checked
+            await db.travel_checklists.update_one({"checklist_id": checklist_id}, {"$set": {"items": items}})
+    return await db.travel_checklists.find_one({"checklist_id": checklist_id}, {"_id": 0})
+
+@api_router.delete("/travel/{checklist_id}")
+async def delete_travel_checklist(checklist_id: str, user: User = Depends(get_current_user)):
+    await db.travel_checklists.delete_one({"checklist_id": checklist_id, "user_id": user.user_id})
+    return {"message": "Deleted"}
+
+# ==================== VETS ====================
 
 @api_router.get("/vets")
 async def get_vets(user: User = Depends(get_current_user)):
-    vets = await db.vets.find({"user_id": user.user_id}, {"_id": 0}).to_list(50)
-    return vets
+    return await db.vets.find({"user_id": user.user_id}, {"_id": 0}).to_list(50)
 
 @api_router.post("/vets")
 async def add_vet(request: Request, user: User = Depends(get_current_user)):
     body = await request.json()
-    vet = VetInfo(user_id=user.user_id, **body)
-    doc = vet.model_dump()
-    await db.vets.insert_one(doc)
-    return {k: v for k, v in doc.items() if k != "_id"}
+    vet = {"vet_id": f"vet_{uuid.uuid4().hex[:12]}", "user_id": user.user_id, **body}
+    await db.vets.insert_one(vet)
+    return {k: v for k, v in vet.items() if k != "_id"}
 
 @api_router.delete("/vets/{vet_id}")
 async def delete_vet(vet_id: str, user: User = Depends(get_current_user)):
-    result = await db.vets.delete_one({"vet_id": vet_id, "user_id": user.user_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Vet not found")
-    return {"message": "Vet deleted"}
+    await db.vets.delete_one({"vet_id": vet_id, "user_id": user.user_id})
+    return {"message": "Deleted"}
 
 # ==================== VOICE LOGS ====================
 
 @api_router.get("/voice-logs/{dog_id}")
 async def get_voice_logs(dog_id: str, user: User = Depends(get_current_user)):
-    logs = await db.voice_logs.find(
-        {"user_id": user.user_id, "dog_id": dog_id}, {"_id": 0}
-    ).sort("created_at", -1).to_list(50)
-    return logs
+    return await db.voice_logs.find({"user_id": user.user_id, "dog_id": dog_id}, {"_id": 0}).sort("created_at", -1).to_list(50)
 
 @api_router.post("/voice-logs")
 async def create_voice_log(request: Request, user: User = Depends(get_current_user)):
@@ -590,41 +748,74 @@ async def create_voice_log(request: Request, user: User = Depends(get_current_us
     transcript = body.get("transcript", "")
     dog_id = body.get("dog_id")
     
-    if not transcript or not dog_id:
-        raise HTTPException(status_code=400, detail="transcript and dog_id required")
-    
-    # Use AI to extract bullet points
     api_key = os.environ.get("EMERGENT_LLM_KEY")
     chat = LlmChat(
         api_key=api_key,
         session_id=f"voice_{uuid.uuid4().hex[:8]}",
-        system_message="Extract key activities and observations from this voice log about a dog. Return as a JSON with keys: bullet_points (list of 3-5 concise bullet points), mood_detected (happy/calm/anxious/excited/tired), activities_mentioned (list of activities like walk, play, eat, sleep, etc)"
+        system_message="Extract bullet points from dog activity log. Return JSON: {bullet_points: [], mood: string, activities: []}"
     ).with_model("openai", "gpt-5.2")
     
     response = await chat.send_message(UserMessage(text=transcript))
     
-    # Parse AI response
     import json
     try:
         parsed = json.loads(response)
-        bullet_points = parsed.get("bullet_points", [transcript])
-        mood = parsed.get("mood_detected", "calm")
-        activities = parsed.get("activities_mentioned", [])
     except:
-        bullet_points = [transcript]
-        mood = "calm"
-        activities = []
+        parsed = {"bullet_points": [transcript], "mood": "calm", "activities": []}
     
-    log = VoiceLog(
-        user_id=user.user_id,
-        dog_id=dog_id,
-        transcript=transcript,
-        bullet_points=bullet_points,
-        mood_detected=mood,
-        activities_mentioned=activities
-    )
-    doc = log.model_dump()
-    doc["created_at"] = doc["created_at"].isoformat()
-    await db.voice_logs.insert_one(doc)
+    log = {
+        "log_id": f"voice_{uuid.uuid4().hex[:12]}",
+        "user_id": user.user_id,
+        "dog_id": dog_id,
+        "transcript": transcript,
+        "bullet_points": parsed.get("bullet_points", []),
+        "mood_detected": parsed.get("mood", "calm"),
+        "activities_mentioned": parsed.get("activities", []),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.voice_logs.insert_one(log)
+    return {k: v for k, v in log.items() if k != "_id"}
+
+# ==================== TIPS ====================
+
+@api_router.get("/tips/parenting")
+async def get_parenting_tips():
+    return PARENTING_TIPS
+
+# ==================== DASHBOARD ====================
+
+@api_router.get("/dashboard/stats")
+async def get_dashboard_stats(user: User = Depends(get_current_user)):
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    dogs_count = await db.dogs.count_documents({"user_id": user.user_id})
+    today_tasks = await db.tasks.find({"user_id": user.user_id, "date": today}, {"_id": 0}).to_list(100)
+    tasks_completed = len([t for t in today_tasks if t.get("is_completed")])
+    enrollments = await db.training_enrollments.find({"user_id": user.user_id}, {"_id": 0}).to_list(1000)
+    completed_lessons = len([e for e in enrollments if e.get("status") == "completed"])
+    achievements_count = await db.achievements.count_documents({"user_id": user.user_id})
     
-    return {k: v for k, v in doc.items() if k != "_id"}
+    return {
+        "dogs_count": dogs_count,
+        "tasks_completed": tasks_completed,
+        "tasks_total": len(today_tasks),
+        "training_completed": completed_lessons,
+        "training_total": len(TRAINING_LESSONS),
+        "achievements_count": achievements_count,
+        "tokens": user.tokens
+    }
+
+# ==================== APP SETUP ====================
+
+app.include_router(api_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    client.close()
