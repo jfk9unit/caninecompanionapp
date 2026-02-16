@@ -1,52 +1,188 @@
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Toaster } from "@/components/ui/sonner";
+
+// Pages
+import { LandingPage } from "@/pages/LandingPage";
+import { Dashboard } from "@/pages/Dashboard";
+import { TrainingCenter } from "@/pages/TrainingCenter";
+import { HealthHub } from "@/pages/HealthHub";
+import { BreedExplorer } from "@/pages/BreedExplorer";
+import { DailyActivities } from "@/pages/DailyActivities";
+import { BehaviorTracker } from "@/pages/BehaviorTracker";
+import { TravelPlanner } from "@/pages/TravelPlanner";
+import { TipsResources } from "@/pages/TipsResources";
+import { DogProfile } from "@/pages/DogProfile";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+export const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
+// Auth Context
+export const AuthContext = ({ children }) => {
+  const location = useLocation();
+  
+  // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+  // Check URL fragment for session_id synchronously during render
+  if (location.hash?.includes('session_id=')) {
+    return <AuthCallback />;
+  }
+  
+  return children;
+};
+
+// Auth Callback Component
+const AuthCallback = () => {
+  const navigate = useNavigate();
+  const hasProcessed = useRef(false);
 
   useEffect(() => {
-    helloWorldApi();
-  }, []);
+    if (hasProcessed.current) return;
+    hasProcessed.current = true;
+
+    const processAuth = async () => {
+      const hash = window.location.hash;
+      const sessionId = new URLSearchParams(hash.substring(1)).get('session_id');
+      
+      if (!sessionId) {
+        navigate('/', { replace: true });
+        return;
+      }
+
+      try {
+        const response = await axios.post(`${API}/auth/session`, 
+          { session_id: sessionId },
+          { withCredentials: true }
+        );
+        
+        // Clear the hash and navigate to dashboard with user data
+        window.history.replaceState({}, document.title, window.location.pathname);
+        navigate('/dashboard', { replace: true, state: { user: response.data } });
+      } catch (error) {
+        console.error('Auth error:', error);
+        navigate('/', { replace: true });
+      }
+    };
+
+    processAuth();
+  }, [navigate]);
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
+    <div className="min-h-screen flex items-center justify-center bg-accent">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-muted-foreground">Signing you in...</p>
+      </div>
     </div>
   );
 };
+
+// Protected Route Component
+export const ProtectedRoute = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Skip if user data was passed from AuthCallback
+    if (location.state?.user) {
+      setUser(location.state.user);
+      setIsAuthenticated(true);
+      return;
+    }
+
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get(`${API}/auth/me`, { withCredentials: true });
+        setUser(response.data);
+        setIsAuthenticated(true);
+      } catch (error) {
+        setIsAuthenticated(false);
+        navigate('/', { replace: true });
+      }
+    };
+
+    checkAuth();
+  }, [navigate, location.state]);
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-accent">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return null;
+
+  // Clone children and pass user prop
+  return typeof children === 'function' ? children({ user }) : children;
+};
+
+function AppRouter() {
+  return (
+    <AuthContext>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            {({ user }) => <Dashboard user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/training" element={
+          <ProtectedRoute>
+            {({ user }) => <TrainingCenter user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/health" element={
+          <ProtectedRoute>
+            {({ user }) => <HealthHub user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/breeds" element={
+          <ProtectedRoute>
+            {({ user }) => <BreedExplorer user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/activities" element={
+          <ProtectedRoute>
+            {({ user }) => <DailyActivities user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/behavior" element={
+          <ProtectedRoute>
+            {({ user }) => <BehaviorTracker user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/travel" element={
+          <ProtectedRoute>
+            {({ user }) => <TravelPlanner user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/tips" element={
+          <ProtectedRoute>
+            {({ user }) => <TipsResources user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/dog/:dogId" element={
+          <ProtectedRoute>
+            {({ user }) => <DogProfile user={user} />}
+          </ProtectedRoute>
+        } />
+      </Routes>
+    </AuthContext>
+  );
+}
 
 function App() {
   return (
     <div className="App">
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
+        <AppRouter />
       </BrowserRouter>
+      <Toaster position="top-right" richColors />
     </div>
   );
 }
