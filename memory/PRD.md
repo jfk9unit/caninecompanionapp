@@ -102,6 +102,20 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - Parenting Do's (8) and Don'ts (8)
 - Risk awareness: toxic foods, plants, household hazards, outdoor dangers
 
+### 14. Leaderboard & Competitions (NEW)
+- Overall rankings combining all metrics
+- Category-specific leaderboards (Training, Pet XP, Achievements)
+- Top 3 podium display with medals
+- Personal rank and score breakdown
+- 5 Weekly challenges:
+  - Training Master: Complete 3 lessons (+5 tokens)
+  - Daily Dedication: 5 consecutive days of tasks (+8 tokens)
+  - Health Hero: Log 2 health records (+3 tokens)
+  - Pet Lover: Play with pet 10 times (+5 tokens)
+  - Social Star: Share 2 achievements (+4 tokens)
+- Challenge claiming with token rewards
+- Score formula: training*10 + achievements*5 + pet_xp + referrals*15
+
 ## API Endpoints
 
 ### Auth
@@ -136,6 +150,12 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - GET /api/achievements - List user achievements
 - POST /api/achievements/{id}/share - Share achievement
 
+### Leaderboard & Competitions
+- GET /api/leaderboard - Get rankings (filter by category: overall/training/pet/achievements)
+- GET /api/leaderboard/my-rank - Get current user's rank and breakdown
+- GET /api/competitions/challenges - Get weekly challenges with progress
+- POST /api/competitions/claim/{challenge_id} - Claim challenge reward
+
 ### Voice Logs
 - GET /api/voice-logs/{dog_id} - Get voice logs
 - POST /api/voice-logs - Create voice log (with AI analysis)
@@ -169,12 +189,15 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - voice_logs
 - payment_transactions
 
+- challenge_claims
+
 ## Completed (Feb 2026)
 - [x] V1 Core features (Auth, Dogs, Training, Health, Breeds, Activities, Behavior, Travel, Tips)
 - [x] V2 Token Shop with Stripe integration
 - [x] V2 Virtual Pet game with skills
 - [x] V2 Achievements with certificates
 - [x] V2 Voice Activity logging with AI
+- [x] V2 Leaderboard & Weekly Competitions
 - [x] 132 dog breeds in database
 - [x] 75 training lessons with categorization
 - [x] Referral system
