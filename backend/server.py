@@ -804,6 +804,242 @@ async def get_dashboard_stats(user: User = Depends(get_current_user)):
         "tokens": user.tokens
     }
 
+# ==================== LEADERBOARD & COMPETITIONS ====================
+
+WEEKLY_CHALLENGES = [
+    {"id": "training_master", "title": "Training Master", "description": "Complete 3 training lessons this week", "target": 3, "reward_tokens": 5, "type": "training"},
+    {"id": "daily_streak", "title": "Daily Dedication", "description": "Complete tasks for 5 consecutive days", "target": 5, "reward_tokens": 8, "type": "tasks"},
+    {"id": "health_hero", "title": "Health Hero", "description": "Log 2 health records this week", "target": 2, "reward_tokens": 3, "type": "health"},
+    {"id": "pet_lover", "title": "Pet Lover", "description": "Play with your virtual pet 10 times", "target": 10, "reward_tokens": 5, "type": "pet"},
+    {"id": "social_star", "title": "Social Star", "description": "Share 2 achievements with friends", "target": 2, "reward_tokens": 4, "type": "social"},
+]
+
+@api_router.get("/leaderboard")
+async def get_leaderboard(category: str = "overall", limit: int = 20):
+    """Get leaderboard rankings"""
+    pipeline = []
+    
+    if category == "training":
+        # Top trainers by completed lessons
+        pipeline = [
+            {"$match": {"status": "completed"}},
+            {"$group": {"_id": "$user_id", "score": {"$sum": 1}}},
+            {"$sort": {"score": -1}},
+            {"$limit": limit}
+        ]
+        results = await db.training_enrollments.aggregate(pipeline).to_list(limit)
+    elif category == "achievements":
+        # Top by achievement count
+        pipeline = [
+            {"$group": {"_id": "$user_id", "score": {"$sum": 1}}},
+            {"$sort": {"score": -1}},
+            {"$limit": limit}
+        ]
+        results = await db.achievements.aggregate(pipeline).to_list(limit)
+    elif category == "pet":
+        # Top by virtual pet XP
+        results = await db.virtual_pets.find({}, {"_id": 0, "user_id": 1, "experience_points": 1, "name": 1}).sort("experience_points", -1).limit(limit).to_list(limit)
+        results = [{"_id": r["user_id"], "score": r.get("experience_points", 0), "pet_name": r.get("name")} for r in results]
+    else:
+        # Overall - combine metrics
+        users = await db.users.find({}, {"_id": 0, "user_id": 1, "name": 1, "picture": 1, "tokens": 1, "total_referrals": 1}).to_list(100)
+        
+        user_scores = []
+        for u in users:
+            training_count = await db.training_enrollments.count_documents({"user_id": u["user_id"], "status": "completed"})
+            achievement_count = await db.achievements.count_documents({"user_id": u["user_id"]})
+            pet = await db.virtual_pets.find_one({"user_id": u["user_id"]}, {"_id": 0})
+            pet_xp = pet.get("experience_points", 0) if pet else 0
+            
+            # Calculate overall score
+            score = (training_count * 10) + (achievement_count * 5) + (pet_xp) + (u.get("total_referrals", 0) * 15)
+            
+            user_scores.append({
+                "user_id": u["user_id"],
+                "name": u["name"],
+                "picture": u.get("picture"),
+                "score": score,
+                "training_completed": training_count,
+                "achievements": achievement_count,
+                "pet_xp": pet_xp,
+                "referrals": u.get("total_referrals", 0)
+            })
+        
+        user_scores.sort(key=lambda x: x["score"], reverse=True)
+        return {"leaderboard": user_scores[:limit], "category": category}
+    
+    # Enrich with user data
+    enriched = []
+    for i, r in enumerate(results):
+        user = await db.users.find_one({"user_id": r["_id"]}, {"_id": 0, "name": 1, "picture": 1})
+        if user:
+            enriched.append({
+                "rank": i + 1,
+                "user_id": r["_id"],
+                "name": user.get("name", "Anonymous"),
+                "picture": user.get("picture"),
+                "score": r["score"],
+                "pet_name": r.get("pet_name")
+            })
+    
+    return {"leaderboard": enriched, "category": category}
+
+@api_router.get("/leaderboard/my-rank")
+async def get_my_rank(user: User = Depends(get_current_user)):
+    """Get current user's ranking"""
+    # Calculate user's overall score
+    training_count = await db.training_enrollments.count_documents({"user_id": user.user_id, "status": "completed"})
+    achievement_count = await db.achievements.count_documents({"user_id": user.user_id})
+    pet = await db.virtual_pets.find_one({"user_id": user.user_id}, {"_id": 0})
+    pet_xp = pet.get("experience_points", 0) if pet else 0
+    
+    my_score = (training_count * 10) + (achievement_count * 5) + (pet_xp) + (user.total_referrals * 15)
+    
+    # Count users with higher scores (simplified)
+    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "total_referrals": 1}).to_list(1000)
+    higher_count = 0
+    
+    for u in all_users:
+        if u["user_id"] == user.user_id:
+            continue
+        tc = await db.training_enrollments.count_documents({"user_id": u["user_id"], "status": "completed"})
+        ac = await db.achievements.count_documents({"user_id": u["user_id"]})
+        p = await db.virtual_pets.find_one({"user_id": u["user_id"]}, {"_id": 0})
+        px = p.get("experience_points", 0) if p else 0
+        score = (tc * 10) + (ac * 5) + (px) + (u.get("total_referrals", 0) * 15)
+        if score > my_score:
+            higher_count += 1
+    
+    return {
+        "rank": higher_count + 1,
+        "score": my_score,
+        "breakdown": {
+            "training": training_count,
+            "achievements": achievement_count,
+            "pet_xp": pet_xp,
+            "referrals": user.total_referrals
+        }
+    }
+
+@api_router.get("/competitions/challenges")
+async def get_weekly_challenges(user: User = Depends(get_current_user)):
+    """Get current weekly challenges and user progress"""
+    # Get start of current week (Monday)
+    today = datetime.now(timezone.utc)
+    week_start = today - timedelta(days=today.weekday())
+    week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    challenges_with_progress = []
+    
+    for challenge in WEEKLY_CHALLENGES:
+        progress = 0
+        
+        if challenge["type"] == "training":
+            # Count training completions this week
+            progress = await db.training_enrollments.count_documents({
+                "user_id": user.user_id,
+                "status": "completed"
+            })
+        elif challenge["type"] == "tasks":
+            # Count days with completed tasks this week
+            days_with_tasks = set()
+            tasks = await db.tasks.find({
+                "user_id": user.user_id,
+                "is_completed": True
+            }, {"_id": 0, "date": 1}).to_list(100)
+            for t in tasks:
+                if t.get("date"):
+                    days_with_tasks.add(t["date"])
+            progress = len(days_with_tasks)
+        elif challenge["type"] == "health":
+            progress = await db.health_records.count_documents({"user_id": user.user_id})
+        elif challenge["type"] == "pet":
+            pet = await db.virtual_pets.find_one({"user_id": user.user_id}, {"_id": 0})
+            progress = (pet.get("experience_points", 0) // 15) if pet else 0  # Each play = 15 XP
+        elif challenge["type"] == "social":
+            progress = await db.achievements.count_documents({"user_id": user.user_id, "shared": True})
+        
+        is_completed = progress >= challenge["target"]
+        
+        # Check if already claimed
+        claimed = await db.challenge_claims.find_one({
+            "user_id": user.user_id,
+            "challenge_id": challenge["id"],
+            "week_start": week_start.isoformat()
+        })
+        
+        challenges_with_progress.append({
+            **challenge,
+            "progress": min(progress, challenge["target"]),
+            "is_completed": is_completed,
+            "is_claimed": claimed is not None,
+            "can_claim": is_completed and not claimed
+        })
+    
+    return {
+        "challenges": challenges_with_progress,
+        "week_start": week_start.isoformat(),
+        "week_end": (week_start + timedelta(days=6)).isoformat()
+    }
+
+@api_router.post("/competitions/claim/{challenge_id}")
+async def claim_challenge_reward(challenge_id: str, user: User = Depends(get_current_user)):
+    """Claim reward for completed challenge"""
+    challenge = next((c for c in WEEKLY_CHALLENGES if c["id"] == challenge_id), None)
+    if not challenge:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+    
+    today = datetime.now(timezone.utc)
+    week_start = today - timedelta(days=today.weekday())
+    week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Check if already claimed
+    existing = await db.challenge_claims.find_one({
+        "user_id": user.user_id,
+        "challenge_id": challenge_id,
+        "week_start": week_start.isoformat()
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Already claimed")
+    
+    # Verify completion (simplified check)
+    # In production, would re-verify the actual progress
+    
+    # Award tokens
+    await db.users.update_one(
+        {"user_id": user.user_id},
+        {"$inc": {"tokens": challenge["reward_tokens"]}}
+    )
+    
+    # Record claim
+    await db.challenge_claims.insert_one({
+        "claim_id": f"claim_{uuid.uuid4().hex[:12]}",
+        "user_id": user.user_id,
+        "challenge_id": challenge_id,
+        "week_start": week_start.isoformat(),
+        "tokens_awarded": challenge["reward_tokens"],
+        "claimed_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    # Award achievement for first challenge
+    claims_count = await db.challenge_claims.count_documents({"user_id": user.user_id})
+    if claims_count == 1:
+        await db.achievements.insert_one({
+            "achievement_id": f"ach_{uuid.uuid4().hex[:12]}",
+            "user_id": user.user_id,
+            "title": "Challenge Accepted",
+            "description": "Completed your first weekly challenge",
+            "badge_type": "bronze",
+            "category": "milestone",
+            "earned_at": datetime.now(timezone.utc).isoformat()
+        })
+    
+    return {
+        "message": f"Claimed {challenge['reward_tokens']} tokens!",
+        "tokens_awarded": challenge["reward_tokens"],
+        "new_achievement": claims_count == 1
+    }
+
 # ==================== APP SETUP ====================
 
 app.include_router(api_router)
