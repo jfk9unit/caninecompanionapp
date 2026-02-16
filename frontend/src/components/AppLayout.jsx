@@ -29,17 +29,21 @@ import {
   LogOut,
   Menu,
   ChevronDown,
+  Coins,
+  Sparkles,
+  Trophy,
+  Mic,
 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/training", label: "Training", icon: GraduationCap },
+  { href: "/pet", label: "Pet", icon: Sparkles },
   { href: "/health", label: "Health", icon: Heart },
-  { href: "/breeds", label: "Breeds", icon: PawPrint },
   { href: "/activities", label: "Activities", icon: Calendar },
-  { href: "/behavior", label: "Behavior", icon: Activity },
-  { href: "/travel", label: "Travel", icon: Plane },
-  { href: "/tips", label: "Tips", icon: BookOpen },
+  { href: "/voice-log", label: "Voice Log", icon: Mic },
+  { href: "/achievements", label: "Awards", icon: Trophy },
+  { href: "/tokens", label: "Shop", icon: Coins },
 ];
 
 export const AppLayout = ({ user, children }) => {
