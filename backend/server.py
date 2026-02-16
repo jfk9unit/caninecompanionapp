@@ -196,6 +196,12 @@ async def get_current_user(request: Request) -> User:
     
     return User(**user_doc)
 
+# ==================== ROOT ROUTE ====================
+
+@api_router.get("/")
+async def root():
+    return {"message": "CanineCompass API", "status": "healthy"}
+
 # ==================== AUTH ROUTES ====================
 
 @api_router.post("/auth/session")
