@@ -92,13 +92,6 @@ export const TrainingCenter = ({ user }) => {
   return (
     <AppLayout user={user}>
       {({ dogs, selectedDog }) => {
-        // Move useEffect logic outside render callback
-        const TrainingCenterContent = () => {
-          useEffect(() => {
-            if (selectedDog) {
-              fetchProgress(selectedDog.dog_id);
-            }
-          }, [selectedDog]);
 
         if (!selectedDog) {
           return (
