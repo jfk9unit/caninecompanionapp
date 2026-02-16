@@ -58,7 +58,7 @@ export const AppLayout = ({ user, children }) => {
       try {
         const response = await axios.get(`${API}/dogs`, { withCredentials: true });
         setDogs(response.data);
-        if (response.data.length > 0 && !selectedDog) {
+        if (response.data.length > 0) {
           const storedDogId = localStorage.getItem('selectedDogId');
           const dog = response.data.find(d => d.dog_id === storedDogId) || response.data[0];
           setSelectedDog(dog);
@@ -68,6 +68,7 @@ export const AppLayout = ({ user, children }) => {
       }
     };
     fetchDogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSelectDog = (dog) => {

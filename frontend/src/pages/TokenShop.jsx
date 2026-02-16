@@ -42,11 +42,11 @@ export const TokenShop = ({ user }) => {
 
   useEffect(() => {
     fetchData();
-    // Check for payment success
     const sessionId = searchParams.get('session_id');
     if (sessionId) {
       checkPaymentStatus(sessionId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const fetchData = async () => {
