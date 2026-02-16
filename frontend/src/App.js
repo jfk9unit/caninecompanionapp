@@ -15,6 +15,10 @@ import { BehaviorTracker } from "@/pages/BehaviorTracker";
 import { TravelPlanner } from "@/pages/TravelPlanner";
 import { TipsResources } from "@/pages/TipsResources";
 import { DogProfile } from "@/pages/DogProfile";
+import { TokenShop } from "@/pages/TokenShop";
+import { VirtualPet } from "@/pages/VirtualPet";
+import { Achievements } from "@/pages/Achievements";
+import { VoiceLog } from "@/pages/VoiceLog";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -169,6 +173,26 @@ function AppRouter() {
         <Route path="/dog/:dogId" element={
           <ProtectedRoute>
             {({ user }) => <DogProfile user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/tokens" element={
+          <ProtectedRoute>
+            {({ user }) => <TokenShop user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/pet" element={
+          <ProtectedRoute>
+            {({ user }) => <VirtualPet user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/achievements" element={
+          <ProtectedRoute>
+            {({ user }) => <Achievements user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/voice-log" element={
+          <ProtectedRoute>
+            {({ user }) => <VoiceLog user={user} />}
           </ProtectedRoute>
         } />
       </Routes>
