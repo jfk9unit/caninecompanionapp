@@ -736,17 +736,17 @@ export const VirtualPet = ({ user }) => {
     setIsExercising(true);
     setCurrentAction('exercise');
     
-    // Play sounds based on exercise type
+    // Play realistic sounds based on exercise type
     if (soundEnabled) {
       if (exercise.id === 'walk' || exercise.id === 'run') {
-        soundManager.footsteps(exercise.id === 'run' ? 6 : 4);
-        soundManager.bark('happy');
+        audioManager.play('running');
+        audioManager.barkHappy();
       } else if (exercise.id === 'swim') {
-        soundManager.splash();
-        setTimeout(() => soundManager.pant(), 500);
+        audioManager.play('drinking');
+        setTimeout(() => audioManager.pant(), 500);
       } else if (exercise.id === 'agility') {
-        soundManager.bark('excited');
-        soundManager.footsteps(6);
+        audioManager.barkExcited();
+        audioManager.play('running');
       }
     }
     
@@ -756,7 +756,7 @@ export const VirtualPet = ({ user }) => {
       
       // Panting after exercise
       if (soundEnabled) {
-        setTimeout(() => soundManager.pant(), 800);
+        setTimeout(() => audioManager.pant(), 800);
       }
       
       await fetchPet();
@@ -766,7 +766,7 @@ export const VirtualPet = ({ user }) => {
       }, 2000);
     } catch (error) {
       toast.error('Exercise failed - pet needs more energy!');
-      if (soundEnabled) soundManager.whimper();
+      if (soundEnabled) audioManager.whimper();
       setIsExercising(false);
       setCurrentAction(null);
     } finally {
@@ -779,15 +779,15 @@ export const VirtualPet = ({ user }) => {
     setCurrentAction('rest');
     
     if (soundEnabled) {
-      soundManager.bark('sleepy');
-      setTimeout(() => soundManager.snore(), 1000);
+      audioManager.whine();
+      setTimeout(() => audioManager.snore(), 1000);
     }
     
     toast.success(`${pet.name} is taking a nap... 💤`);
     setTimeout(() => {
       setIsSleeping(false);
       setCurrentAction(null);
-      if (soundEnabled) soundManager.bark('happy');
+      if (soundEnabled) audioManager.barkHappy();
       toast.success(`${pet.name} woke up refreshed! ☀️`);
     }, 5000);
   };
@@ -797,7 +797,7 @@ export const VirtualPet = ({ user }) => {
     setCurrentAction('rest');
     
     if (soundEnabled) {
-      soundManager.bark('sleepy');
+      audioManager.whine();
     }
     
     toast.success(`${pet.name} is relaxing... 😌`);
