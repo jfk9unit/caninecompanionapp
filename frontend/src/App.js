@@ -220,6 +220,16 @@ function AppRouter() {
             {({ user }) => <NotificationSettings user={user} />}
           </ProtectedRoute>
         } />
+        <Route path="/admin/promo-codes" element={
+          <ProtectedRoute>
+            {({ user }) => <AdminPromoCodes user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/redeem" element={
+          <ProtectedRoute>
+            {({ user }) => <TokenShop user={user} />}
+          </ProtectedRoute>
+        } />
       </Routes>
     </AuthContext>
   );
