@@ -464,14 +464,16 @@ export const BookK9Trainer = ({ user }) => {
                               <SelectContent>
                                 {sessionType === "virtual" ? (
                                   <>
-                                    <SelectItem value="30min">30 Minutes - £29.99</SelectItem>
-                                    <SelectItem value="60min">1 Hour - £45.00</SelectItem>
+                                    <SelectItem value="30min">30 Minutes - £44.99</SelectItem>
+                                    <SelectItem value="60min">1 Hour - £67.50</SelectItem>
                                   </>
+                                ) : sessionType === "emergency" ? (
+                                  <SelectItem value="emergency">24/7 Emergency (24-48hr) - £1,349.99</SelectItem>
                                 ) : (
                                   <>
-                                    <SelectItem value="60min">1 Hour - £179.99</SelectItem>
-                                    <SelectItem value="120min">2 Hours - £320.00</SelectItem>
-                                    <SelectItem value="180min">3 Hours Intensive - £420.00</SelectItem>
+                                    <SelectItem value="60min">1 Hour - From £150</SelectItem>
+                                    <SelectItem value="120min">2 Hours - £480.00</SelectItem>
+                                    <SelectItem value="180min">3 Hours Intensive - £630.00</SelectItem>
                                   </>
                                 )}
                               </SelectContent>
