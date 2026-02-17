@@ -3552,7 +3552,7 @@ async def get_user_equipment_enquiries(user: User = Depends(get_current_user)):
 
 # ==================== STRIPE CHECKOUT FOR COURSES & TRAINERS ====================
 
-from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutSessionRequest
+# Note: StripeCheckout, CheckoutSessionResponse, CheckoutSessionRequest already imported at top of file
 
 class TrainerCheckoutRequest(BaseModel):
     trainer_id: str
