@@ -28,13 +28,6 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# PayPal Configuration (Sandbox for testing)
-paypalrestsdk.configure({
-    "mode": os.environ.get("PAYPAL_MODE", "sandbox"),
-    "client_id": os.environ.get("PAYPAL_CLIENT_ID", ""),
-    "client_secret": os.environ.get("PAYPAL_CLIENT_SECRET", "")
-})
-
 # Resend Email Configuration
 resend.api_key = os.environ.get("RESEND_API_KEY", "")
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
