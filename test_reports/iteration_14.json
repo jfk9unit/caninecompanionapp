@@ -96,7 +96,7 @@
         {"name": "virtual_pet_promo.png", "size": "1.2MB", "dimensions": "1024x1024", "http_status": 200},
         {"name": "k9_credentials_badge.png", "size": "1.2MB", "http_status": 200}
       ],
-      "public_url_format": "https://canine-coach-test.preview.emergentagent.com/playstore-assets/{filename}"
+      "public_url_format": "https://k9-academy.preview.emergentagent.com/playstore-assets/{filename}"
     }
   },
   "authentication_status": {
