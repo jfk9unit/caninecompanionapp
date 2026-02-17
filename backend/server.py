@@ -168,6 +168,24 @@ class PromoCodeCreate(BaseModel):
 class PromoCodeRedeem(BaseModel):
     code: str
 
+# Password Reset Models
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class PasswordResetVerify(BaseModel):
+    email: EmailStr
+    code: str
+    new_password: str
+
+class EmailPasswordLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class EmailPasswordRegister(BaseModel):
+    email: EmailStr
+    password: str
+    name: str
+
 # Admin emails - add your admin emails here
 ADMIN_EMAILS = [
     "admin@caninecompass.app",
