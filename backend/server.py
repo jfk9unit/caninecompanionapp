@@ -3551,6 +3551,252 @@ async def get_user_equipment_enquiries(user: User = Depends(get_current_user)):
     
     return {"enquiries": enquiries}
 
+# ==================== EQUIPMENT BASKET & CHECKOUT ====================
+
+class BasketItem(BaseModel):
+    product_id: str
+    quantity: int = 1
+    size: Optional[str] = None
+    color: Optional[str] = None
+
+class EquipmentBasketRequest(BaseModel):
+    items: List[BasketItem]
+    delivery_type: str = "standard"  # "standard" or "express"
+
+class EquipmentCheckoutRequest(BaseModel):
+    items: List[BasketItem]
+    delivery_type: str = "standard"
+    origin_url: str
+
+@api_router.post("/equipment/calculate-basket")
+async def calculate_equipment_basket(request: EquipmentBasketRequest):
+    """Calculate basket total with delivery costs and Pay Now discount"""
+    basket_items = []
+    subtotal = 0
+    delivery_total = 0
+    categories_in_basket = set()
+    
+    for item in request.items:
+        product = next((p for p in DOG_EQUIPMENT_CATALOG["products"] if p["product_id"] == item.product_id), None)
+        if not product:
+            continue
+        
+        item_total = round(product["display_price"] * item.quantity, 2)
+        subtotal += item_total
+        categories_in_basket.add(product["category"])
+        
+        basket_items.append({
+            "product_id": item.product_id,
+            "name": product["name"],
+            "category": product["category"],
+            "unit_price": product["display_price"],
+            "quantity": item.quantity,
+            "size": item.size,
+            "color": item.color,
+            "item_total": item_total,
+            "image_url": product["image_url"]
+        })
+    
+    # Calculate delivery costs - use highest delivery cost from categories in basket
+    free_shipping_threshold = DELIVERY_COSTS.get("free_shipping_threshold", 75.00)
+    delivery_key = request.delivery_type if request.delivery_type in ["standard", "express"] else "standard"
+    
+    if subtotal >= free_shipping_threshold and delivery_key == "standard":
+        delivery_total = 0
+        delivery_note = "Free standard delivery (orders over £75)"
+    else:
+        # Calculate highest delivery cost from all categories in basket
+        for category in categories_in_basket:
+            cat_delivery = DELIVERY_COSTS.get(category, {}).get(delivery_key, 5.99)
+            if cat_delivery > delivery_total:
+                delivery_total = cat_delivery
+        delivery_note = f"{'Express' if delivery_key == 'express' else 'Standard'} delivery"
+    
+    # Calculate totals
+    order_subtotal = round(subtotal, 2)
+    order_total = round(subtotal + delivery_total, 2)
+    
+    # Pay Now discount: 0.05%
+    pay_now_discount_rate = DELIVERY_COSTS.get("pay_now_discount_percentage", 0.05)
+    pay_now_discount = round(order_total * (pay_now_discount_rate / 100), 2)
+    pay_now_total = round(order_total - pay_now_discount, 2)
+    
+    return {
+        "basket_items": basket_items,
+        "summary": {
+            "items_count": len(basket_items),
+            "total_quantity": sum(item.quantity for item in request.items),
+            "subtotal": order_subtotal,
+            "delivery_type": delivery_key,
+            "delivery_cost": round(delivery_total, 2),
+            "delivery_note": delivery_note,
+            "order_total": order_total
+        },
+        "pay_now_option": {
+            "discount_percentage": pay_now_discount_rate,
+            "discount_amount": pay_now_discount,
+            "pay_now_total": pay_now_total,
+            "savings_note": f"Save £{pay_now_discount:.2f} with Pay Now ({pay_now_discount_rate}% discount)"
+        },
+        "free_shipping": {
+            "threshold": free_shipping_threshold,
+            "eligible": subtotal >= free_shipping_threshold,
+            "amount_needed": max(0, round(free_shipping_threshold - subtotal, 2))
+        }
+    }
+
+@api_router.post("/equipment/checkout")
+async def equipment_checkout(request: EquipmentCheckoutRequest, http_request: Request, user: User = Depends(get_current_user)):
+    """Create Stripe checkout for equipment purchase with Pay Now discount"""
+    # Calculate basket
+    basket_items = []
+    subtotal = 0
+    delivery_total = 0
+    categories_in_basket = set()
+    
+    for item in request.items:
+        product = next((p for p in DOG_EQUIPMENT_CATALOG["products"] if p["product_id"] == item.product_id), None)
+        if not product:
+            raise HTTPException(status_code=404, detail=f"Product {item.product_id} not found")
+        if not product.get("in_stock", False):
+            raise HTTPException(status_code=400, detail=f"{product['name']} is out of stock")
+        
+        item_total = round(product["display_price"] * item.quantity, 2)
+        subtotal += item_total
+        categories_in_basket.add(product["category"])
+        
+        basket_items.append({
+            "product_id": item.product_id,
+            "name": product["name"],
+            "unit_price": product["display_price"],
+            "quantity": item.quantity,
+            "size": item.size,
+            "color": item.color,
+            "item_total": item_total
+        })
+    
+    # Calculate delivery
+    free_shipping_threshold = DELIVERY_COSTS.get("free_shipping_threshold", 75.00)
+    delivery_key = request.delivery_type if request.delivery_type in ["standard", "express"] else "standard"
+    
+    if subtotal >= free_shipping_threshold and delivery_key == "standard":
+        delivery_total = 0
+    else:
+        for category in categories_in_basket:
+            cat_delivery = DELIVERY_COSTS.get(category, {}).get(delivery_key, 5.99)
+            if cat_delivery > delivery_total:
+                delivery_total = cat_delivery
+    
+    order_total = round(subtotal + delivery_total, 2)
+    
+    # Apply Pay Now discount
+    pay_now_discount_rate = DELIVERY_COSTS.get("pay_now_discount_percentage", 0.05)
+    pay_now_discount = round(order_total * (pay_now_discount_rate / 100), 2)
+    pay_now_total = round(order_total - pay_now_discount, 2)
+    
+    # Create order record
+    order_id = f"equip_order_{uuid.uuid4().hex[:12]}"
+    order_record = {
+        "order_id": order_id,
+        "user_id": user.user_id,
+        "user_email": user.email,
+        "user_name": user.name,
+        "items": basket_items,
+        "delivery_type": delivery_key,
+        "subtotal": subtotal,
+        "delivery_cost": round(delivery_total, 2),
+        "discount_applied": pay_now_discount,
+        "total_paid": pay_now_total,
+        "status": "pending_payment",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.equipment_orders.insert_one(order_record)
+    
+    # Create Stripe checkout
+    api_key = os.environ.get("STRIPE_API_KEY")
+    host_url = str(http_request.base_url).rstrip("/")
+    webhook_url = f"{host_url}/api/webhook/stripe"
+    
+    try:
+        stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+        
+        success_url = f"{request.origin_url}/equipment?success=true&session_id={{CHECKOUT_SESSION_ID}}&order_id={order_id}"
+        cancel_url = f"{request.origin_url}/equipment?cancelled=true"
+        
+        items_summary = ", ".join([f"{i['name']} x{i['quantity']}" for i in basket_items[:3]])
+        if len(basket_items) > 3:
+            items_summary += f" +{len(basket_items) - 3} more"
+        
+        checkout_request = CheckoutSessionRequest(
+            amount=pay_now_total,
+            currency="gbp",
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                "user_id": user.user_id,
+                "order_id": order_id,
+                "items_count": str(len(basket_items)),
+                "original_total": str(order_total),
+                "discount_applied": str(pay_now_discount)
+            }
+        )
+        
+        session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_request)
+        
+        await db.equipment_orders.update_one(
+            {"order_id": order_id},
+            {"$set": {"stripe_session_id": session.session_id}}
+        )
+        
+        return {
+            "order_id": order_id,
+            "checkout_url": session.url,
+            "session_id": session.session_id,
+            "order_summary": {
+                "items_count": len(basket_items),
+                "subtotal": subtotal,
+                "delivery_cost": round(delivery_total, 2),
+                "discount_applied": pay_now_discount,
+                "total_to_pay": pay_now_total
+            }
+        }
+    except Exception as e:
+        await db.equipment_orders.update_one(
+            {"order_id": order_id},
+            {"$set": {"status": "checkout_failed", "error": str(e)}}
+        )
+        raise HTTPException(status_code=500, detail=f"Failed to create checkout: {str(e)}")
+
+@api_router.get("/equipment/orders")
+async def get_user_equipment_orders(user: User = Depends(get_current_user)):
+    """Get user's equipment orders"""
+    orders = await db.equipment_orders.find(
+        {"user_id": user.user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(50)
+    
+    return {"orders": orders}
+
+@api_router.get("/equipment/delivery-info")
+async def get_delivery_info():
+    """Get delivery cost information"""
+    return {
+        "delivery_options": {
+            "standard": {
+                "name": "Standard Delivery",
+                "description": "3-5 business days",
+                "costs_by_category": {cat: DELIVERY_COSTS[cat]["standard"] for cat in DELIVERY_COSTS if isinstance(DELIVERY_COSTS[cat], dict) and "standard" in DELIVERY_COSTS[cat]}
+            },
+            "express": {
+                "name": "Express Delivery",
+                "description": "1-2 business days",
+                "costs_by_category": {cat: DELIVERY_COSTS[cat]["express"] for cat in DELIVERY_COSTS if isinstance(DELIVERY_COSTS[cat], dict) and "express" in DELIVERY_COSTS[cat]}
+            }
+        },
+        "free_shipping_threshold": DELIVERY_COSTS.get("free_shipping_threshold", 75.00),
+        "pay_now_discount": DELIVERY_COSTS.get("pay_now_discount_percentage", 0.05)
+    }
+
 # ==================== STRIPE CHECKOUT FOR COURSES & TRAINERS ====================
 
 # Note: StripeCheckout, CheckoutSessionResponse, CheckoutSessionRequest already imported at top of file
