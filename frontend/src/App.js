@@ -29,6 +29,10 @@ import { AdminDashboard } from "@/pages/AdminDashboard";
 import { PrivacyPolicy } from "@/pages/PrivacyPolicy";
 import { TermsOfService } from "@/pages/TermsOfService";
 import { CreatorAnalytics } from "@/pages/CreatorAnalytics";
+import { EliteNasduCourses } from "@/pages/EliteNasduCourses";
+import { NasduPretest } from "@/pages/NasduPretest";
+import { BookK9Trainer } from "@/pages/BookK9Trainer";
+import { ComingSoon } from "@/pages/ComingSoon";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
