@@ -468,13 +468,17 @@ export const BookK9Trainer = ({ user }) => {
                             className="w-full rounded-full"
                             data-testid="confirm-booking-btn"
                           >
-                            {booking ? "Booking..." : (
+                            {booking ? "Processing..." : (
                               <>
-                                <Calendar className="w-4 h-4 mr-2" />
-                                Confirm Booking - £{costBreakdown?.total.toFixed(2) || '...'}
+                                <CreditCard className="w-4 h-4 mr-2" />
+                                Pay & Book - £{costBreakdown?.total.toFixed(2) || '...'}
                               </>
                             )}
                           </Button>
+                          <p className="text-xs text-center text-muted-foreground mt-2">
+                            <Mail className="w-3 h-3 inline mr-1" />
+                            Confirmation email will be sent after payment
+                          </p>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
