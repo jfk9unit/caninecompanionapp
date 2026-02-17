@@ -37,7 +37,9 @@ import {
   Droplets,
   Wind,
   Cookie,
-  Hand
+  Hand,
+  Dog,
+  Siren
 } from "lucide-react";
 
 // Enhanced Animated K9 Pet Component with better graphics
