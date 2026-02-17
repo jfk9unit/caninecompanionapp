@@ -357,13 +357,33 @@ Build a comprehensive canine training and care app covering all levels of dog tr
   - K9 tier cards with images and descriptions
   - K9 skill cards with images and status indicators
   - Beautiful modal dialogs with image headers
+- [x] **Video Tutorials (Feb 17, 2026)**:
+  - Video tutorial section in lesson detail modals
+  - Thumbnail previews with play buttons
+  - Duration indicators
+  - MOCKED: Shows placeholder thumbnails, no actual YouTube embeds
+- [x] **Auto Login Reminders (Feb 17, 2026)**:
+  - Daily Login Reminders toggle in Notification Settings
+  - Pet Care Reminders for virtual K9
+  - Streak Alerts for training consistency
+- [x] **Enhanced Virtual Pet Tamagotchi (Feb 17, 2026)**:
+  - Animated SVG K9 German Shepherd with scenes (day/night)
+  - Animated sun, grass texture, stars at night
+  - Dog house when sleeping
+  - Tail wagging, bouncing, wiggle animations
+  - 4 Activity Tabs: Care, Play, Exercise, Train
+  - Care: Feed, Rest, Treat, Calm Music (ALL FREE)
+  - Play: Fetch, Tug of War, Chase, Belly Rubs (ALL FREE)
+  - Exercise: Walk, Run, Swimming, Agility Course (ALL FREE)
+  - Train: 12 skills (1 token each)
+  - Interactive progress bars with shimmer effects
+  - Level progress card with gradient design
 
 ## Backlog
 
 ### P1 (High Priority)
-- [ ] PayPal payment integration (user requested)
 - [ ] Photo uploads for dog profiles
-- [ ] Push notifications
+- [ ] Actual YouTube video integration for tutorials
 
 ### P2 (Medium Priority)
 - [ ] Training streaks/gamification bonuses
@@ -374,7 +394,7 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 ### P3 (Nice to Have)
 - [ ] AI-powered training recommendations based on progress
 - [ ] Photo gallery per dog
-- [ ] Community/social features
+- [ ] Community/social features ("Dog Park" feed)
 - [ ] Premium subscription tier
 
 ## Tech Stack
@@ -383,4 +403,4 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - Database: MongoDB
 - Auth: Emergent-managed Google OAuth
 - AI: OpenAI GPT-5.2 via emergentintegrations
-- Payments: Stripe via emergentintegrations
+- Payments: Stripe, PayPal via emergentintegrations
