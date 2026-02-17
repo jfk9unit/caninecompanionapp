@@ -127,29 +127,17 @@ export const EliteNasduCourses = ({ user }) => {
                 HABC/Highfield endorsed certifications meeting BS 8517 standards.
               </p>
               
-              {!pretestStatus?.has_passed && (
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Button 
-                    onClick={() => navigate("/nasdu-pretest")}
-                    className="bg-amber-500 hover:bg-amber-600 text-black font-semibold rounded-full px-8"
-                    data-testid="take-pretest-btn"
-                  >
-                    <FileCheck className="w-5 h-5 mr-2" />
-                    Take Pre-Test (£19.99)
-                  </Button>
-                  <p className="text-slate-400 text-sm flex items-center">
-                    <AlertTriangle className="w-4 h-4 mr-2 text-amber-400" />
-                    Pre-test required before course enrollment
-                  </p>
-                </div>
-              )}
-              
-              {pretestStatus?.has_passed && (
+              {/* Pre-Test Coming Soon Notice */}
+              <div className="flex flex-col sm:flex-row gap-4 items-start">
+                <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 px-4 py-2 text-base">
+                  <Clock className="w-4 h-4 mr-2" />
+                  Pre-Assessment Test - Coming Soon
+                </Badge>
                 <Badge className="bg-green-500/20 text-green-400 border-green-500/30 px-4 py-2 text-base">
                   <CheckCircle className="w-5 h-5 mr-2" />
-                  Pre-Test Passed - Ready to Enroll
+                  Book Courses Now - Pay with Stripe
                 </Badge>
-              )}
+              </div>
             </div>
           </div>
 
