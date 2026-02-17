@@ -732,7 +732,62 @@ NASDU_PRETEST_QUESTIONS = [
     }
 ]
 
-# K9 Trainers for booking system
+# K9 Trainers for booking system - Our Team (Available Now)
+OUR_K9_TEAM = [
+    {
+        "trainer_id": "team_001",
+        "name": "Lead K9 Specialist",
+        "title": "Senior Protection & Behaviour Expert",
+        "experience_years": 20,
+        "specializations": ["Protection Dogs", "Dangerous Dog Rehabilitation", "Emergency Response"],
+        "certifications": ["NASDU Level 3", "Police Dog Instructor", "Dangerous Dogs Act Specialist"],
+        "rating": 5.0,
+        "reviews": 245,
+        "bio": "Our lead specialist with over 20 years experience in protection training and dangerous dog rehabilitation. Available 24/7 for emergency call outs.",
+        "location": "Nationwide UK",
+        "image_url": "https://images.unsplash.com/photo-1582243310179-c628e101c0e3?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85",
+        "availability": ["weekdays", "weekends", "24/7"],
+        "languages": ["English"],
+        "verified": True,
+        "our_team": True
+    },
+    {
+        "trainer_id": "team_002",
+        "name": "K9 Behaviour Consultant",
+        "title": "Certified Behavioural Specialist",
+        "experience_years": 15,
+        "specializations": ["Aggression", "Anxiety", "Rehabilitation Programs"],
+        "certifications": ["NASDU Level 2", "APBC Certified", "Canine Behaviour Diploma"],
+        "rating": 4.9,
+        "reviews": 189,
+        "bio": "Specialising in transforming challenging behaviours. Expert in 1-12 week intensive rehabilitation programs.",
+        "location": "Nationwide UK",
+        "image_url": "https://images.unsplash.com/photo-1669822308470-09f3f3e8d4a2?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85",
+        "availability": ["weekdays", "weekends"],
+        "languages": ["English", "Spanish"],
+        "verified": True,
+        "our_team": True
+    },
+    {
+        "trainer_id": "team_003",
+        "name": "Emergency Response Handler",
+        "title": "24/7 Emergency K9 Specialist",
+        "experience_years": 18,
+        "specializations": ["Emergency Response", "Dangerous Pet Containment", "Risk Assessment"],
+        "certifications": ["NASDU Level 3", "Emergency Animal Response", "Dangerous Dogs Act"],
+        "rating": 5.0,
+        "reviews": 156,
+        "bio": "Dedicated emergency response specialist. Available 24/7 for urgent dangerous dog situations requiring immediate intervention.",
+        "location": "Nationwide UK",
+        "image_url": "https://images.unsplash.com/photo-1725245045224-05727896e4f8?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85",
+        "availability": ["24/7"],
+        "languages": ["English"],
+        "verified": True,
+        "our_team": True
+    }
+]
+
+# 3rd Party Approved Trainers - Coming Soon
 APPROVED_K9_TRAINERS = [
     {
         "trainer_id": "trainer_001",
