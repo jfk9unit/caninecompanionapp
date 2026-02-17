@@ -478,7 +478,7 @@ async def claim_daily_reward(user: User = Depends(get_current_user)):
 @api_router.get("/welcome-message")
 async def get_welcome_message(user: User = Depends(get_current_user)):
     """Get personalized welcome message for the user"""
-    is_vip = user.email in VIP_PLAYERS
+    is_vip = await is_vip_player(user.email)
     is_admin_user = user.email in ADMIN_EMAILS
     first_name = user.name.split()[0] if user.name else "Friend"
     
