@@ -412,6 +412,14 @@ Build a comprehensive canine training and care app covering all levels of dog tr
   - App shortcuts for quick actions
   - iOS splash screens
   - Safe area insets for notched phones
+- [x] **Admin Promo Code System (Feb 17, 2026)**:
+  - Admin can create promo codes for free tokens or purchase discounts
+  - Shareable promo links with code parameter (e.g., /redeem?code=WELCOME10)
+  - RedeemCodeCard component on Dashboard (compact) and Token Shop (full card)
+  - Admin page at /admin/promo-codes for managing codes
+  - Features: code validation, one-time use per user, max uses limit, expiry dates
+  - User discount tracking and redemption history
+  - Admin access controlled by email whitelist
 
 ## Backlog
 
