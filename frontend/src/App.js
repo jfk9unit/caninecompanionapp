@@ -252,6 +252,26 @@ function AppRouter() {
         } />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/elite-courses" element={
+          <ProtectedRoute>
+            {({ user }) => <EliteNasduCourses user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/nasdu-pretest" element={
+          <ProtectedRoute>
+            {({ user }) => <NasduPretest user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/book-trainer" element={
+          <ProtectedRoute>
+            {({ user }) => <BookK9Trainer user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/coming-soon" element={
+          <ProtectedRoute>
+            {({ user }) => <ComingSoon user={user} />}
+          </ProtectedRoute>
+        } />
       </Routes>
     </AuthContext>
   );
