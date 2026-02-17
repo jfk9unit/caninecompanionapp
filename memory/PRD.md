@@ -378,6 +378,36 @@ Build a comprehensive canine training and care app covering all levels of dog tr
   - Train: 12 skills (1 token each)
   - Interactive progress bars with shimmer effects
   - Level progress card with gradient design
+- [x] **Daily Login Rewards System (Feb 17, 2026)**:
+  - 7-day streak rewards with increasing tokens (1→5 tokens)
+  - XP bonuses per day (10→50 XP)
+  - Milestone rewards at 7, 14, 30, 60, 100, 365 days
+  - DailyRewardCard component on Dashboard
+  - Animated claim celebration
+  - Backend: /api/daily-reward/status and /api/daily-reward/claim
+- [x] **Gold Certificates & Credentials (Feb 17, 2026)**:
+  - GoldCertificate.jsx component for professional certificates
+  - Canvas-based certificate generation with gold shimmer design
+  - Preview modal, download PNG, social sharing
+  - Dark theme with gold gradients and ornate borders
+  - K9 Credential certificates with tier display
+  - Achievement certificates with badge colors
+- [x] **Health Hub Page (Feb 17, 2026)**:
+  - Comprehensive dog health management page
+  - Dog profile overview card with stats
+  - Health summary cards (vaccinations, checkups, medications)
+  - Timeline view of health records
+  - Add/edit/delete health records
+  - Vet contact management
+  - Export health records to CSV
+  - Record types: vaccination, checkup, medication, illness, surgery, dental, grooming
+- [x] **PWA Android Play Store Ready (Feb 17, 2026)**:
+  - Complete manifest.json with all required icons (72x72 to 512x512)
+  - Service worker with offline support
+  - Push notification support
+  - App shortcuts for quick actions
+  - iOS splash screens
+  - Safe area insets for notched phones
 
 ## Backlog
 
