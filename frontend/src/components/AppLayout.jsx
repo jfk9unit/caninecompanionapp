@@ -36,6 +36,7 @@ import {
   Flame,
   Shield,
   Award,
+  Bell,
 } from "lucide-react";
 import { MobileNav } from "@/components/MobileNav";
 
@@ -48,6 +49,7 @@ const navItems = [
   { href: "/leaderboard", label: "Compete", icon: Flame },
   { href: "/achievements", label: "Awards", icon: Trophy },
   { href: "/health", label: "Health", icon: Heart },
+  { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/tokens", label: "Shop", icon: Coins },
 ];
 
