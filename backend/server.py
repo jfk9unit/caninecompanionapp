@@ -3181,6 +3181,375 @@ async def get_user_bookings(user: User = Depends(get_current_user)):
     
     return {"bookings": bookings}
 
+# ==================== MULTI-TRAINER BOOKING CALCULATOR ====================
+
+@api_router.post("/trainers/calculate-multi")
+async def calculate_multi_trainer_cost(request: MultiTrainerBookingRequest):
+    """Calculate total cost for multiple trainers with detailed breakdown"""
+    from datetime import datetime as dt
+    
+    # Validate booking date (7-10 days advance required)
+    try:
+        booking_date = dt.strptime(request.date, "%Y-%m-%d").date()
+        today = dt.now(timezone.utc).date()
+        days_ahead = (booking_date - today).days
+        
+        min_days = TRAINER_PRICING.get("advance_booking_days", {}).get("min", 7)
+        max_notice = TRAINER_PRICING.get("advance_booking_days", {}).get("max", 10)
+        
+        if days_ahead < min_days:
+            return {
+                "error": True,
+                "message": f"Booking must be at least {min_days} days in advance. Please select a date {min_days}-{max_notice} days from today.",
+                "min_date": (today + timedelta(days=min_days)).isoformat()
+            }
+    except:
+        pass
+    
+    trainer_breakdowns = []
+    total_session_cost = 0
+    total_travel_cost = 0
+    total_risk_fee = 0
+    call_out_fee = 0
+    estimated_miles = 0
+    
+    for selection in request.trainers:
+        # Find trainer
+        trainer = next((t for t in OUR_K9_TEAM if t["trainer_id"] == selection.trainer_id), None)
+        if not trainer:
+            trainer = next((t for t in APPROVED_K9_TRAINERS if t["trainer_id"] == selection.trainer_id), None)
+        
+        if not trainer:
+            continue
+        
+        # Calculate hourly rate based on session type
+        hours = selection.hours
+        if request.session_type == "emergency":
+            # Emergency is flat rate per trainer
+            session_cost = TRAINER_PRICING["emergency_24_7"]["price"]
+            hourly_rate = session_cost
+        elif request.session_type == "virtual":
+            # Virtual sessions - 30min or 60min base, scale by hours
+            base_hourly = TRAINER_PRICING["virtual"]["60min"]["price"]
+            session_cost = base_hourly * hours
+            hourly_rate = base_hourly
+        else:
+            # In-person sessions - hourly rate based on first hour
+            base_hourly = TRAINER_PRICING["in_person"]["60min"]["price"]
+            # 2hr and 3hr have different rates, but for custom hours use hourly
+            session_cost = base_hourly * hours
+            hourly_rate = base_hourly
+        
+        # K9 risk fee per trainer for in-person dangerous dog work
+        trainer_risk_fee = 0
+        if request.include_k9_risk_fee and request.session_type == "in_person":
+            trainer_risk_fee = TRAINER_PRICING.get("k9_risk_equipment_fee", 10.79)
+            total_risk_fee += trainer_risk_fee
+        
+        trainer_total = session_cost + trainer_risk_fee
+        total_session_cost += session_cost
+        
+        trainer_breakdowns.append({
+            "trainer_id": selection.trainer_id,
+            "trainer_name": trainer["name"],
+            "hours": hours,
+            "hourly_rate": round(hourly_rate, 2),
+            "session_cost": round(session_cost, 2),
+            "k9_risk_fee": round(trainer_risk_fee, 2),
+            "trainer_total": round(trainer_total, 2)
+        })
+    
+    # Calculate travel for in-person (shared across all trainers, single trip)
+    if request.session_type == "in_person" and request.from_postcode and request.to_postcode:
+        call_out_fee = TRAINER_PRICING["travel"]["call_out_fee"]
+        # Estimate miles
+        estimated_miles = random.randint(10, 40)
+        total_travel_cost = estimated_miles * TRAINER_PRICING["travel"]["per_mile"]
+    
+    # Calculate totals
+    subtotal = total_session_cost + total_risk_fee + call_out_fee + total_travel_cost
+    
+    # 50% deposit calculation
+    deposit_percentage = TRAINER_PRICING.get("deposit_percentage", 50)
+    deposit_amount = round(subtotal * (deposit_percentage / 100), 2)
+    remaining_balance = round(subtotal - deposit_amount, 2)
+    
+    return {
+        "trainer_breakdowns": trainer_breakdowns,
+        "summary": {
+            "total_trainers": len(trainer_breakdowns),
+            "total_hours": sum(t["hours"] for t in trainer_breakdowns),
+            "session_costs_subtotal": round(total_session_cost, 2),
+            "k9_risk_fees_total": round(total_risk_fee, 2),
+            "call_out_fee": round(call_out_fee, 2),
+            "travel_cost": round(total_travel_cost, 2),
+            "estimated_miles": estimated_miles,
+            "grand_total": round(subtotal, 2)
+        },
+        "payment_terms": {
+            "deposit_percentage": deposit_percentage,
+            "deposit_amount": deposit_amount,
+            "remaining_balance": remaining_balance,
+            "deposit_note": f"{deposit_percentage}% non-refundable deposit required to secure booking",
+            "full_payment_note": "Full payment must be made before our team is deployed",
+            "advance_booking_days": TRAINER_PRICING.get("advance_booking_days", {"min": 7, "max": 10})
+        },
+        "policies": {
+            "rescheduling_fee": TRAINER_PRICING.get("admin_fee", 30.00),
+            "cancellation": "50% deposit is non-refundable",
+            "advance_notice": "Please book 7-10 days in advance"
+        }
+    }
+
+@api_router.post("/trainers/multi-checkout")
+async def multi_trainer_checkout(request: MultiTrainerCheckoutRequest, http_request: Request, user: User = Depends(get_current_user)):
+    """Create Stripe checkout for multi-trainer booking with deposit/full payment options"""
+    from datetime import datetime as dt
+    
+    # Validate booking date
+    try:
+        booking_date = dt.strptime(request.date, "%Y-%m-%d").date()
+        today = dt.now(timezone.utc).date()
+        days_ahead = (booking_date - today).days
+        min_days = TRAINER_PRICING.get("advance_booking_days", {}).get("min", 7)
+        
+        if days_ahead < min_days:
+            raise HTTPException(status_code=400, detail=f"Booking must be at least {min_days} days in advance")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format")
+    
+    # Validate all trainers are from our team
+    trainer_details = []
+    for selection in request.trainers:
+        trainer = next((t for t in OUR_K9_TEAM if t["trainer_id"] == selection.trainer_id), None)
+        if not trainer:
+            trainer = next((t for t in APPROVED_K9_TRAINERS if t["trainer_id"] == selection.trainer_id), None)
+            if trainer:
+                raise HTTPException(status_code=400, detail="3rd party trainers coming soon. Please select from Our K9 Team.")
+            raise HTTPException(status_code=404, detail=f"Trainer {selection.trainer_id} not found")
+        trainer_details.append({"trainer": trainer, "hours": selection.hours})
+    
+    # Calculate costs
+    total_session_cost = 0
+    total_risk_fee = 0
+    trainer_summaries = []
+    
+    for td in trainer_details:
+        trainer = td["trainer"]
+        hours = td["hours"]
+        
+        if request.session_type == "emergency":
+            session_cost = TRAINER_PRICING["emergency_24_7"]["price"]
+        elif request.session_type == "virtual":
+            session_cost = TRAINER_PRICING["virtual"]["60min"]["price"] * hours
+        else:
+            session_cost = TRAINER_PRICING["in_person"]["60min"]["price"] * hours
+        
+        risk_fee = 0
+        if request.include_k9_risk_fee and request.session_type == "in_person":
+            risk_fee = TRAINER_PRICING.get("k9_risk_equipment_fee", 10.79)
+            total_risk_fee += risk_fee
+        
+        total_session_cost += session_cost
+        trainer_summaries.append(f"{trainer['name']} ({hours}hrs): £{session_cost:.2f}")
+    
+    # Travel costs
+    call_out_fee = 0
+    travel_cost = 0
+    estimated_miles = 0
+    
+    if request.session_type == "in_person" and request.from_postcode and request.to_postcode:
+        call_out_fee = TRAINER_PRICING["travel"]["call_out_fee"]
+        estimated_miles = random.randint(10, 40)
+        travel_cost = estimated_miles * TRAINER_PRICING["travel"]["per_mile"]
+    
+    grand_total = total_session_cost + total_risk_fee + call_out_fee + travel_cost
+    
+    # Calculate payment amount based on type
+    deposit_percentage = TRAINER_PRICING.get("deposit_percentage", 50)
+    if request.payment_type == "deposit":
+        payment_amount = round(grand_total * (deposit_percentage / 100), 2)
+        payment_label = f"{deposit_percentage}% Deposit"
+        remaining = round(grand_total - payment_amount, 2)
+    else:
+        payment_amount = round(grand_total, 2)
+        payment_label = "Full Payment"
+        remaining = 0
+    
+    # Create booking record
+    booking_id = f"multi_booking_{uuid.uuid4().hex[:12]}"
+    booking_record = {
+        "booking_id": booking_id,
+        "user_id": user.user_id,
+        "user_email": user.email,
+        "user_name": user.name,
+        "trainers": [{"trainer_id": s.trainer_id, "hours": s.hours} for s in request.trainers],
+        "trainer_summaries": trainer_summaries,
+        "session_type": request.session_type,
+        "date": request.date,
+        "time": request.time,
+        "from_postcode": request.from_postcode,
+        "to_postcode": request.to_postcode,
+        "notes": request.notes,
+        "include_k9_risk_fee": request.include_k9_risk_fee,
+        "cost_breakdown": {
+            "session_costs": round(total_session_cost, 2),
+            "k9_risk_fees": round(total_risk_fee, 2),
+            "call_out_fee": round(call_out_fee, 2),
+            "travel_cost": round(travel_cost, 2),
+            "estimated_miles": estimated_miles,
+            "grand_total": round(grand_total, 2)
+        },
+        "payment": {
+            "type": request.payment_type,
+            "deposit_percentage": deposit_percentage,
+            "amount_paid": payment_amount,
+            "remaining_balance": remaining
+        },
+        "status": "pending_deposit" if request.payment_type == "deposit" else "pending_payment",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.trainer_bookings.insert_one(booking_record)
+    
+    # Create Stripe checkout
+    api_key = os.environ.get("STRIPE_API_KEY")
+    host_url = str(http_request.base_url).rstrip("/")
+    webhook_url = f"{host_url}/api/webhook/stripe"
+    
+    try:
+        stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+        
+        success_url = f"{request.origin_url}/book-trainer?success=true&session_id={{CHECKOUT_SESSION_ID}}&booking_id={booking_id}"
+        cancel_url = f"{request.origin_url}/book-trainer?cancelled=true"
+        
+        description = f"K9 Training - {len(request.trainers)} Trainer(s), {sum(s.hours for s in request.trainers)} Total Hours - {payment_label}"
+        
+        checkout_request = CheckoutSessionRequest(
+            amount=payment_amount,
+            currency="gbp",
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                "user_id": user.user_id,
+                "booking_id": booking_id,
+                "payment_type": request.payment_type,
+                "grand_total": str(grand_total),
+                "remaining_balance": str(remaining)
+            }
+        )
+        
+        session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_request)
+        
+        await db.trainer_bookings.update_one(
+            {"booking_id": booking_id},
+            {"$set": {"stripe_session_id": session.session_id}}
+        )
+        
+        return {
+            "booking_id": booking_id,
+            "checkout_url": session.url,
+            "session_id": session.session_id,
+            "payment_summary": {
+                "payment_type": request.payment_type,
+                "amount_due_now": payment_amount,
+                "remaining_balance": remaining,
+                "grand_total": round(grand_total, 2)
+            },
+            "trainer_summaries": trainer_summaries
+        }
+    except Exception as e:
+        await db.trainer_bookings.update_one(
+            {"booking_id": booking_id},
+            {"$set": {"status": "checkout_failed", "error": str(e)}}
+        )
+        raise HTTPException(status_code=500, detail=f"Failed to create checkout: {str(e)}")
+
+# ==================== DOG EQUIPMENT CATALOG (MOCKED) ====================
+
+@api_router.get("/equipment/categories")
+async def get_equipment_categories():
+    """Get all equipment categories"""
+    return {"categories": DOG_EQUIPMENT_CATALOG["categories"]}
+
+@api_router.get("/equipment/products")
+async def get_equipment_products(category: Optional[str] = None, featured: Optional[bool] = None):
+    """Get equipment products with optional filtering"""
+    products = DOG_EQUIPMENT_CATALOG["products"].copy()
+    
+    if category:
+        products = [p for p in products if p["category"] == category]
+    if featured is not None:
+        products = [p for p in products if p.get("featured", False) == featured]
+    
+    return {
+        "products": products,
+        "total": len(products),
+        "commission_note": "Prices include all fees"  # Commission is hidden
+    }
+
+@api_router.get("/equipment/products/{product_id}")
+async def get_equipment_product(product_id: str):
+    """Get specific product details"""
+    product = next((p for p in DOG_EQUIPMENT_CATALOG["products"] if p["product_id"] == product_id), None)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
+
+@api_router.get("/equipment/featured")
+async def get_featured_equipment():
+    """Get featured products"""
+    featured = [p for p in DOG_EQUIPMENT_CATALOG["products"] if p.get("featured", False)]
+    return {"products": featured, "total": len(featured)}
+
+@api_router.post("/equipment/enquiry")
+async def submit_equipment_enquiry(request: Request, user: User = Depends(get_current_user)):
+    """Submit an enquiry for equipment purchase (MOCKED - no actual purchase)"""
+    body = await request.json()
+    product_id = body.get("product_id")
+    quantity = body.get("quantity", 1)
+    size = body.get("size")
+    color = body.get("color")
+    
+    product = next((p for p in DOG_EQUIPMENT_CATALOG["products"] if p["product_id"] == product_id), None)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    enquiry_id = f"enquiry_{uuid.uuid4().hex[:12]}"
+    enquiry_record = {
+        "enquiry_id": enquiry_id,
+        "user_id": user.user_id,
+        "user_email": user.email,
+        "product_id": product_id,
+        "product_name": product["name"],
+        "quantity": quantity,
+        "size": size,
+        "color": color,
+        "unit_price": product["display_price"],
+        "total_price": round(product["display_price"] * quantity, 2),
+        "status": "pending",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.equipment_enquiries.insert_one(enquiry_record)
+    
+    return {
+        "enquiry_id": enquiry_id,
+        "product": product["name"],
+        "quantity": quantity,
+        "total_price": round(product["display_price"] * quantity, 2),
+        "status": "pending",
+        "message": "Thank you for your enquiry! Our team will contact you shortly to complete your order."
+    }
+
+@api_router.get("/equipment/enquiries")
+async def get_user_equipment_enquiries(user: User = Depends(get_current_user)):
+    """Get user's equipment enquiries"""
+    enquiries = await db.equipment_enquiries.find(
+        {"user_id": user.user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(50)
+    
+    return {"enquiries": enquiries}
+
 # ==================== STRIPE CHECKOUT FOR COURSES & TRAINERS ====================
 
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutSessionRequest
