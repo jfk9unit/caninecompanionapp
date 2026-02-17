@@ -257,6 +257,9 @@ export const AppLayout = ({ user, children }) => {
           }
         }}) : children}
       </main>
+      
+      {/* Mobile Bottom Navigation */}
+      <MobileNav />
     </div>
   );
 };
