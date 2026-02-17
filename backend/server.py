@@ -3121,6 +3121,8 @@ async def get_user_bookings(user: User = Depends(get_current_user)):
 
 # ==================== STRIPE CHECKOUT FOR COURSES & TRAINERS ====================
 
+from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutSessionRequest
+
 class TrainerCheckoutRequest(BaseModel):
     trainer_id: str
     session_type: str
@@ -3130,31 +3132,34 @@ class TrainerCheckoutRequest(BaseModel):
     from_postcode: Optional[str] = None
     to_postcode: Optional[str] = None
     notes: Optional[str] = None
-    success_url: str
-    cancel_url: str
+    origin_url: str
+
+class CourseCheckoutRequest(BaseModel):
+    course_id: str
+    origin_url: str
 
 @api_router.post("/trainers/checkout")
-async def trainer_checkout(request: TrainerCheckoutRequest, user: User = Depends(get_current_user)):
+async def trainer_checkout(request: TrainerCheckoutRequest, http_request: Request, user: User = Depends(get_current_user)):
     """Create Stripe checkout for trainer booking"""
     # Verify trainer exists
     trainer = next((t for t in APPROVED_K9_TRAINERS if t["trainer_id"] == request.trainer_id), None)
     if not trainer:
         raise HTTPException(status_code=404, detail="Trainer not found")
     
-    # Calculate cost
+    # Calculate cost - amounts defined on backend only for security
     if request.session_type == "virtual":
         base_cost = TRAINER_PRICING["virtual"].get(request.duration, {}).get("price", 45.00)
     else:
         base_cost = TRAINER_PRICING["in_person"].get(request.duration, {}).get("price", 179.99)
     
-    travel_cost = 0
-    call_out_fee = 0
+    travel_cost = 0.0
+    call_out_fee = 0.0
     estimated_miles = 0
     
     if request.session_type == "in_person" and request.from_postcode and request.to_postcode:
-        call_out_fee = TRAINER_PRICING["travel"]["call_out_fee"]
+        call_out_fee = float(TRAINER_PRICING["travel"]["call_out_fee"])
         estimated_miles = random.randint(10, 40)
-        travel_cost = estimated_miles * TRAINER_PRICING["travel"]["per_mile"]
+        travel_cost = float(estimated_miles * TRAINER_PRICING["travel"]["per_mile"])
     
     total = round(base_cost + call_out_fee + travel_cost, 2)
     
@@ -3182,12 +3187,12 @@ async def trainer_checkout(request: TrainerCheckoutRequest, user: User = Depends
             "total": total
         },
         "total_cost": total,
-        "status": "pending_payment",
+        "status": "pending",
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.trainer_bookings.insert_one(booking_record)
     
-    # Create Stripe checkout session
+    # Create Stripe checkout session using emergentintegrations
     try:
         duration_label = {
             "30min": "30 Minutes",
@@ -3196,8 +3201,172 @@ async def trainer_checkout(request: TrainerCheckoutRequest, user: User = Depends
             "180min": "3 Hours Intensive"
         }.get(request.duration, request.duration)
         
-        session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
+        api_key = os.environ.get("STRIPE_API_KEY", "")
+        host_url = str(http_request.base_url).rstrip('/')
+        webhook_url = f"{host_url}/api/webhook/stripe"
+        
+        stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+        
+        success_url = f"{request.origin_url}/book-trainer?success=true&session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{request.origin_url}/book-trainer?cancelled=true"
+        
+        checkout_request = CheckoutSessionRequest(
+            amount=total,
+            currency="gbp",
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                "booking_id": booking_id,
+                "user_id": user.user_id,
+                "type": "trainer_booking",
+                "trainer_name": trainer["name"],
+                "date": request.date,
+                "time": request.time
+            }
+        )
+        
+        session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_request)
+        
+        # Update booking with session ID
+        await db.trainer_bookings.update_one(
+            {"booking_id": booking_id},
+            {"$set": {"stripe_session_id": session.session_id}}
+        )
+        
+        return {
+            "checkout_url": session.url,
+            "booking_id": booking_id,
+            "total": total
+        }
+    except Exception as e:
+        # Update booking status to failed
+        await db.trainer_bookings.update_one(
+            {"booking_id": booking_id},
+            {"$set": {"status": "checkout_failed", "error": str(e)}}
+        )
+        raise HTTPException(status_code=500, detail=f"Failed to create checkout: {str(e)}")
+
+@api_router.post("/nasdu/course/checkout")
+async def course_checkout(request: CourseCheckoutRequest, http_request: Request, user: User = Depends(get_current_user)):
+    """Create Stripe checkout for NASDU course enrollment"""
+    # Get course - amount defined on backend only
+    course = next((c for c in NASDU_COURSES if c["course_id"] == request.course_id), None)
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    
+    # Check existing confirmed enrollment
+    existing = await db.course_enrollments.find_one({
+        "user_id": user.user_id,
+        "course_id": request.course_id,
+        "status": "confirmed"
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Already enrolled in this course")
+    
+    # Create enrollment record
+    enrollment_id = f"enroll_{uuid.uuid4().hex[:12]}"
+    enrollment = {
+        "enrollment_id": enrollment_id,
+        "user_id": user.user_id,
+        "user_email": user.email,
+        "user_name": user.name,
+        "course_id": request.course_id,
+        "course_title": course["title"],
+        "price": course["commission_price"],
+        "status": "pending",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.course_enrollments.insert_one(enrollment)
+    
+    # Create Stripe checkout session
+    try:
+        api_key = os.environ.get("STRIPE_API_KEY", "")
+        host_url = str(http_request.base_url).rstrip('/')
+        webhook_url = f"{host_url}/api/webhook/stripe"
+        
+        stripe_checkout = StripeCheckout(api_key=api_key, webhook_url=webhook_url)
+        
+        success_url = f"{request.origin_url}/elite-courses?success=true&session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{request.origin_url}/elite-courses?cancelled=true"
+        
+        checkout_request = CheckoutSessionRequest(
+            amount=float(course["commission_price"]),
+            currency="gbp",
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                "enrollment_id": enrollment_id,
+                "user_id": user.user_id,
+                "course_id": request.course_id,
+                "type": "course_enrollment"
+            }
+        )
+        
+        session: CheckoutSessionResponse = await stripe_checkout.create_checkout_session(checkout_request)
+        
+        # Update enrollment with session ID
+        await db.course_enrollments.update_one(
+            {"enrollment_id": enrollment_id},
+            {"$set": {"stripe_session_id": session.session_id}}
+        )
+        
+        return {
+            "checkout_url": session.url,
+            "enrollment_id": enrollment_id,
+            "price": course["commission_price"]
+        }
+    except Exception as e:
+        await db.course_enrollments.update_one(
+            {"enrollment_id": enrollment_id},
+            {"$set": {"status": "checkout_failed", "error": str(e)}}
+        )
+        raise HTTPException(status_code=500, detail=f"Failed to create checkout: {str(e)}")
+
+@api_router.get("/payments/checkout/status/{session_id}")
+async def get_checkout_status(session_id: str, user: User = Depends(get_current_user)):
+    """Check payment status and update records"""
+    try:
+        api_key = os.environ.get("STRIPE_API_KEY", "")
+        stripe_checkout = StripeCheckout(api_key=api_key, webhook_url="")
+        
+        status = await stripe_checkout.get_checkout_status(session_id)
+        
+        # Check if this is a trainer booking
+        booking = await db.trainer_bookings.find_one({"stripe_session_id": session_id})
+        if booking and status.payment_status == "paid" and booking.get("status") != "confirmed":
+            await db.trainer_bookings.update_one(
+                {"stripe_session_id": session_id},
+                {"$set": {
+                    "status": "confirmed",
+                    "payment_status": "paid",
+                    "paid_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            # Send confirmation email
+            await send_trainer_booking_confirmation(booking)
+        
+        # Check if this is a course enrollment
+        enrollment = await db.course_enrollments.find_one({"stripe_session_id": session_id})
+        if enrollment and status.payment_status == "paid" and enrollment.get("status") != "confirmed":
+            await db.course_enrollments.update_one(
+                {"stripe_session_id": session_id},
+                {"$set": {
+                    "status": "confirmed",
+                    "payment_status": "paid",
+                    "paid_at": datetime.now(timezone.utc).isoformat()
+                }}
+            )
+            # Send confirmation email
+            await send_course_enrollment_confirmation(enrollment)
+        
+        return {
+            "status": status.status,
+            "payment_status": status.payment_status,
+            "amount_total": status.amount_total,
+            "currency": status.currency
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to check status: {str(e)}")
             line_items=[{
                 "price_data": {
                     "currency": "gbp",
