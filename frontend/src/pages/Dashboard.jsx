@@ -539,6 +539,9 @@ export const Dashboard = ({ user }) => {
                 </CardContent>
               </Card>
 
+              {/* Social Share Promo */}
+              <SocialPromoCard />
+
               {/* Achievement Teaser */}
               <Card className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-0">
                 <CardContent className="p-5">
@@ -561,6 +564,9 @@ export const Dashboard = ({ user }) => {
               </Card>
             </div>
           </div>
+
+          {/* AI Chat Support - Floating Button */}
+          <AIChatSupport tokens={tokens} onTokenUpdate={setTokens} />
 
           {/* Welcome Dialog */}
           <WelcomeDialog 
