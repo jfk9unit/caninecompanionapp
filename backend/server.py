@@ -3198,6 +3198,7 @@ async def trainer_checkout(request: TrainerCheckoutRequest, http_request: Reques
             "call_out_fee": call_out_fee,
             "travel_cost": round(travel_cost, 2),
             "estimated_miles": estimated_miles,
+            "k9_risk_fee": k9_risk_fee,
             "total": total
         },
         "total_cost": total,
