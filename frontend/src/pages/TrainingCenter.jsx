@@ -112,14 +112,18 @@ const TrainingContent = ({ user, selectedDog }) => {
       }, { withCredentials: true });
       
       if (response.data.completed) {
-        toast.success('Lesson completed! Achievement unlocked!');
+        // Lesson completed - show celebration!
+        celebrate();
+        setCompletedLesson(selectedLesson);
+        setShowCompletion(true);
+        setSelectedLesson(null);
       } else {
-        toast.success('Step completed!');
+        toast.success('Great job! Step completed! 🎉');
       }
       fetchData();
       
-      // Update selected lesson with new enrollment data
-      if (selectedLesson) {
+      // Update enrollment data
+      if (selectedDog) {
         const updatedEnrollment = await axios.get(`${API}/training/enrollments/${selectedDog.dog_id}`, { withCredentials: true });
         setEnrollments(updatedEnrollment.data);
       }
