@@ -391,8 +391,8 @@ export const EliteNasduCourses = ({ user }) => {
             <h2 className="font-heading font-semibold text-xl mb-6">Your Path to Certification</h2>
             <div className="grid md:grid-cols-4 gap-4">
               {[
-                { step: 1, title: "Pass Pre-Test", desc: "Complete 50-question assessment (£19.99)", icon: FileCheck },
-                { step: 2, title: "Choose Course", desc: "Select from our NASDU catalogue", icon: BookOpen },
+                { step: 1, title: "Choose Course", desc: "Select from our NASDU catalogue", icon: BookOpen },
+                { step: 2, title: "Pay Securely", desc: "Checkout via Stripe", icon: CreditCard },
                 { step: 3, title: "Complete Training", desc: "Attend practical sessions", icon: GraduationCap },
                 { step: 4, title: "Get Certified", desc: "Receive HABC certification", icon: Award }
               ].map((item, index) => (
@@ -409,6 +409,26 @@ export const EliteNasduCourses = ({ user }) => {
               ))}
             </div>
           </div>
+
+          {/* Pre-Test Coming Soon Banner */}
+          <Card className="bg-gradient-to-r from-blue-900 to-indigo-900 rounded-2xl border-0 text-white">
+            <CardContent className="p-6 flex flex-col md:flex-row items-center gap-6">
+              <div className="p-4 bg-blue-500/20 rounded-xl">
+                <FileCheck className="w-8 h-8 text-blue-300" />
+              </div>
+              <div className="flex-1 text-center md:text-left">
+                <h3 className="font-semibold text-lg mb-1">Pre-Assessment Test - Coming Soon</h3>
+                <p className="text-blue-200 text-sm">
+                  We're developing a comprehensive 50-question pre-assessment to help you prepare for your NASDU certification. 
+                  In the meantime, you can book courses directly and we'll contact you with preparation materials.
+                </p>
+              </div>
+              <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 px-4 py-2">
+                <Clock className="w-4 h-4 mr-2" />
+                Coming Q1 2025
+              </Badge>
+            </CardContent>
+          </Card>
         </div>
       )}
     </AppLayout>
