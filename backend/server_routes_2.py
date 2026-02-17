@@ -26,10 +26,15 @@ async def get_training_lesson(lesson_id: str):
     return lesson
 
 @api_router.post("/training/enroll/{lesson_id}")
-async def enroll_in_lesson(lesson_id: str, dog_id: str, user: User = Depends(get_current_user)):
+async def enroll_in_lesson(lesson_id: str, dog_id: str = Query(...), user: User = Depends(get_current_user)):
     lesson = next((l for l in TRAINING_LESSONS if l["lesson_id"] == lesson_id), None)
     if not lesson:
         raise HTTPException(status_code=404, detail="Lesson not found")
+    
+    # Validate dog belongs to user
+    dog = await db.dogs.find_one({"dog_id": dog_id, "user_id": user.user_id}, {"_id": 0})
+    if not dog:
+        raise HTTPException(status_code=400, detail="Dog not found or does not belong to user")
     
     if user.tokens < lesson["token_cost"]:
         raise HTTPException(status_code=400, detail=f"Not enough tokens. Need {lesson['token_cost']}, have {user.tokens}")
@@ -40,6 +45,16 @@ async def enroll_in_lesson(lesson_id: str, dog_id: str, user: User = Depends(get
     })
     if existing and existing.get("status") == "completed":
         raise HTTPException(status_code=400, detail="Already completed this lesson")
+    
+    # Allow re-enrollment if only in progress (user can retry with new token cost)
+    if existing and existing.get("status") == "in_progress":
+        # Update existing enrollment to be in progress (restart)
+        await db.training_enrollments.update_one(
+            {"enrollment_id": existing["enrollment_id"]},
+            {"$set": {"completed_steps": [], "status": "in_progress", "started_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        await db.users.update_one({"user_id": user.user_id}, {"$inc": {"tokens": -lesson["token_cost"]}})
+        return {"message": "Enrolled successfully", "tokens_spent": lesson["token_cost"]}
     
     # Deduct tokens
     await db.users.update_one({"user_id": user.user_id}, {"$inc": {"tokens": -lesson["token_cost"]}})
@@ -67,7 +82,7 @@ async def get_training_enrollments(dog_id: str, user: User = Depends(get_current
     return enrollments
 
 @api_router.post("/training/complete-step")
-async def complete_training_step(enrollment_id: str, step_index: int, user: User = Depends(get_current_user)):
+async def complete_training_step(enrollment_id: str = Query(...), step_index: int = Query(...), user: User = Depends(get_current_user)):
     enrollment = await db.training_enrollments.find_one(
         {"enrollment_id": enrollment_id, "user_id": user.user_id}, {"_id": 0}
     )

@@ -487,12 +487,9 @@ const TrainingContent = ({ user, selectedDog }) => {
   const completeStep = async (enrollmentId, stepIndex) => {
     setCompleting(true);
     try {
-      const response = await axios.post(`${API}/training/complete-step`, {
-        enrollment_id: enrollmentId,
-        step_index: stepIndex
-      }, { withCredentials: true });
+      const response = await axios.post(`${API}/training/complete-step?enrollment_id=${enrollmentId}&step_index=${stepIndex}`, {}, { withCredentials: true });
       
-      if (response.data.completed) {
+      if (response.data.status === 'completed') {
         celebrate();
         setCompletedLesson(selectedLesson);
         setShowCompletion(true);
