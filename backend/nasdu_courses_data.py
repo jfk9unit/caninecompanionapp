@@ -1014,35 +1014,53 @@ SUPPORTED_LANGUAGES = {
     }
 }
 
-# Dog Equipment Catalog - 22% commission built into prices (hidden from customer)
-# Example: Base price £50 -> Display price £64.10 (£50 * 1.22)
+# Dog Equipment Catalog - 32% total markup built into prices (hidden from customer)
+# Breakdown: 22% commission + 10% additional markup
+# Example: Base price £50 -> Display price £66.00 (£50 * 1.32)
+# Pay Now discount: 0.05% off total
+
+# Delivery costs by category (weight-based)
+DELIVERY_COSTS = {
+    "harnesses": {"standard": 3.99, "express": 7.99, "weight_class": "light"},
+    "grooming": {"standard": 4.49, "express": 8.49, "weight_class": "light"},
+    "training": {"standard": 6.99, "express": 12.99, "weight_class": "medium"},
+    "bowls": {"standard": 5.49, "express": 9.99, "weight_class": "medium"},
+    "beds": {"standard": 9.99, "express": 18.99, "weight_class": "heavy"},
+    "toys": {"standard": 3.49, "express": 6.99, "weight_class": "light"},
+    "health": {"standard": 2.99, "express": 5.99, "weight_class": "light"},
+    "travel": {"standard": 5.99, "express": 11.99, "weight_class": "medium"},
+    "free_shipping_threshold": 75.00,  # Free standard shipping over £75
+    "pay_now_discount_percentage": 0.05  # 0.05% discount for Pay Now
+}
+
 DOG_EQUIPMENT_CATALOG = {
     "categories": [
-        {"id": "harnesses", "name": "Harnesses & Leads", "icon": "Shield"},
-        {"id": "grooming", "name": "Grooming & Care", "icon": "Scissors"},
-        {"id": "training", "name": "Training Equipment", "icon": "Target"},
-        {"id": "bowls", "name": "Bowls & Feeders", "icon": "Circle"},
-        {"id": "beds", "name": "Beds & Crates", "icon": "Home"},
-        {"id": "toys", "name": "Toys & Enrichment", "icon": "Star"},
-        {"id": "health", "name": "Health & Wellness", "icon": "Heart"},
-        {"id": "travel", "name": "Travel & Safety", "icon": "Car"}
+        {"id": "harnesses", "name": "Harnesses & Leads", "icon": "Shield", "delivery_standard": 3.99, "delivery_express": 7.99},
+        {"id": "grooming", "name": "Grooming & Care", "icon": "Scissors", "delivery_standard": 4.49, "delivery_express": 8.49},
+        {"id": "training", "name": "Training Equipment", "icon": "Target", "delivery_standard": 6.99, "delivery_express": 12.99},
+        {"id": "bowls", "name": "Bowls & Feeders", "icon": "Circle", "delivery_standard": 5.49, "delivery_express": 9.99},
+        {"id": "beds", "name": "Beds & Crates", "icon": "Home", "delivery_standard": 9.99, "delivery_express": 18.99},
+        {"id": "toys", "name": "Toys & Enrichment", "icon": "Star", "delivery_standard": 3.49, "delivery_express": 6.99},
+        {"id": "health", "name": "Health & Wellness", "icon": "Heart", "delivery_standard": 2.99, "delivery_express": 5.99},
+        {"id": "travel", "name": "Travel & Safety", "icon": "Car", "delivery_standard": 5.99, "delivery_express": 11.99}
     ],
     "products": [
-        # Harnesses & Leads
+        # Harnesses & Leads - Updated with 32% total markup
         {
             "product_id": "harness_001",
             "name": "Professional K9 Tactical Harness",
             "category": "harnesses",
             "description": "Military-grade tactical harness with MOLLE webbing. Perfect for working dogs and security K9s.",
             "base_price": 65.00,
-            "display_price": 79.30,  # 22% commission included
+            "display_price": 85.80,  # 32% markup (65 * 1.32)
             "image_url": "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400",
             "rating": 4.9,
             "reviews": 127,
             "sizes": ["S", "M", "L", "XL"],
             "colors": ["Black", "Tan", "OD Green"],
             "in_stock": True,
-            "featured": True
+            "featured": True,
+            "weight_kg": 0.4
         },
         {
             "product_id": "harness_002",
