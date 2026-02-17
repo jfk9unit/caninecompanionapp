@@ -25,6 +25,8 @@ import { K9Credentials } from "@/pages/K9Credentials";
 import { NotificationSettings } from "@/pages/NotificationSettings";
 import { AdminPromoCodes } from "@/pages/AdminPromoCodes";
 import { AdminDashboard } from "@/pages/AdminDashboard";
+import { PrivacyPolicy } from "@/pages/PrivacyPolicy";
+import { TermsOfService } from "@/pages/TermsOfService";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
