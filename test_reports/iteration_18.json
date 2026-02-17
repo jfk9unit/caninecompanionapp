@@ -1,0 +1,94 @@
+{
+  "summary": "Completed testing of K9 Trainer Booking and NASDU Courses features. Backend APIs (22/22 tests passed) and frontend UI both working correctly. BookK9Trainer page shows 'Our K9 Team' (3 trainers - bookable) and 'Approved 3rd Party Trainers' (5 trainers with Coming Soon badges). Elite NASDU Courses page displays 6 course cards with prices and course details dialog.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "features_verified": {
+    "trainers_api": {
+      "status": "WORKING",
+      "endpoint": "GET /api/trainers",
+      "returns": {
+        "our_team": "3 trainers (team_001, team_002, team_003)",
+        "approved_contractors": "5 trainers with Coming Soon status"
+      }
+    },
+    "nasdu_courses_api": {
+      "status": "WORKING", 
+      "endpoint": "GET /api/nasdu/courses",
+      "returns": "6 courses with pricing and details"
+    },
+    "pricing_info_api": {
+      "status": "WORKING",
+      "endpoint": "GET /api/trainers/pricing/info",
+      "data_structure": {
+        "virtual": {"30min": "£44.99", "60min": "£67.50"},
+        "in_person": {"60min": "£150.00", "120min": "£480.00", "180min": "£630.00"},
+        "emergency_24_7": "£1,349.99",
+        "travel": {"call_out_fee": "£25.00", "per_mile": "£0.85"},
+        "k9_risk_equipment_fee": "£8.99"
+      }
+    },
+    "book_k9_trainer_page": {
+      "status": "WORKING",
+      "url": "/book-trainer",
+      "features": [
+        "Our K9 Team section with 'Available Now' badge",
+        "3 Our Team trainer cards with green 'Book Now' buttons",
+        "Approved 3rd Party Trainers section with 'Coming Soon' badge",
+        "5 Approved trainer cards with grayscale effect and disabled buttons",
+        "Pricing overview cards (Virtual, Home Visit, Emergency 24/7)",
+        "Booking dialog with session type tabs (Virtual/Home Visit/24/7)",
+        "Duration selector, date/time inputs, cost breakdown"
+      ]
+    },
+    "elite_nasdu_courses_page": {
+      "status": "WORKING",
+      "url": "/elite-courses",
+      "features": [
+        "Hero section with SIA Approved badge",
+        "Pre-Assessment Test - Coming Soon badge (MOCKED)",
+        "Book Courses Now - Pay with Stripe badge",
+        "Stats bar (2,500+ graduates, 45 centres, 100% recognition, 94% placement)",
+        "Category tabs (All, Patrol, General Purpose, Detection, Tracking, Refresher)",
+        "6 course cards with prices, duration, location",
+        "Course details dialog with units, skills, prerequisites, career paths",
+        "Pay & Enroll button for Stripe checkout"
+      ]
+    }
+  },
+  "mocked_apis": {
+    "NASDU Pre-Test": "Marked as 'Coming Soon' - no actual pre-test functionality",
+    "3rd Party Trainer Booking": "Buttons disabled with 'Coming Soon' text"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_trainer_nasdu.py",
+    "/app/test_reports/pytest/pytest_trainer_nasdu.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "All trainer APIs correctly return our_team and approved_contractors arrays",
+    "Course prices properly include commission (12% service fee)",
+    "Booking dialog shows real-time cost calculation",
+    "Stripe checkout integration ready for trainer booking and course enrollment"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_trainer_nasdu.py"
+  ],
+  "success_rate": {
+    "backend": "100% (22/22 tests passed)",
+    "frontend": "100% (All UI features verified)"
+  },
+  "test_credentials": {
+    "test_user": {"email": "testuser123@example.com", "password": "test123456"}
+  },
+  "seed_data_creation": "No seed data needed - trainers and courses loaded from static data files",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "BookK9Trainer page at /book-trainer shows Our K9 Team (3 trainers with Book Now) and Approved 3rd Party (5 trainers with Coming Soon). Elite NASDU Courses at /elite-courses (NOT /nasdu-courses) shows 6 course cards. Stripe payment integration uses emergentintegrations library. Pre-Test is MOCKED as Coming Soon."
+}
