@@ -36,6 +36,22 @@ paypalrestsdk.configure({
     "client_secret": os.environ.get("PAYPAL_CLIENT_SECRET", "")
 })
 
+# Resend Email Configuration
+resend.api_key = os.environ.get("RESEND_API_KEY", "")
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+def generate_reset_code() -> str:
+    return ''.join([str(random.randint(0, 9)) for _ in range(6)])
+
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
