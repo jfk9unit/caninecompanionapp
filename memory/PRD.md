@@ -349,6 +349,14 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - [x] 90 training lessons (75 regular + 15 K9 security)
 - [x] Referral system with QR codes
 - [x] Mobile-optimized bottom navigation
+- [x] **Visual Training Enhancements (Feb 17, 2026)**:
+  - Category cards with Unsplash images and gradient overlays
+  - Level header cards with background images
+  - Lesson cards with images, status badges, difficulty indicators
+  - Pre-training questionnaire assessments with scoring
+  - K9 tier cards with images and descriptions
+  - K9 skill cards with images and status indicators
+  - Beautiful modal dialogs with image headers
 
 ## Backlog
 
