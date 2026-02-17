@@ -272,15 +272,25 @@ async def create_session(request: Request, response: Response):
                     {"$inc": {"tokens": 5, "total_referrals": 1}}
                 )
         
+        # Calculate initial tokens
+        initial_tokens = 5 if referred_by else 0
+        
+        # VIP players get 1200 bonus tokens on first signup!
+        is_vip_player = user_data["email"] in VIP_PLAYERS
+        if is_vip_player:
+            initial_tokens += 1200
+        
         new_user = {
             "user_id": user_id,
             "email": user_data["email"],
             "name": user_data["name"],
             "picture": user_data.get("picture"),
-            "tokens": 5 if referred_by else 0,
+            "tokens": initial_tokens,
             "referral_code": user_referral_code,
             "referred_by": referred_by,
             "total_referrals": 0,
+            "is_vip": is_vip_player,
+            "vip_bonus_claimed": is_vip_player,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.users.insert_one(new_user)
