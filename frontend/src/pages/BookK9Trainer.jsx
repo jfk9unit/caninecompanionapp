@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
 import {
   User,
   Star,
@@ -30,7 +31,9 @@ import {
   Shield,
   Target,
   Wrench,
-  Heart
+  Heart,
+  CreditCard,
+  Mail
 } from "lucide-react";
 
 export const BookK9Trainer = ({ user }) => {
