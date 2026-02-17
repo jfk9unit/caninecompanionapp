@@ -359,6 +359,9 @@ export const Dashboard = ({ user }) => {
 
             {/* Right Column - Dogs & Referral */}
             <div className="space-y-4">
+              {/* Daily Rewards */}
+              <DailyRewardCard onClaim={fetchData} />
+
               {/* Your Dogs Section */}
               <div className="flex items-center justify-between">
                 <h2 className="font-heading font-semibold text-lg flex items-center gap-2">
