@@ -727,7 +727,7 @@ export const VirtualPet = ({ user }) => {
       setIsPlaying(false);
       setCurrentAction(null);
     } finally {
-      setActionLoading(null));
+      setActionLoading(null);
     }
   };
 
