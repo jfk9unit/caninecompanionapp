@@ -733,10 +733,6 @@ async def remove_vip_player(email: str, user: User = Depends(get_current_user)):
 
 # ==================== PROMO CODES (Admin Issued) ====================
 
-async def is_admin(user: User) -> bool:
-    """Check if user is an admin"""
-    return user.email in ADMIN_EMAILS
-
 @api_router.post("/admin/promo-codes")
 async def create_promo_code(promo: PromoCodeCreate, user: User = Depends(get_current_user)):
     """Admin: Create a new promo code"""
