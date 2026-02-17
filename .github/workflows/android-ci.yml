@@ -48,6 +48,8 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          GCP_PROJECT_NUMBER: 436166968971
+          GCP_PROJECT_ID: caninecompass-app
         run: |
           mkdir -p frontend/android/app
           if [ -n "$KEYSTORE_BASE64" ]; then
