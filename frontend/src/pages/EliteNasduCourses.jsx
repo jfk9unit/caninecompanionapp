@@ -55,23 +55,19 @@ export const EliteNasduCourses = ({ user }) => {
   };
 
   const handleEnroll = async (courseId) => {
-    if (!pretestStatus?.has_passed) {
-      toast.error("You must pass the pre-test before enrolling in courses");
-      navigate("/nasdu-pretest");
-      return;
-    }
-
     setEnrolling(true);
     try {
-      const response = await axios.post(`${API}/nasdu/course/enroll`, {
-        course_id: courseId
+      const response = await axios.post(`${API}/nasdu/course/checkout`, {
+        course_id: courseId,
+        success_url: `${window.location.origin}/elite-courses?success=true`,
+        cancel_url: `${window.location.origin}/elite-courses?cancelled=true`
       }, { withCredentials: true });
       
-      toast.success("Enrollment created! Proceed to payment.");
-      setSelectedCourse(null);
-      // Navigate to payment or show payment dialog
+      if (response.data.checkout_url) {
+        window.location.href = response.data.checkout_url;
+      }
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to enroll");
+      toast.error(error.response?.data?.detail || "Failed to start checkout");
     } finally {
       setEnrolling(false);
     }
