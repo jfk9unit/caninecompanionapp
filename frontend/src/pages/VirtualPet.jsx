@@ -660,14 +660,34 @@ export const VirtualPet = ({ user }) => {
   const feedPet = async () => {
     setActionLoading('feed');
     setIsEating(true);
+    setCurrentAction('feed');
+    
+    // Play eating sounds
+    if (soundEnabled) {
+      soundManager.bark('happy');
+      setTimeout(() => soundManager.bark('eating'), 300);
+      setTimeout(() => soundManager.bark('eating'), 600);
+    }
+    
     try {
       const response = await axios.post(`${API}/virtual-pet/feed`, {}, { withCredentials: true });
       toast.success(`${pet.name} loved the meal! 🍖`);
+      
+      // Happy bark after eating
+      if (soundEnabled) {
+        setTimeout(() => soundManager.bark('happy'), 800);
+      }
+      
       await fetchPet();
-      setTimeout(() => setIsEating(false), 2000);
+      setTimeout(() => {
+        setIsEating(false);
+        setCurrentAction(null);
+      }, 2000);
     } catch (error) {
       toast.error('Failed to feed pet');
+      if (soundEnabled) soundManager.whimper();
       setIsEating(false);
+      setCurrentAction(null);
     } finally {
       setActionLoading(null);
     }
