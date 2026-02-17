@@ -358,8 +358,8 @@ const HealthContent = ({ user, selectedDog }) => {
 
   const fetchRecords = async (dogId) => {
     try {
-      const response = await axios.get(`${API}/health/${dogId}/records`, { withCredentials: true });
-      setRecords(response.data);
+      const response = await axios.get(`${API}/health/${dogId}`, { withCredentials: true });
+      setRecords(response.data || []);
     } catch (error) {
       console.error('Failed to fetch records:', error);
     } finally {
@@ -380,7 +380,8 @@ const HealthContent = ({ user, selectedDog }) => {
     if (!selectedDog) return;
     
     try {
-      await axios.post(`${API}/health/${selectedDog.dog_id}/records`, {
+      await axios.post(`${API}/health`, {
+        dog_id: selectedDog.dog_id,
         ...newRecord,
         date: selectedDate.toISOString().split('T')[0]
       }, { withCredentials: true });
@@ -407,7 +408,7 @@ const HealthContent = ({ user, selectedDog }) => {
     if (!selectedDog) return;
     
     try {
-      await axios.delete(`${API}/health/${selectedDog.dog_id}/records/${recordId}`, { withCredentials: true });
+      await axios.delete(`${API}/health/${recordId}`, { withCredentials: true });
       toast.success('Record deleted');
       fetchRecords(selectedDog.dog_id);
     } catch (error) {
