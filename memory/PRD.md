@@ -590,84 +590,29 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - Removed "Sounds" tab from Virtual Pet
 - Simplified to 4 tabs: Care, Play, Exercise, Train
 
-### 38. Elite NASDU K9 Handler Courses (NEW - Feb 17, 2026)
+### 38. Elite NASDU K9 Handler Courses (Feb 17, 2026)
 - Official NASDU SIA-approved K9 handler certification catalog
-- 6 courses from Level 2 to Level 3:
-  - Patrol Dog Handler (Level 2): £1,454.88
-  - General Purpose Security Dog Handler (Level 2): £1,678.88
-  - GP/Tracking Dog Handler (Level 2): £2,798.88
-  - Proactive Drug Detection Dog Handler (Level 3): £3,694.88
-  - Explosive Detection Dog Handler (Level 3): £5,598.88
-  - Annual Refresher Course: £446.88
-- 12% commission included in all prices
-- Course details: units, skills, prerequisites, career paths
-- Category filtering: Patrol, General Purpose, Detection, Tracking, Refresher
-- Featured courses highlighted
-- Beautiful hero section with security dog imagery
-- Stats bar: 2,500+ graduates, 45 training centres, 100% recognition, 94% placement
+- 6 courses from Level 2 to Level 3 with 12% commission pricing
+- Stripe checkout integration for course payments
+- Email confirmation sent after successful payment
+- Pre-Test marked as "Coming Soon" (disabled as per user request)
 
-### 39. NASDU Pre-Test System (NEW - Feb 17, 2026)
-- 50-question security K9 protection assessment
-- Pass requirement: 48/50 (96%)
-- Test fee: £19.99 (non-refundable)
-- 60-minute time limit
-- Topics: NASDU standards, SIA licensing, dog handling, welfare, legal aspects
-- Question navigator for easy navigation
-- Progress tracking with answered count
-- Result screen with pass/fail status
-- Must pass before enrolling in courses
-- Stored results in MongoDB for verification
-
-### 40. Book K9 Trainer System (NEW - Feb 17, 2026)
-- 5 AI-verified approved trainers
-- Virtual sessions: £29.99 (30min), £45.00 (1hr)
-- In-person sessions: £179.99 (1hr), £320.00 (2hr), £420.00 (3hr intensive)
-- Travel calculator: £25 call-out fee + £0.85 per mile
+### 39. Book K9 Trainer System (Feb 17, 2026)
+- Virtual: £29.99/30min, £45/1hr | In-Person: £179.99-£420 + travel
+- 5 AI-verified trainers with travel calculator (£25 call-out + £0.85/mile)
+- Stripe checkout integration for bookings
+- Email appointment confirmation after payment
 - Postcode-to-postcode distance calculation
-- Trainer profiles with ratings, reviews, specializations
-- Session type selection (virtual/in-person)
-- Date and time booking
-- Equipment descriptions and behavioral issues addressed
-- Terms: £25 admin fee for rescheduling, all fees non-refundable
-- UK only - EU/USA expansion coming soon
 
-### 41. Multi-Language Support (NEW - Feb 17, 2026)
-- Language selector in navigation header
-- 5 supported languages:
-  - English (UK) 🇬🇧
-  - English (US) 🇺🇸
-  - Español 🇪🇸
-  - Français 🇫🇷
-  - Deutsch 🇩🇪
-- User preference stored in MongoDB
-- Country-based currency display (GBP, USD, EUR)
-- Language setting persisted across sessions
+### 40. Multi-Language Support (Feb 17, 2026)
+- 5 languages: UK/US English, Spanish, French, German
+- Language selector in header
 
-### 42. Coming Soon Page (NEW - Feb 17, 2026)
-- EU expansion announcement (Q2 2025)
-- USA launch announcement (Q3 2025)
-- Advanced certifications (Q1 2025)
-- Community events preview
-- AI Training Assistant teaser
-- Mobile app announcement
-- Email notification signup
-- Upcoming UK events and workshops
+### 41. Coming Soon Page (Feb 17, 2026)
+- Future features: EU/USA expansion, AI assistant, mobile app
 
-### 43. PayPal Removal & Stripe-Only Payments (Feb 17, 2026)
-- Removed PayPal integration as per user request
+### 42. PayPal Removed (Feb 17, 2026)
 - Stripe is now the only payment processor
-- Updated Token Shop UI (removed PayPal tabs)
-- Updated payment methods display
-- Backend PayPal endpoints removed
-- Updated Terms of Service with Stripe-only policy
-
-### 44. Updated Terms of Service (Feb 17, 2026)
-- Added NASDU course enrollment terms
-- Added pre-test fee policy (£19.99, non-refundable)
-- Added trainer booking policy with pricing
-- Added rescheduling admin fee (£25)
-- Added non-refundable fees policy
-- Added UK-only service notice
 
 ## Tech Stack
 - Frontend: React 19.0.0, Tailwind CSS, shadcn/ui, lucide-react
