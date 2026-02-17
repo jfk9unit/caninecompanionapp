@@ -1052,7 +1052,7 @@ DOG_EQUIPMENT_CATALOG = {
             "category": "harnesses",
             "description": "Military-grade tactical harness with MOLLE webbing. Perfect for working dogs and security K9s.",
             "base_price": 65.00,
-            "display_price": 92.83,  # 32% markup (65 * 1.32)
+            "display_price": 85.80,  # 32% markup (65 * 1.32)
             "image_url": "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400",
             "rating": 4.9,
             "reviews": 127,
