@@ -292,6 +292,14 @@ export const LandingPage = () => {
               </div>
               <span className="font-heading font-bold text-white">CanineCompass</span>
             </div>
+            <div className="flex items-center gap-6">
+              <a href="/privacy" className="text-gray-400 hover:text-white text-sm transition-colors">
+                Privacy Policy
+              </a>
+              <a href="/terms" className="text-gray-400 hover:text-white text-sm transition-colors">
+                Terms of Service
+              </a>
+            </div>
             <p className="text-gray-400 text-sm">
               © {new Date().getFullYear()} CanineCompass. Made with love for dogs.
             </p>
