@@ -107,14 +107,33 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - Category-specific leaderboards (Training, Pet XP, Achievements)
 - Top 3 podium display with medals
 - Personal rank and score breakdown
-- 5 Weekly challenges:
+- 6 Weekly challenges:
   - Training Master: Complete 3 lessons (+5 tokens)
   - Daily Dedication: 5 consecutive days of tasks (+8 tokens)
   - Health Hero: Log 2 health records (+3 tokens)
   - Pet Lover: Play with pet 10 times (+5 tokens)
   - Social Star: Share 2 achievements (+4 tokens)
-- Challenge claiming with token rewards
+  - K9 Trainee: Complete 1 K9 security lesson (+10 tokens)
 - Score formula: training*10 + achievements*5 + pet_xp + referrals*15
+
+### 15. Seasonal Tournaments (NEW)
+- **Spring Training Championship** (Mar-May): Most training lessons, scoring: training_completed
+- **Summer Games Tournament** (Jun-Aug): Highest pet XP, scoring: pet_xp
+- **Autumn Achiever Challenge** (Sep-Nov): Most achievements, scoring: achievements
+- **Winter Guardian Championship** (Dec-Feb): K9 protection training, scoring: k9_training
+- Prizes: 1st (100-150 tokens + gold badge), 2nd (50-75 tokens + silver badge), 3rd (25-35 tokens + bronze badge), top_10 (10-15 tokens + badge)
+
+### 16. K9 Security & Protection Training (NEW)
+- 15 specialized security lessons (k9_001 to k9_015)
+- Token costs: 18-25 tokens per lesson
+- 5-tier skill tree progression:
+  - Tier 1 (Foundation): Alert & Watch, Perimeter Patrol
+  - Tier 2 (Intermediate): Controlled Intimidation, Handler Protection
+  - Tier 3 (Advanced): Threat Assessment, Vehicle Security, Building Clearing
+  - Tier 4 (Expert): Escort & Crowd Control, Night Operations, Controlled Apprehension
+  - Tier 5 (Master): Advanced Bite & Hold, Handler Protection Advanced, Tactical Operations, Executive Protection, Master Certification
+- Rank progression: Recruit → Guardian Initiate → Shield Bearer → Threat Analyst → Elite Protector → K9 Master
+- Badge rewards for each completed lesson
 
 ## API Endpoints
 
@@ -156,6 +175,11 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - GET /api/competitions/challenges - Get weekly challenges with progress
 - POST /api/competitions/claim/{challenge_id} - Claim challenge reward
 
+### Seasonal Tournaments
+- GET /api/tournaments/current - Get active tournament with leaderboard
+- GET /api/tournaments/my-position - Get user's tournament position
+- GET /api/tournaments/history - Get user's tournament history
+
 ### Voice Logs
 - GET /api/voice-logs/{dog_id} - Get voice logs
 - POST /api/voice-logs - Create voice log (with AI analysis)
@@ -189,7 +213,7 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - voice_logs
 - payment_transactions
 
-- challenge_claims
+- tournament_results
 
 ## Completed (Feb 2026)
 - [x] V1 Core features (Auth, Dogs, Training, Health, Breeds, Activities, Behavior, Travel, Tips)
@@ -198,8 +222,10 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - [x] V2 Achievements with certificates
 - [x] V2 Voice Activity logging with AI
 - [x] V2 Leaderboard & Weekly Competitions
+- [x] V2 Seasonal Tournaments (4 seasonal competitions)
+- [x] V2 K9 Security & Protection Training (15 lessons, skill tree)
 - [x] 132 dog breeds in database
-- [x] 75 training lessons with categorization
+- [x] 90 training lessons (75 regular + 15 K9 security)
 - [x] Referral system
 
 ## Backlog
