@@ -226,6 +226,11 @@ function AppRouter() {
             {({ user }) => <AdminPromoCodes user={user} />}
           </ProtectedRoute>
         } />
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            {({ user }) => <AdminDashboard user={user} />}
+          </ProtectedRoute>
+        } />
         <Route path="/redeem" element={
           <ProtectedRoute>
             {({ user }) => <TokenShop user={user} />}
