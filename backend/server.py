@@ -2856,6 +2856,33 @@ class TrainerBookingRequest(BaseModel):
     to_postcode: Optional[str] = None
     notes: Optional[str] = None
 
+# Multi-trainer booking model
+class TrainerSelection(BaseModel):
+    trainer_id: str
+    hours: int = 1  # Number of hours for this trainer
+
+class MultiTrainerBookingRequest(BaseModel):
+    trainers: List[TrainerSelection]  # List of trainers with hours
+    session_type: str  # "virtual" or "in_person" or "emergency"
+    date: str
+    time: str
+    from_postcode: Optional[str] = None
+    to_postcode: Optional[str] = None
+    notes: Optional[str] = None
+    include_k9_risk_fee: bool = False  # For dangerous dogs
+
+class MultiTrainerCheckoutRequest(BaseModel):
+    trainers: List[TrainerSelection]
+    session_type: str
+    date: str
+    time: str
+    from_postcode: Optional[str] = None
+    to_postcode: Optional[str] = None
+    notes: Optional[str] = None
+    include_k9_risk_fee: bool = False
+    origin_url: str
+    payment_type: str = "deposit"  # "deposit" (50%) or "full"
+
 @api_router.get("/nasdu/courses")
 async def get_nasdu_courses(category: Optional[str] = None, level: Optional[int] = None):
     """Get all NASDU courses with optional filtering"""
