@@ -40,6 +40,8 @@ import {
 import { DailyRewardCard } from "@/components/DailyReward";
 import { RedeemCodeCard } from "@/components/RedeemCode";
 import { WelcomeDialog } from "@/components/WelcomeDialog";
+import { AIChatSupport } from "@/components/AIChatSupport";
+import { SocialPromoCard } from "@/components/SocialShare";
 
 // Quick Action Card Component
 const QuickActionCard = ({ icon: Icon, title, description, onClick, color, badge }) => (
