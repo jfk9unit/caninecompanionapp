@@ -598,11 +598,25 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - Pre-Test marked as "Coming Soon" (disabled as per user request)
 
 ### 39. Book K9 Trainer System (Feb 17, 2026)
-- Virtual: £29.99/30min, £45/1hr | In-Person: £179.99-£420 + travel
-- 5 AI-verified trainers with travel calculator (£25 call-out + £0.85/mile)
+- **Virtual Sessions (50% increase):**
+  - 30 minutes: £44.99
+  - 1 hour: £67.50
+- **Home Visit Sessions:**
+  - 1 hour (minimum): From £150
+  - 2 hours: £480.00
+  - 3 hours intensive: £630.00
+  - + £25 call-out fee + £0.85/mile travel
+  - + £8.99 K9 Risk & Equipment Fee (for dangerous dogs)
+- **24/7 Emergency Call Outs: £1,349.99**
+  - Includes 24-48 hour by your side assistance
+  - Risk assessment and containment of dangerous pets
+  - Expert advice and support
+- **Rehabilitation Programs:**
+  - Available from 1 week to 12 weeks (pricing upon request)
+- 5 AI-verified trainers with travel calculator
 - Stripe checkout integration for bookings
 - Email appointment confirmation after payment
-- Postcode-to-postcode distance calculation
+- 24/7 Support bot recommendation for FAQs
 
 ### 40. Multi-Language Support (Feb 17, 2026)
 - 5 languages: UK/US English, Spanish, French, German
