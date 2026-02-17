@@ -259,6 +259,148 @@ async def logout(request: Request, response: Response):
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out"}
 
+# ==================== DAILY LOGIN REWARDS ====================
+
+STREAK_REWARDS = {
+    1: {"tokens": 1, "xp": 10},
+    2: {"tokens": 1, "xp": 15},
+    3: {"tokens": 2, "xp": 20},
+    4: {"tokens": 2, "xp": 25},
+    5: {"tokens": 3, "xp": 30},
+    6: {"tokens": 3, "xp": 35},
+    7: {"tokens": 5, "xp": 50},  # Weekly bonus
+}
+
+MILESTONE_REWARDS = {
+    7: {"tokens": 10, "badge": "Week Warrior"},
+    14: {"tokens": 15, "badge": "Fortnight Fighter"},
+    30: {"tokens": 25, "badge": "Monthly Master"},
+    60: {"tokens": 40, "badge": "Dedicated Trainer"},
+    100: {"tokens": 75, "badge": "Century Champion"},
+    365: {"tokens": 200, "badge": "Year-Round Hero"},
+}
+
+@api_router.get("/daily-reward/status")
+async def get_daily_reward_status(user: User = Depends(get_current_user)):
+    """Get user's login streak and daily reward status"""
+    login_data = await db.login_streaks.find_one({"user_id": user.user_id}, {"_id": 0})
+    
+    if not login_data:
+        return {
+            "current_streak": 0,
+            "longest_streak": 0,
+            "total_logins": 0,
+            "claimed_today": False,
+            "next_reward": STREAK_REWARDS[1],
+            "milestones_earned": []
+        }
+    
+    # Check if already claimed today
+    last_claim = login_data.get("last_claim_date")
+    today = datetime.now(timezone.utc).date().isoformat()
+    claimed_today = last_claim == today
+    
+    current_streak = login_data.get("current_streak", 0)
+    streak_day = min(current_streak + 1, 7) if not claimed_today else min(current_streak, 7)
+    
+    return {
+        "current_streak": current_streak,
+        "longest_streak": login_data.get("longest_streak", 0),
+        "total_logins": login_data.get("total_logins", 0),
+        "claimed_today": claimed_today,
+        "next_reward": STREAK_REWARDS.get(streak_day, STREAK_REWARDS[7]),
+        "milestones_earned": login_data.get("milestones_earned", [])
+    }
+
+@api_router.post("/daily-reward/claim")
+async def claim_daily_reward(user: User = Depends(get_current_user)):
+    """Claim daily login reward"""
+    login_data = await db.login_streaks.find_one({"user_id": user.user_id}, {"_id": 0})
+    today = datetime.now(timezone.utc).date()
+    today_str = today.isoformat()
+    yesterday_str = (today - timedelta(days=1)).isoformat()
+    
+    if not login_data:
+        # First login ever
+        new_streak = 1
+        login_data = {
+            "user_id": user.user_id,
+            "current_streak": 1,
+            "longest_streak": 1,
+            "total_logins": 1,
+            "last_claim_date": today_str,
+            "milestones_earned": [],
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.login_streaks.insert_one(login_data)
+    else:
+        last_claim = login_data.get("last_claim_date")
+        
+        # Already claimed today
+        if last_claim == today_str:
+            raise HTTPException(status_code=400, detail="Already claimed today")
+        
+        # Check if streak continues or resets
+        if last_claim == yesterday_str:
+            new_streak = login_data.get("current_streak", 0) + 1
+        else:
+            new_streak = 1  # Streak broken
+        
+        # Update streak data
+        longest = max(login_data.get("longest_streak", 0), new_streak)
+        await db.login_streaks.update_one(
+            {"user_id": user.user_id},
+            {"$set": {
+                "current_streak": new_streak,
+                "longest_streak": longest,
+                "last_claim_date": today_str
+            }, "$inc": {"total_logins": 1}}
+        )
+    
+    # Calculate rewards
+    streak_day = min(new_streak, 7)
+    if new_streak > 7:
+        streak_day = ((new_streak - 1) % 7) + 1  # Cycle through week rewards
+    
+    reward = STREAK_REWARDS.get(streak_day, STREAK_REWARDS[1])
+    tokens_earned = reward["tokens"]
+    xp_earned = reward["xp"]
+    
+    # Check for milestone rewards
+    milestone_bonus = 0
+    milestone_badge = None
+    total_logins = login_data.get("total_logins", 0) + 1 if login_data else 1
+    milestones_earned = login_data.get("milestones_earned", []) if login_data else []
+    
+    if new_streak in MILESTONE_REWARDS and new_streak not in milestones_earned:
+        milestone = MILESTONE_REWARDS[new_streak]
+        milestone_bonus = milestone["tokens"]
+        milestone_badge = milestone["badge"]
+        milestones_earned.append(new_streak)
+        
+        await db.login_streaks.update_one(
+            {"user_id": user.user_id},
+            {"$set": {"milestones_earned": milestones_earned}}
+        )
+    
+    # Award tokens
+    total_tokens = tokens_earned + milestone_bonus
+    await db.users.update_one(
+        {"user_id": user.user_id},
+        {"$inc": {"tokens": total_tokens}}
+    )
+    
+    return {
+        "success": True,
+        "streak": new_streak,
+        "tokens_earned": tokens_earned,
+        "xp_earned": xp_earned,
+        "milestone_bonus": milestone_bonus,
+        "milestone_badge": milestone_badge,
+        "total_tokens": total_tokens,
+        "message": f"Day {new_streak} reward claimed! +{total_tokens} tokens"
+    }
+
 # ==================== TOKENS & PAYMENTS ====================
 
 @api_router.get("/tokens/packages")
