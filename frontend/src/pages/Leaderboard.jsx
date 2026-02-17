@@ -73,7 +73,9 @@ export const Leaderboard = ({ user }) => {
       const [leaderboardRes, rankRes, challengesRes, tournamentRes, tournamentPosRes] = await Promise.all([
         axios.get(`${API}/leaderboard?category=${activeTab}`, { withCredentials: true }),
         axios.get(`${API}/leaderboard/my-rank`, { withCredentials: true }),
-        axios.get(`${API}/competitions/challenges`, { withCredentials: true })
+        axios.get(`${API}/competitions/challenges`, { withCredentials: true }),
+        axios.get(`${API}/tournaments/current`, { withCredentials: true }),
+        axios.get(`${API}/tournaments/my-position`, { withCredentials: true })
       ]);
       setLeaderboard(leaderboardRes.data.leaderboard || []);
       setMyRank(rankRes.data);
@@ -82,6 +84,8 @@ export const Leaderboard = ({ user }) => {
         start: challengesRes.data.week_start,
         end: challengesRes.data.week_end
       });
+      setTournament(tournamentRes.data.active ? tournamentRes.data : null);
+      setMyTournamentPos(tournamentPosRes.data.active ? tournamentPosRes.data : null);
     } catch (error) {
       console.error('Failed to fetch leaderboard:', error);
     } finally {
