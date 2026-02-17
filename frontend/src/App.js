@@ -236,6 +236,11 @@ function AppRouter() {
             {({ user }) => <AdminDashboard user={user} />}
           </ProtectedRoute>
         } />
+        <Route path="/analytics" element={
+          <ProtectedRoute>
+            {({ user }) => <CreatorAnalytics user={user} />}
+          </ProtectedRoute>
+        } />
         <Route path="/redeem" element={
           <ProtectedRoute>
             {({ user }) => <TokenShop user={user} />}
