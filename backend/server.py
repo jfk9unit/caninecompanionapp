@@ -3209,13 +3209,6 @@ async def trainer_checkout(request: TrainerCheckoutRequest, http_request: Reques
     
     # Create Stripe checkout session using emergentintegrations
     try:
-        duration_label = {
-            "30min": "30 Minutes",
-            "60min": "1 Hour",
-            "120min": "2 Hours",
-            "180min": "3 Hours Intensive"
-        }.get(request.duration, request.duration)
-        
         api_key = os.environ.get("STRIPE_API_KEY", "")
         host_url = str(http_request.base_url).rstrip('/')
         webhook_url = f"{host_url}/api/webhook/stripe"
@@ -3224,6 +3217,10 @@ async def trainer_checkout(request: TrainerCheckoutRequest, http_request: Reques
         
         success_url = f"{request.origin_url}/book-trainer?success=true&session_id={{CHECKOUT_SESSION_ID}}"
         cancel_url = f"{request.origin_url}/book-trainer?cancelled=true"
+        
+        session_description = f"{request.session_type.replace('_', ' ').title()} {duration_label}"
+        if request.session_type != "emergency":
+            session_description += f" on {request.date} at {request.time}"
         
         checkout_request = CheckoutSessionRequest(
             amount=total,
@@ -3236,7 +3233,8 @@ async def trainer_checkout(request: TrainerCheckoutRequest, http_request: Reques
                 "type": "trainer_booking",
                 "trainer_name": trainer["name"],
                 "date": request.date,
-                "time": request.time
+                "time": request.time,
+                "session_type": request.session_type
             }
         )
         
