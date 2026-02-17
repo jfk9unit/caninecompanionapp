@@ -2935,6 +2935,389 @@ async def get_creator_analytics(range: str = "30d", user: User = Depends(get_cur
         }
     }
 
+# ==================== NASDU COURSES & TRAINER BOOKING ====================
+
+from nasdu_courses_data import (
+    NASDU_COURSES, 
+    NASDU_PRETEST_QUESTIONS, 
+    APPROVED_K9_TRAINERS,
+    TRAINER_PRICING,
+    TRAINING_EQUIPMENT,
+    BEHAVIOURAL_ISSUES,
+    SUPPORTED_LANGUAGES
+)
+
+# Pre-test pricing
+PRETEST_PRICE = 19.99
+PRETEST_PASS_SCORE = 48  # Out of 50
+
+class TrainerBookingRequest(BaseModel):
+    trainer_id: str
+    session_type: str  # "virtual" or "in_person"
+    duration: str  # "30min", "60min", "120min", "180min"
+    date: str
+    time: str
+    from_postcode: Optional[str] = None
+    to_postcode: Optional[str] = None
+    notes: Optional[str] = None
+
+@api_router.get("/nasdu/courses")
+async def get_nasdu_courses(category: Optional[str] = None, level: Optional[int] = None):
+    """Get all NASDU courses with optional filtering"""
+    courses = NASDU_COURSES.copy()
+    
+    if category:
+        courses = [c for c in courses if c["category"] == category]
+    if level:
+        courses = [c for c in courses if c["level"] == level]
+    
+    return {"courses": courses, "total": len(courses)}
+
+@api_router.get("/nasdu/courses/{course_id}")
+async def get_nasdu_course(course_id: str):
+    """Get specific NASDU course details"""
+    course = next((c for c in NASDU_COURSES if c["course_id"] == course_id), None)
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    return course
+
+@api_router.get("/nasdu/pretest/questions")
+async def get_pretest_questions(user: User = Depends(get_current_user)):
+    """Get pre-test questions (shuffled)"""
+    questions = NASDU_PRETEST_QUESTIONS.copy()
+    random.shuffle(questions)
+    # Remove correct_answer from response
+    safe_questions = [{k: v for k, v in q.items() if k != "correct_answer"} for q in questions]
+    return {
+        "questions": safe_questions,
+        "total_questions": len(safe_questions),
+        "pass_score": PRETEST_PASS_SCORE,
+        "price": PRETEST_PRICE
+    }
+
+@api_router.post("/nasdu/pretest/start")
+async def start_pretest(user: User = Depends(get_current_user)):
+    """Start a new pre-test attempt (requires payment)"""
+    # Check if user has already passed
+    existing_pass = await db.pretest_results.find_one({
+        "user_id": user.user_id,
+        "passed": True
+    })
+    if existing_pass:
+        return {"already_passed": True, "passed_at": existing_pass.get("completed_at")}
+    
+    # Create pretest session
+    session_id = f"pretest_{uuid.uuid4().hex[:12]}"
+    pretest_session = {
+        "session_id": session_id,
+        "user_id": user.user_id,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "status": "pending_payment",
+        "price": PRETEST_PRICE
+    }
+    await db.pretest_sessions.insert_one(pretest_session)
+    
+    return {
+        "session_id": session_id,
+        "price": PRETEST_PRICE,
+        "requires_payment": True
+    }
+
+@api_router.post("/nasdu/pretest/submit")
+async def submit_pretest(request: Request, user: User = Depends(get_current_user)):
+    """Submit pre-test answers"""
+    body = await request.json()
+    answers = body.get("answers", {})  # {question_id: selected_option}
+    session_id = body.get("session_id")
+    
+    # Verify session
+    session = await db.pretest_sessions.find_one({
+        "session_id": session_id,
+        "user_id": user.user_id
+    })
+    if not session:
+        raise HTTPException(status_code=404, detail="Test session not found")
+    
+    # Calculate score
+    correct = 0
+    results = []
+    for q in NASDU_PRETEST_QUESTIONS:
+        user_answer = answers.get(str(q["id"]))
+        is_correct = user_answer == q["correct_answer"]
+        if is_correct:
+            correct += 1
+        results.append({
+            "question_id": q["id"],
+            "correct": is_correct,
+            "user_answer": user_answer,
+            "correct_answer": q["correct_answer"]
+        })
+    
+    passed = correct >= PRETEST_PASS_SCORE
+    
+    # Save result
+    result = {
+        "result_id": f"result_{uuid.uuid4().hex[:12]}",
+        "user_id": user.user_id,
+        "session_id": session_id,
+        "score": correct,
+        "total": len(NASDU_PRETEST_QUESTIONS),
+        "passed": passed,
+        "completed_at": datetime.now(timezone.utc).isoformat(),
+        "details": results
+    }
+    await db.pretest_results.insert_one(result)
+    
+    # Update session
+    await db.pretest_sessions.update_one(
+        {"session_id": session_id},
+        {"$set": {"status": "completed", "passed": passed}}
+    )
+    
+    return {
+        "score": correct,
+        "total": len(NASDU_PRETEST_QUESTIONS),
+        "pass_score": PRETEST_PASS_SCORE,
+        "passed": passed,
+        "message": "Congratulations! You've passed the pre-test." if passed else f"You scored {correct}/50. You need {PRETEST_PASS_SCORE}/50 to pass. Please try again."
+    }
+
+@api_router.get("/nasdu/pretest/status")
+async def get_pretest_status(user: User = Depends(get_current_user)):
+    """Check if user has passed pre-test"""
+    result = await db.pretest_results.find_one({
+        "user_id": user.user_id,
+        "passed": True
+    }, {"_id": 0})
+    
+    return {
+        "has_passed": result is not None,
+        "result": result
+    }
+
+@api_router.get("/trainers")
+async def get_trainers(specialization: Optional[str] = None, location: Optional[str] = None):
+    """Get approved K9 trainers"""
+    trainers = APPROVED_K9_TRAINERS.copy()
+    
+    if specialization:
+        trainers = [t for t in trainers if specialization.lower() in [s.lower() for s in t["specializations"]]]
+    if location:
+        trainers = [t for t in trainers if location.lower() in t["location"].lower()]
+    
+    return {"trainers": trainers, "total": len(trainers)}
+
+@api_router.get("/trainers/{trainer_id}")
+async def get_trainer(trainer_id: str):
+    """Get specific trainer details"""
+    trainer = next((t for t in APPROVED_K9_TRAINERS if t["trainer_id"] == trainer_id), None)
+    if not trainer:
+        raise HTTPException(status_code=404, detail="Trainer not found")
+    return trainer
+
+@api_router.get("/trainers/pricing/info")
+async def get_trainer_pricing():
+    """Get trainer pricing information"""
+    return {
+        "pricing": TRAINER_PRICING,
+        "equipment": TRAINING_EQUIPMENT,
+        "behavioural_issues": BEHAVIOURAL_ISSUES
+    }
+
+@api_router.post("/trainers/calculate-cost")
+async def calculate_booking_cost(request: Request):
+    """Calculate total cost for trainer booking"""
+    body = await request.json()
+    session_type = body.get("session_type", "virtual")
+    duration = body.get("duration", "60min")
+    from_postcode = body.get("from_postcode")
+    to_postcode = body.get("to_postcode")
+    
+    # Base session cost
+    if session_type == "virtual":
+        base_cost = TRAINER_PRICING["virtual"].get(duration, {}).get("price", 45.00)
+    else:
+        base_cost = TRAINER_PRICING["in_person"].get(duration, {}).get("price", 179.99)
+    
+    travel_cost = 0
+    call_out_fee = 0
+    estimated_miles = 0
+    
+    # Calculate travel for in-person
+    if session_type == "in_person" and from_postcode and to_postcode:
+        # Simple distance estimation based on postcode areas
+        # In production, use a real distance API
+        call_out_fee = TRAINER_PRICING["travel"]["call_out_fee"]
+        
+        # Estimate miles (simplified - would use real API in production)
+        # Average 15-30 miles for different postcode areas
+        estimated_miles = random.randint(10, 40)
+        travel_cost = estimated_miles * TRAINER_PRICING["travel"]["per_mile"]
+    
+    total = base_cost + call_out_fee + travel_cost
+    
+    return {
+        "session_cost": base_cost,
+        "call_out_fee": call_out_fee,
+        "travel_cost": round(travel_cost, 2),
+        "estimated_miles": estimated_miles,
+        "total": round(total, 2),
+        "admin_fee_note": f"Rescheduling incurs £{TRAINER_PRICING['admin_fee']} admin fee"
+    }
+
+@api_router.post("/trainers/book")
+async def book_trainer(booking: TrainerBookingRequest, user: User = Depends(get_current_user)):
+    """Book a training session with a trainer"""
+    # Verify trainer exists
+    trainer = next((t for t in APPROVED_K9_TRAINERS if t["trainer_id"] == booking.trainer_id), None)
+    if not trainer:
+        raise HTTPException(status_code=404, detail="Trainer not found")
+    
+    # Calculate cost
+    cost_calc = await calculate_booking_cost(type("Request", (), {
+        "json": lambda: {
+            "session_type": booking.session_type,
+            "duration": booking.duration,
+            "from_postcode": booking.from_postcode,
+            "to_postcode": booking.to_postcode
+        }
+    })())
+    
+    # Create booking
+    booking_id = f"booking_{uuid.uuid4().hex[:12]}"
+    booking_record = {
+        "booking_id": booking_id,
+        "user_id": user.user_id,
+        "user_email": user.email,
+        "user_name": user.name,
+        "trainer_id": booking.trainer_id,
+        "trainer_name": trainer["name"],
+        "session_type": booking.session_type,
+        "duration": booking.duration,
+        "date": booking.date,
+        "time": booking.time,
+        "from_postcode": booking.from_postcode,
+        "to_postcode": booking.to_postcode,
+        "notes": booking.notes,
+        "cost_breakdown": cost_calc,
+        "total_cost": cost_calc["total"],
+        "status": "pending_payment",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.trainer_bookings.insert_one(booking_record)
+    
+    return {
+        "booking_id": booking_id,
+        "trainer": trainer["name"],
+        "date": booking.date,
+        "time": booking.time,
+        "total_cost": cost_calc["total"],
+        "status": "pending_payment",
+        "message": "Booking created. Please complete payment to confirm."
+    }
+
+@api_router.get("/trainers/bookings")
+async def get_user_bookings(user: User = Depends(get_current_user)):
+    """Get user's trainer bookings"""
+    bookings = await db.trainer_bookings.find(
+        {"user_id": user.user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(50)
+    
+    return {"bookings": bookings}
+
+@api_router.post("/nasdu/course/enroll")
+async def enroll_in_course(request: Request, user: User = Depends(get_current_user)):
+    """Enroll in a NASDU course (requires pre-test pass)"""
+    body = await request.json()
+    course_id = body.get("course_id")
+    
+    # Check if user passed pre-test
+    pretest_pass = await db.pretest_results.find_one({
+        "user_id": user.user_id,
+        "passed": True
+    })
+    if not pretest_pass:
+        raise HTTPException(status_code=400, detail="You must pass the pre-test before enrolling in courses")
+    
+    # Get course
+    course = next((c for c in NASDU_COURSES if c["course_id"] == course_id), None)
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    
+    # Check existing enrollment
+    existing = await db.course_enrollments.find_one({
+        "user_id": user.user_id,
+        "course_id": course_id
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Already enrolled in this course")
+    
+    # Create enrollment
+    enrollment_id = f"enroll_{uuid.uuid4().hex[:12]}"
+    enrollment = {
+        "enrollment_id": enrollment_id,
+        "user_id": user.user_id,
+        "user_email": user.email,
+        "user_name": user.name,
+        "course_id": course_id,
+        "course_title": course["title"],
+        "price": course["commission_price"],
+        "status": "pending_payment",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.course_enrollments.insert_one(enrollment)
+    
+    return {
+        "enrollment_id": enrollment_id,
+        "course": course["title"],
+        "price": course["commission_price"],
+        "status": "pending_payment"
+    }
+
+@api_router.get("/nasdu/enrollments")
+async def get_user_enrollments(user: User = Depends(get_current_user)):
+    """Get user's course enrollments"""
+    enrollments = await db.course_enrollments.find(
+        {"user_id": user.user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(50)
+    
+    return {"enrollments": enrollments}
+
+# Language/Country settings
+@api_router.get("/settings/languages")
+async def get_supported_languages():
+    """Get list of supported languages"""
+    return {"languages": SUPPORTED_LANGUAGES}
+
+@api_router.post("/settings/language")
+async def set_user_language(request: Request, user: User = Depends(get_current_user)):
+    """Set user's preferred language"""
+    body = await request.json()
+    language = body.get("language", "en-GB")
+    
+    if language not in SUPPORTED_LANGUAGES:
+        raise HTTPException(status_code=400, detail="Unsupported language")
+    
+    await db.users.update_one(
+        {"user_id": user.user_id},
+        {"$set": {"preferred_language": language}}
+    )
+    
+    return {"language": language, "settings": SUPPORTED_LANGUAGES[language]}
+
+@api_router.get("/settings/language")
+async def get_user_language(user: User = Depends(get_current_user)):
+    """Get user's preferred language"""
+    user_doc = await db.users.find_one({"user_id": user.user_id}, {"_id": 0})
+    language = user_doc.get("preferred_language", "en-GB") if user_doc else "en-GB"
+    
+    return {
+        "language": language,
+        "settings": SUPPORTED_LANGUAGES.get(language, SUPPORTED_LANGUAGES["en-GB"])
+    }
+
 # ==================== APP SETUP ====================
 
 app.include_router(api_router)
