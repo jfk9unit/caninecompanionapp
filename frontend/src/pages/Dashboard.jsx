@@ -176,6 +176,7 @@ export const Dashboard = ({ user }) => {
   const [referralCode, setReferralCode] = useState('');
   const [featuredLesson, setFeaturedLesson] = useState(null);
   const [addDogOpen, setAddDogOpen] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const [newDog, setNewDog] = useState({
     name: '',
     breed: '',
@@ -188,6 +189,12 @@ export const Dashboard = ({ user }) => {
 
   useEffect(() => {
     fetchData();
+    // Check if we should show welcome dialog (once per session)
+    const welcomeShown = sessionStorage.getItem('welcomeShown');
+    if (!welcomeShown) {
+      setShowWelcome(true);
+      sessionStorage.setItem('welcomeShown', 'true');
+    }
   }, []);
 
   const fetchData = async () => {
