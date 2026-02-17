@@ -39,17 +39,16 @@ import {
   Bell,
 } from "lucide-react";
 import { MobileNav } from "@/components/MobileNav";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/training", label: "Training", icon: GraduationCap },
   { href: "/k9-training", label: "K9 Security", icon: Shield },
-  { href: "/k9-credentials", label: "K9 Credentials", icon: Award },
+  { href: "/elite-courses", label: "Elite", icon: BookOpen },
+  { href: "/book-trainer", label: "Trainers", icon: Award },
   { href: "/pet", label: "Pet", icon: Sparkles },
   { href: "/leaderboard", label: "Compete", icon: Flame },
-  { href: "/achievements", label: "Awards", icon: Trophy },
-  { href: "/health", label: "Health", icon: Heart },
-  { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/tokens", label: "Shop", icon: Coins },
 ];
 
