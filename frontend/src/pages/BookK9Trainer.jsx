@@ -626,6 +626,86 @@ export const BookK9Trainer = ({ user }) => {
             </div>
           </div>
 
+          {/* Approved 3rd Party Trainers - Coming Soon */}
+          {approvedTrainers.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-heading font-semibold text-xl flex items-center gap-2">
+                  <Users className="w-5 h-5 text-purple-500" />
+                  Approved 3rd Party Trainers
+                </h2>
+                <Badge className="bg-purple-500 text-white">Coming Soon</Badge>
+              </div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {approvedTrainers.map((trainer, index) => (
+                  <Card 
+                    key={trainer.trainer_id}
+                    className="rounded-2xl overflow-hidden shadow-card animate-fade-in opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                    data-testid={`approved-trainer-${trainer.trainer_id}`}
+                  >
+                    <div className="h-48 relative">
+                      <img 
+                        src={trainer.image_url}
+                        alt={trainer.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                      <Badge className="absolute top-4 right-4 bg-purple-500 text-white">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Coming Soon
+                      </Badge>
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <h3 className="font-semibold text-white text-lg">{trainer.name}</h3>
+                        <p className="text-white/80 text-sm">{trainer.title}</p>
+                      </div>
+                    </div>
+                    
+                    <CardContent className="p-5 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                          <span className="font-semibold">{trainer.rating}</span>
+                          <span className="text-muted-foreground text-sm">({trainer.reviews} reviews)</span>
+                        </div>
+                        <Badge variant="outline" className="rounded-full">
+                          <MapPin className="w-3 h-3 mr-1" />
+                          {trainer.location}
+                        </Badge>
+                      </div>
+                      
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {trainer.bio}
+                      </p>
+                      
+                      <div className="flex flex-wrap gap-1">
+                        {trainer.specializations.slice(0, 3).map((spec, i) => (
+                          <Badge key={i} variant="outline" className="rounded-full text-xs">
+                            {spec}
+                          </Badge>
+                        ))}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Award className="w-4 h-4" />
+                        {trainer.experience_years} years experience
+                      </div>
+                      
+                      <Button 
+                        disabled
+                        className="w-full rounded-full bg-slate-400 cursor-not-allowed"
+                        data-testid={`approved-trainer-btn-${trainer.trainer_id}`}
+                      >
+                        <Clock className="w-4 h-4 mr-2" />
+                        Coming Soon
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Equipment & Issues Section */}
           {pricingInfo && (
             <>
