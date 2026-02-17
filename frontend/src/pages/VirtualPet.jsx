@@ -1054,7 +1054,7 @@ export const VirtualPet = ({ user }) => {
 
               {/* Activity Tabs */}
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid grid-cols-5 bg-white rounded-2xl p-1 shadow-md">
+                <TabsList className="grid grid-cols-4 bg-white rounded-2xl p-1 shadow-md">
                   <TabsTrigger value="care" className="rounded-xl data-[state=active]:bg-pink-500 data-[state=active]:text-white">
                     <Heart className="w-4 h-4 sm:mr-2" />
                     <span className="hidden sm:inline">Care</span>
@@ -1062,10 +1062,6 @@ export const VirtualPet = ({ user }) => {
                   <TabsTrigger value="play" className="rounded-xl data-[state=active]:bg-blue-500 data-[state=active]:text-white">
                     <Gamepad2 className="w-4 h-4 sm:mr-2" />
                     <span className="hidden sm:inline">Play</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="sounds" className="rounded-xl data-[state=active]:bg-amber-500 data-[state=active]:text-white">
-                    <Volume2 className="w-4 h-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Sounds</span>
                   </TabsTrigger>
                   <TabsTrigger value="exercise" className="rounded-xl data-[state=active]:bg-green-500 data-[state=active]:text-white">
                     <Dumbbell className="w-4 h-4 sm:mr-2" />
