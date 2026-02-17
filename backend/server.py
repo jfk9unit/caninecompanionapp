@@ -3473,83 +3473,16 @@ async def send_course_enrollment_confirmation(enrollment: dict):
     except Exception as e:
         print(f"Failed to send course enrollment email: {e}")
 
-async def send_course_enrollment_confirmation(enrollment: dict):
-    """Send email confirmation for course enrollment"""
-    try:
-        # Get course details
-        course = next((c for c in NASDU_COURSES if c["course_id"] == enrollment.get("course_id")), None)
-        
-        resend.api_key = os.environ.get("RESEND_API_KEY")
-        sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
-        
-        resend.Emails.send({
-            "from": f"CanineCompass <{sender_email}>",
-            "to": [enrollment["user_email"]],
-            "subject": f"Enrollment Confirmed - {enrollment['course_title']}",
-            "html": f"""
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <div style="background: linear-gradient(135deg, #D97706, #F59E0B); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                    <h1 style="color: white; margin: 0;">Enrollment Confirmed!</h1>
-                </div>
-                <div style="padding: 30px; background: #f9fafb; border-radius: 0 0 10px 10px;">
-                    <p>Hi {enrollment['user_name']},</p>
-                    <p>Congratulations! Your enrollment in the NASDU course has been confirmed!</p>
-                    
-                    <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                        <h3 style="margin-top: 0; color: #D97706;">Course Details</h3>
-                        <p><strong>Course:</strong> {enrollment['course_title']}</p>
-                        <p><strong>Level:</strong> {course['level'] if course else 'N/A'}</p>
-                        <p><strong>Duration:</strong> {course['duration_days'] if course else 'N/A'} Days ({course['duration_hours'] if course else 'N/A'} Hours)</p>
-                        <p><strong>Location:</strong> {course['location'] if course else 'Various UK Locations'}</p>
-                        <p><strong>Total Paid:</strong> £{enrollment['price']:.2f}</p>
-                        <p><strong>Enrollment Reference:</strong> {enrollment['enrollment_id']}</p>
-                    </div>
-                    
-                    <div style="background: #DBEAFE; padding: 15px; border-radius: 10px; margin: 20px 0;">
-                        <p style="margin: 0; color: #1E40AF;"><strong>What's Next?</strong></p>
-                        <ul style="color: #1E40AF; margin: 10px 0;">
-                            <li>Our team will contact you within 48 hours</li>
-                            <li>You'll receive course materials and preparation guides</li>
-                            <li>We'll confirm your preferred training location and dates</li>
-                        </ul>
-                    </div>
-                    
-                    {f'''
-                    <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                        <h4 style="margin-top: 0;">Prerequisites:</h4>
-                        <ul>{"".join([f"<li>{p}</li>" for p in course.get("prerequisites", [])])}</ul>
-                    </div>
-                    ''' if course and course.get("prerequisites") else ""}
-                    
-                    <p>Thank you for choosing CanineCompass for your NASDU certification journey!</p>
-                    <p>The CanineCompass Team</p>
-                </div>
-            </div>
-            """
-        })
-    except Exception as e:
-        print(f"Failed to send course enrollment email: {e}")
-
-# Keep the old enroll endpoint for backward compatibility but make it redirect to checkout
+# Keep the old enroll endpoint for backward compatibility
 @api_router.post("/nasdu/course/enroll")
 async def enroll_in_course(request: Request, user: User = Depends(get_current_user)):
     """Enroll in a NASDU course - redirects to checkout (pre-test no longer required)"""
     body = await request.json()
     course_id = body.get("course_id")
     
-    # Get course
     course = next((c for c in NASDU_COURSES if c["course_id"] == course_id), None)
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
-    
-    # Check existing enrollment
-    existing = await db.course_enrollments.find_one({
-        "user_id": user.user_id,
-        "course_id": course_id,
-        "status": "confirmed"
-    })
-    if existing:
-        raise HTTPException(status_code=400, detail="Already enrolled in this course")
     
     return {
         "message": "Please use /nasdu/course/checkout endpoint for payment",
