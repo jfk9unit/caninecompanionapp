@@ -131,6 +131,9 @@ export const AppLayout = ({ user, children }) => {
 
             {/* Right Side */}
             <div className="flex items-center gap-3">
+              {/* Language Selector */}
+              <LanguageSelector />
+              
               {/* Dog Selector */}
               {dogs.length > 0 && (
                 <DropdownMenu>
