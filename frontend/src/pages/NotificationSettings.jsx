@@ -99,7 +99,10 @@ export const NotificationSettings = ({ user }) => {
     daily_tips: true,
     achievement_alerts: true,
     tournament_updates: true,
-    marketing: false
+    marketing: false,
+    auto_login_reminder: true,
+    pet_care_reminders: true,
+    streak_reminders: true
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
