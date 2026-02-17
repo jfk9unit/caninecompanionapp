@@ -37,6 +37,7 @@ import {
   Users,
   ArrowRight
 } from "lucide-react";
+import { DailyRewardCard } from "@/components/DailyReward";
 
 // Quick Action Card Component
 const QuickActionCard = ({ icon: Icon, title, description, onClick, color, badge }) => (
