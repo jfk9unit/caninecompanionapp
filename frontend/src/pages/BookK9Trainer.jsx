@@ -106,7 +106,8 @@ export const BookK9Trainer = ({ user }) => {
         axios.get(`${API}/trainers`, { withCredentials: true }),
         axios.get(`${API}/trainers/pricing/info`, { withCredentials: true })
       ]);
-      setTrainers(trainersRes.data.trainers);
+      setOurTeam(trainersRes.data.our_team || []);
+      setApprovedTrainers(trainersRes.data.approved_contractors || []);
       setPricingInfo(pricingRes.data);
     } catch (error) {
       console.error('Failed to fetch trainers:', error);
