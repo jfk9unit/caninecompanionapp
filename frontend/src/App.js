@@ -32,6 +32,7 @@ import { CreatorAnalytics } from "@/pages/CreatorAnalytics";
 import { EliteNasduCourses } from "@/pages/EliteNasduCourses";
 import { NasduPretest } from "@/pages/NasduPretest";
 import { BookK9Trainer } from "@/pages/BookK9Trainer";
+import { EquipmentShop } from "@/pages/EquipmentShop";
 import { ComingSoon } from "@/pages/ComingSoon";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
