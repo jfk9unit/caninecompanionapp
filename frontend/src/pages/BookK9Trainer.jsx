@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 
 export const BookK9Trainer = ({ user }) => {
+  const [searchParams] = useSearchParams();
   const [trainers, setTrainers] = useState([]);
   const [pricingInfo, setPricingInfo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -55,7 +56,14 @@ export const BookK9Trainer = ({ user }) => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+    
+    // Check for payment success/cancel
+    if (searchParams.get('success') === 'true') {
+      toast.success("Booking confirmed! Check your email for appointment details.");
+    } else if (searchParams.get('cancelled') === 'true') {
+      toast.info("Payment cancelled");
+    }
+  }, [searchParams]);
 
   const fetchData = async () => {
     try {
