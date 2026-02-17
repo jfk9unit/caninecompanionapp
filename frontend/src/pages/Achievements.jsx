@@ -51,6 +51,9 @@ export const Achievements = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [sharing, setSharing] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewAchievement, setPreviewAchievement] = useState(null);
+  const [previewCanvas, setPreviewCanvas] = useState(null);
 
   useEffect(() => {
     fetchAchievements();
