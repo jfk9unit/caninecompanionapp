@@ -133,6 +133,9 @@ class NotificationSettings(BaseModel):
     achievement_alerts: bool = True
     tournament_updates: bool = True
     marketing: bool = False
+    auto_login_reminder: bool = True
+    pet_care_reminders: bool = True
+    streak_reminders: bool = True
 
 # ==================== AUTH HELPERS ====================
 
