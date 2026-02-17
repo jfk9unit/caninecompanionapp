@@ -567,6 +567,12 @@ export const BookK9Trainer = ({ user }) => {
                                     <span>£{costBreakdown.travel_cost.toFixed(2)}</span>
                                   </div>
                                 )}
+                                {costBreakdown.k9_risk_fee > 0 && (
+                                  <div className="flex justify-between text-sm text-amber-700">
+                                    <span>K9 Risk & Equipment Fee</span>
+                                    <span>£{costBreakdown.k9_risk_fee.toFixed(2)}</span>
+                                  </div>
+                                )}
                                 <div className="flex justify-between font-bold text-lg pt-2 border-t">
                                   <span>Total</span>
                                   <span className="text-primary">£{costBreakdown.total.toFixed(2)}</span>
