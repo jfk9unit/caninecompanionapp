@@ -26,11 +26,10 @@ import {
   Crown,
   Clock,
   Lightbulb,
-  GraduationCap,
-  Video
+  GraduationCap
 } from "lucide-react";
 import { LESSON_IMAGES, CATEGORY_VISUALS } from "@/data/trainingVisuals";
-import { MiniVideoPlayer, getVideoUrl } from "@/components/VideoPlayer";
+import { AudioTrainingGuide } from "@/components/AudioTrainingGuide";
 
 // K9 Lesson Images
 const K9_IMAGES = {
