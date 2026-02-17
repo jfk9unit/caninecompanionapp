@@ -3025,7 +3025,11 @@ async def get_approved_trainers():
 @api_router.get("/trainers/{trainer_id}")
 async def get_trainer(trainer_id: str):
     """Get specific trainer details"""
-    trainer = next((t for t in APPROVED_K9_TRAINERS if t["trainer_id"] == trainer_id), None)
+    # Check our team first
+    trainer = next((t for t in OUR_K9_TEAM if t["trainer_id"] == trainer_id), None)
+    if not trainer:
+        # Check approved trainers
+        trainer = next((t for t in APPROVED_K9_TRAINERS if t["trainer_id"] == trainer_id), None)
     if not trainer:
         raise HTTPException(status_code=404, detail="Trainer not found")
     return trainer
