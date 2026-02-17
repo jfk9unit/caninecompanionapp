@@ -225,6 +225,19 @@ async def get_current_user(request: Request) -> User:
     
     return User(**user_doc)
 
+# ==================== HELPER FUNCTIONS ====================
+
+async def is_admin(user: User) -> bool:
+    """Check if user is an admin"""
+    return user.email in ADMIN_EMAILS
+
+async def is_vip_player(email: str) -> bool:
+    """Check if a user is a VIP player (from hardcoded list or database)"""
+    if email in VIP_PLAYERS:
+        return True
+    db_vip = await db.vip_players.find_one({"email": email.lower()})
+    return db_vip is not None
+
 # ==================== ROOT ====================
 
 @api_router.get("/")
