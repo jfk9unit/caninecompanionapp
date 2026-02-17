@@ -207,7 +207,10 @@ export const NotificationSettings = ({ user }) => {
       daily_tips: true,
       achievement_alerts: true,
       tournament_updates: true,
-      marketing: true
+      marketing: true,
+      auto_login_reminder: true,
+      pet_care_reminders: true,
+      streak_reminders: true
     };
     setSettings(newSettings);
     axios.put(`${API}/notifications/settings`, newSettings, { withCredentials: true })
@@ -223,7 +226,10 @@ export const NotificationSettings = ({ user }) => {
       daily_tips: false,
       achievement_alerts: false,
       tournament_updates: false,
-      marketing: false
+      marketing: false,
+      auto_login_reminder: false,
+      pet_care_reminders: false,
+      streak_reminders: false
     };
     setSettings(newSettings);
     axios.put(`${API}/notifications/settings`, newSettings, { withCredentials: true })
