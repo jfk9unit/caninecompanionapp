@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import soundManager from "@/utils/soundManager";
 import {
   Heart,
   Zap,
@@ -31,25 +32,58 @@ import {
   Gamepad2,
   TreePine,
   Home,
-  Volume2
+  Volume2,
+  VolumeX,
+  Droplets,
+  Wind,
+  Cookie,
+  Hand
 } from "lucide-react";
 
-// Animated K9 Pet Component
-const AnimatedK9Pet = ({ mood, isPlaying, isEating, isExercising, isSleeping, name }) => {
+// Enhanced Animated K9 Pet Component with better graphics
+const AnimatedK9Pet = ({ mood, isPlaying, isEating, isExercising, isSleeping, isResting, name, action, soundEnabled }) => {
   const [frame, setFrame] = useState(0);
   const [bounce, setBounce] = useState(false);
   const [wagTail, setWagTail] = useState(false);
+  const [tongueOut, setTongueOut] = useState(false);
+  const [earPerk, setEarPerk] = useState(false);
+  const [eyeBlink, setEyeBlink] = useState(false);
+  const [pawRaise, setPawRaise] = useState(false);
+  const [particles, setParticles] = useState([]);
 
+  // Animation loop
   useEffect(() => {
     const interval = setInterval(() => {
-      setFrame(f => (f + 1) % 4);
-      if (isPlaying || mood >= 80) {
+      setFrame(f => (f + 1) % 60);
+      
+      // Tail wagging based on happiness
+      if (isPlaying || mood >= 70 || isEating) {
         setWagTail(w => !w);
       }
-    }, 300);
+      
+      // Tongue out when playing or hot
+      if (isPlaying || isExercising) {
+        setTongueOut(true);
+      } else {
+        setTongueOut(false);
+      }
+      
+      // Random ear perk
+      if (Math.random() > 0.9) {
+        setEarPerk(true);
+        setTimeout(() => setEarPerk(false), 500);
+      }
+      
+      // Random eye blink
+      if (Math.random() > 0.95) {
+        setEyeBlink(true);
+        setTimeout(() => setEyeBlink(false), 150);
+      }
+    }, 200);
     return () => clearInterval(interval);
-  }, [isPlaying, mood]);
+  }, [isPlaying, mood, isExercising, isEating]);
 
+  // Bounce effect
   useEffect(() => {
     if (isPlaying || isEating || isExercising) {
       setBounce(true);
@@ -58,12 +92,51 @@ const AnimatedK9Pet = ({ mood, isPlaying, isEating, isExercising, isSleeping, na
     }
   }, [isPlaying, isEating, isExercising]);
 
-  // Get dog expression based on state
+  // Paw raise when resting
+  useEffect(() => {
+    if (isResting) {
+      const interval = setInterval(() => {
+        setPawRaise(p => !p);
+      }, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [isResting]);
+
+  // Add particles for actions
+  useEffect(() => {
+    if (action) {
+      const newParticles = [];
+      const particleTypes = {
+        feed: ['🍖', '🦴', '❤️'],
+        play: ['🎾', '⭐', '✨'],
+        exercise: ['💪', '🔥', '⚡'],
+        treat: ['🍪', '❤️', '✨'],
+        rest: ['💤', '😴', '☁️']
+      };
+      
+      const types = particleTypes[action] || ['✨'];
+      for (let i = 0; i < 5; i++) {
+        newParticles.push({
+          id: Date.now() + i,
+          emoji: types[Math.floor(Math.random() * types.length)],
+          x: 50 + (Math.random() - 0.5) * 60,
+          y: 30 + Math.random() * 20,
+          delay: i * 0.1
+        });
+      }
+      setParticles(newParticles);
+      
+      setTimeout(() => setParticles([]), 2000);
+    }
+  }, [action]);
+
+  // Get expression based on state
   const getExpression = () => {
     if (isSleeping) return "😴";
     if (isEating) return "😋";
     if (isPlaying) return "🤩";
     if (isExercising) return "💪";
+    if (isResting) return "😌";
     if (mood >= 90) return "🥰";
     if (mood >= 70) return "😊";
     if (mood >= 50) return "🙂";
@@ -71,166 +144,342 @@ const AnimatedK9Pet = ({ mood, isPlaying, isEating, isExercising, isSleeping, na
     return "😢";
   };
 
+  // Dog color gradient based on mood
+  const getDogColor = () => {
+    if (mood >= 80) return { body: "#B8860B", head: "#DAA520", dark: "#8B6914" };
+    if (mood >= 50) return { body: "#8B5A2B", head: "#A0522D", dark: "#5D3A1A" };
+    return { body: "#6B4423", head: "#8B6347", dark: "#4A2C17" };
+  };
+
+  const colors = getDogColor();
+
   return (
-    <div className="relative w-full max-w-xs mx-auto">
+    <div className="relative w-full max-w-sm mx-auto">
       {/* Background Scene */}
-      <div className={`absolute inset-0 rounded-3xl overflow-hidden transition-all duration-500 ${
-        isSleeping ? 'bg-gradient-to-b from-indigo-900 to-purple-900' :
-        isExercising ? 'bg-gradient-to-b from-green-400 to-emerald-500' :
-        'bg-gradient-to-b from-sky-300 to-sky-400'
+      <div className={`relative rounded-3xl overflow-hidden transition-all duration-700 h-72 ${
+        isSleeping ? 'bg-gradient-to-b from-indigo-900 via-purple-900 to-indigo-950' :
+        isExercising ? 'bg-gradient-to-b from-emerald-400 via-green-500 to-emerald-600' :
+        'bg-gradient-to-b from-sky-400 via-sky-300 to-cyan-200'
       }`}>
+        
         {/* Stars for night */}
         {isSleeping && (
           <div className="absolute inset-0">
-            {[...Array(20)].map((_, i) => (
+            {[...Array(30)].map((_, i) => (
               <div
                 key={i}
-                className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
+                className="absolute rounded-full animate-twinkle"
                 style={{
                   left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 60}%`,
-                  animationDelay: `${Math.random() * 2}s`
+                  top: `${Math.random() * 50}%`,
+                  width: `${2 + Math.random() * 3}px`,
+                  height: `${2 + Math.random() * 3}px`,
+                  backgroundColor: i % 3 === 0 ? '#FEF08A' : 'white',
+                  animationDelay: `${Math.random() * 3}s`,
+                  boxShadow: `0 0 ${4 + Math.random() * 6}px ${i % 3 === 0 ? '#FEF08A' : 'white'}`
                 }}
               />
             ))}
-            <Moon className="absolute top-4 right-4 w-8 h-8 text-yellow-200" />
+            <div className="absolute top-6 right-8">
+              <Moon className="w-12 h-12 text-yellow-200 drop-shadow-[0_0_15px_rgba(254,240,138,0.8)]" />
+            </div>
           </div>
         )}
         
-        {/* Sun for day */}
+        {/* Sun for day with rays */}
         {!isSleeping && (
-          <Sun className="absolute top-4 right-4 w-10 h-10 text-yellow-300 animate-spin-slow" />
+          <div className="absolute top-4 right-6">
+            <div className="relative">
+              <Sun className="w-14 h-14 text-yellow-300 drop-shadow-[0_0_20px_rgba(253,224,71,0.8)] animate-spin-slow" />
+              {/* Sun rays */}
+              <div className="absolute inset-0 animate-pulse">
+                {[...Array(8)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute w-1 h-6 bg-gradient-to-b from-yellow-300 to-transparent rounded-full"
+                    style={{
+                      left: '50%',
+                      top: '50%',
+                      transformOrigin: '50% 0',
+                      transform: `translate(-50%, -100%) rotate(${i * 45}deg) translateY(-20px)`
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
         )}
-        
-        {/* Trees for exercise */}
-        {isExercising && (
+
+        {/* Clouds */}
+        {!isSleeping && !isExercising && (
           <>
-            <TreePine className="absolute bottom-0 left-2 w-12 h-12 text-green-700" />
-            <TreePine className="absolute bottom-0 right-4 w-10 h-10 text-green-600" />
+            <div className="absolute top-8 left-4 w-16 h-8 bg-white/70 rounded-full blur-sm animate-float" />
+            <div className="absolute top-12 left-16 w-12 h-6 bg-white/60 rounded-full blur-sm animate-float-delayed" />
+            <div className="absolute top-6 left-1/3 w-20 h-10 bg-white/50 rounded-full blur-sm animate-float" style={{animationDelay: '1s'}} />
           </>
         )}
         
-        {/* Ground */}
-        <div className={`absolute bottom-0 left-0 right-0 h-20 ${
-          isSleeping ? 'bg-indigo-800' :
-          isExercising ? 'bg-green-600' :
-          'bg-green-500'
+        {/* Trees for outdoor scenes */}
+        {(isExercising || isPlaying) && (
+          <>
+            <TreePine className="absolute bottom-16 left-2 w-16 h-16 text-green-800 drop-shadow-lg" />
+            <TreePine className="absolute bottom-16 right-4 w-12 h-12 text-green-700 drop-shadow-lg" />
+            <TreePine className="absolute bottom-14 left-1/4 w-10 h-10 text-green-600 drop-shadow-lg" />
+          </>
+        )}
+        
+        {/* Ground with grass */}
+        <div className={`absolute bottom-0 left-0 right-0 h-24 ${
+          isSleeping ? 'bg-gradient-to-t from-indigo-950 to-indigo-900' :
+          isExercising ? 'bg-gradient-to-t from-green-700 to-green-600' :
+          'bg-gradient-to-t from-green-600 to-green-500'
         }`}>
-          {/* Grass texture */}
+          {/* Grass blades */}
           {!isSleeping && (
-            <div className="absolute top-0 left-0 right-0 h-4 flex justify-around">
-              {[...Array(15)].map((_, i) => (
+            <div className="absolute top-0 left-0 right-0 h-6 flex justify-around items-end overflow-hidden">
+              {[...Array(25)].map((_, i) => (
                 <div
                   key={i}
-                  className="w-1 bg-green-600 rounded-t"
-                  style={{ height: `${8 + Math.random() * 8}px` }}
+                  className={`rounded-t-full ${isExercising ? 'bg-green-500' : 'bg-green-400'}`}
+                  style={{ 
+                    width: '4px',
+                    height: `${10 + Math.random() * 12}px`,
+                    transform: `rotate(${(Math.random() - 0.5) * 20}deg)`,
+                    animation: 'sway 2s ease-in-out infinite',
+                    animationDelay: `${Math.random() * 2}s`
+                  }}
                 />
               ))}
             </div>
           )}
+          
+          {/* Flowers */}
+          {!isSleeping && !isExercising && (
+            <>
+              <div className="absolute bottom-6 left-8 text-xl animate-bounce-slow">🌸</div>
+              <div className="absolute bottom-8 right-12 text-lg animate-bounce-slow" style={{animationDelay: '0.5s'}}>🌼</div>
+              <div className="absolute bottom-5 left-1/3 text-sm animate-bounce-slow" style={{animationDelay: '1s'}}>🌺</div>
+            </>
+          )}
         </div>
         
-        {/* Dog house */}
+        {/* Dog house for sleeping */}
         {isSleeping && (
-          <div className="absolute bottom-16 left-1/2 -translate-x-1/2">
-            <Home className="w-16 h-16 text-amber-600" />
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2">
+            <div className="relative">
+              {/* House body */}
+              <div className="w-24 h-16 bg-amber-700 rounded-b-lg relative">
+                <div className="absolute inset-x-6 bottom-0 w-12 h-12 bg-amber-900 rounded-t-full" />
+              </div>
+              {/* Roof */}
+              <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[45px] border-r-[45px] border-b-[32px] border-l-transparent border-r-transparent border-b-red-700" />
+              <Home className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 text-amber-200" />
+            </div>
           </div>
         )}
-      </div>
 
-      {/* Animated K9 Dog */}
-      <div className={`relative z-10 pt-8 pb-4 ${bounce ? 'animate-bounce' : ''}`}>
-        <div className="relative mx-auto w-40 h-40">
-          {/* Dog Body */}
-          <div className={`absolute inset-0 transition-transform duration-300 ${
+        {/* Animated K9 Dog */}
+        <div className={`absolute bottom-20 left-1/2 -translate-x-1/2 z-10 ${bounce ? 'animate-bounce' : ''}`}>
+          <div className={`relative w-48 h-48 transition-transform duration-300 ${
             isPlaying ? 'animate-wiggle' : 
             isExercising ? 'animate-pulse' : ''
           }`}>
-            {/* Main body shape */}
-            <svg viewBox="0 0 200 200" className="w-full h-full">
+            {/* Enhanced SVG Dog */}
+            <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-xl">
+              {/* Shadow under dog */}
+              <ellipse cx="100" cy="185" rx="45" ry="10" fill="rgba(0,0,0,0.2)" />
+              
+              {/* Back legs */}
+              <rect x="60" y={isExercising ? "150" : "155"} width="18" height="35" rx="6" fill={colors.body} />
+              <rect x="122" y={isExercising ? "150" : "155"} width="18" height="35" rx="6" fill={colors.body} />
+              
+              {/* Paws */}
+              <ellipse cx="69" cy="188" rx="12" ry="6" fill={colors.dark} />
+              <ellipse cx="131" cy="188" rx="12" ry="6" fill={colors.dark} />
+              
+              {/* Tail with wag animation */}
+              <g transform={`rotate(${wagTail ? 35 : -15}, 155, 115)`}>
+                <path 
+                  d="M150,115 Q175,90 180,70 Q185,50 170,60 Q160,70 155,100 Z" 
+                  fill={colors.body}
+                />
+                <ellipse cx="175" cy="62" rx="8" ry="6" fill={colors.dark} />
+              </g>
+              
               {/* Body */}
-              <ellipse cx="100" cy="130" rx="50" ry="35" fill="#8B5A2B" />
+              <ellipse cx="100" cy="130" rx="55" ry="40" fill={colors.body} />
+              
+              {/* Body highlights */}
+              <ellipse cx="85" cy="120" rx="20" ry="15" fill={colors.head} opacity="0.5" />
+              
+              {/* Front legs */}
+              <rect x="70" y="155" width="16" height="32" rx="5" fill={colors.body} />
+              <rect x="114" y="155" width="16" height="32" rx="5" fill={colors.body} />
+              
+              {/* Front paws */}
+              <ellipse cx="78" cy="186" rx="11" ry="5" fill={colors.dark} />
+              <ellipse cx="122" cy="186" rx="11" ry="5" fill={colors.dark} />
+              
+              {/* Raised paw for resting */}
+              {pawRaise && (
+                <g>
+                  <rect x="114" y="140" width="16" height="25" rx="5" fill={colors.body} transform="rotate(-30, 122, 152)" />
+                  <ellipse cx="110" cy="145" rx="11" ry="5" fill={colors.dark} transform="rotate(-30, 110, 145)" />
+                </g>
+              )}
+              
+              {/* Neck */}
+              <ellipse cx="100" cy="95" rx="30" ry="25" fill={colors.body} />
               
               {/* Head */}
-              <circle cx="100" cy="75" r="40" fill="#A0522D" />
+              <circle cx="100" cy="65" r="42" fill={colors.head} />
+              
+              {/* Head highlight */}
+              <circle cx="85" cy="50" r="15" fill="white" opacity="0.15" />
               
               {/* Ears */}
               <ellipse 
-                cx="60" cy="55" rx="15" ry="25" 
-                fill="#5D3A1A" 
-                transform={`rotate(${wagTail ? -15 : -10}, 60, 55)`}
+                cx="55" cy="45" rx="18" ry="30" 
+                fill={colors.dark}
+                transform={`rotate(${earPerk ? -20 : (wagTail ? -12 : -8)}, 55, 45)`}
               />
               <ellipse 
-                cx="140" cy="55" rx="15" ry="25" 
-                fill="#5D3A1A"
-                transform={`rotate(${wagTail ? 15 : 10}, 140, 55)`}
+                cx="145" cy="45" rx="18" ry="30" 
+                fill={colors.dark}
+                transform={`rotate(${earPerk ? 20 : (wagTail ? 12 : 8)}, 145, 45)`}
+              />
+              
+              {/* Inner ears */}
+              <ellipse 
+                cx="55" cy="48" rx="10" ry="18" 
+                fill="#FFB6C1"
+                transform={`rotate(${earPerk ? -20 : (wagTail ? -12 : -8)}, 55, 48)`}
+                opacity="0.6"
+              />
+              <ellipse 
+                cx="145" cy="48" rx="10" ry="18" 
+                fill="#FFB6C1"
+                transform={`rotate(${earPerk ? 20 : (wagTail ? 12 : 8)}, 145, 48)`}
+                opacity="0.6"
               />
               
               {/* Snout */}
-              <ellipse cx="100" cy="90" rx="20" ry="15" fill="#D2B48C" />
-              <ellipse cx="100" cy="85" rx="8" ry="5" fill="#2D1B0E" />
+              <ellipse cx="100" cy="80" rx="22" ry="18" fill="#E8D4B8" />
+              <ellipse cx="100" cy="85" rx="18" ry="12" fill="#F5E6D3" />
+              
+              {/* Nose */}
+              <ellipse cx="100" cy="75" rx="10" ry="7" fill="#1A1A1A" />
+              <ellipse cx="97" cy="73" rx="3" ry="2" fill="#4A4A4A" />
+              
+              {/* Mouth line */}
+              <path d="M90,88 Q100,95 110,88" stroke={colors.dark} strokeWidth="2" fill="none" />
+              
+              {/* Tongue when panting */}
+              {tongueOut && (
+                <g>
+                  <ellipse cx="100" cy="98" rx="8" ry="12" fill="#FF6B9D" />
+                  <ellipse cx="100" cy="95" rx="6" ry="4" fill="#FF8DB3" />
+                </g>
+              )}
               
               {/* Eyes */}
-              <circle cx="80" cy="70" r="8" fill="white" />
-              <circle cx="120" cy="70" r="8" fill="white" />
-              <circle cx="80" cy="70" r="5" fill="#2D1B0E" />
-              <circle cx="120" cy="70" r="5" fill="#2D1B0E" />
+              {!eyeBlink && !isSleeping ? (
+                <>
+                  <ellipse cx="78" cy="58" rx="12" ry="14" fill="white" />
+                  <ellipse cx="122" cy="58" rx="12" ry="14" fill="white" />
+                  <circle cx={78 + (isPlaying ? 2 : 0)} cy="60" r="7" fill="#3D2314" />
+                  <circle cx={122 + (isPlaying ? 2 : 0)} cy="60" r="7" fill="#3D2314" />
+                  {/* Eye shine */}
+                  <circle cx="81" cy="56" r="3" fill="white" />
+                  <circle cx="125" cy="56" r="3" fill="white" />
+                  {/* Small shine */}
+                  <circle cx="76" cy="62" r="1.5" fill="white" />
+                  <circle cx="120" cy="62" r="1.5" fill="white" />
+                </>
+              ) : (
+                <>
+                  {/* Closed eyes */}
+                  <path d="M68,58 Q78,65 88,58" stroke={colors.dark} strokeWidth="3" fill="none" strokeLinecap="round" />
+                  <path d="M112,58 Q122,65 132,58" stroke={colors.dark} strokeWidth="3" fill="none" strokeLinecap="round" />
+                </>
+              )}
               
-              {/* Eye shine */}
-              <circle cx="82" cy="68" r="2" fill="white" />
-              <circle cx="122" cy="68" r="2" fill="white" />
+              {/* Eyebrows */}
+              <path d={`M65,45 Q78,${mood >= 70 ? '40' : '48'} 90,45`} stroke={colors.dark} strokeWidth="3" fill="none" strokeLinecap="round" />
+              <path d={`M110,45 Q122,${mood >= 70 ? '40' : '48'} 135,45`} stroke={colors.dark} strokeWidth="3" fill="none" strokeLinecap="round" />
               
-              {/* Legs */}
-              <rect x="65" y="155" width="15" height="30" rx="5" fill="#8B5A2B" />
-              <rect x="120" y="155" width="15" height="30" rx="5" fill="#8B5A2B" />
-              
-              {/* Tail */}
-              <ellipse 
-                cx="155" cy="130" rx="8" ry="20" 
-                fill="#5D3A1A"
-                transform={`rotate(${wagTail ? 30 : -10}, 155, 130)`}
-                className="origin-bottom transition-transform"
-              />
+              {/* Whisker dots */}
+              <circle cx="70" cy="82" r="2" fill={colors.dark} />
+              <circle cx="65" cy="78" r="2" fill={colors.dark} />
+              <circle cx="130" cy="82" r="2" fill={colors.dark} />
+              <circle cx="135" cy="78" r="2" fill={colors.dark} />
               
               {/* Collar */}
-              <rect x="75" y="105" width="50" height="8" rx="2" fill="#DC2626" />
-              <circle cx="100" cy="113" r="4" fill="#FCD34D" />
+              <rect x="70" y="98" width="60" height="10" rx="3" fill="#DC2626" />
+              <rect x="72" y="100" width="56" height="2" fill="#EF4444" />
+              
+              {/* Collar tag */}
+              <circle cx="100" cy="112" r="6" fill="#FCD34D" />
+              <circle cx="100" cy="112" r="4" fill="#F59E0B" />
+              <text x="100" y="114" fontSize="5" fill="white" textAnchor="middle" fontWeight="bold">★</text>
             </svg>
           </div>
           
-          {/* Expression Overlay */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl">
-            {isSleeping && <span className="text-5xl">💤</span>}
-          </div>
+          {/* ZZZ when sleeping */}
+          {isSleeping && (
+            <div className="absolute top-0 right-0 text-2xl animate-float">
+              <span className="text-white font-bold opacity-80" style={{animationDelay: '0.2s'}}>Z</span>
+              <span className="text-white/70 text-xl" style={{animationDelay: '0.4s'}}>z</span>
+              <span className="text-white/50 text-lg" style={{animationDelay: '0.6s'}}>z</span>
+            </div>
+          )}
           
-          {/* Food bowl when eating */}
+          {/* Action items */}
           {isEating && (
-            <div className="absolute -bottom-2 right-0 text-3xl animate-bounce">
-              🍖
+            <div className="absolute -bottom-2 right-0 animate-bounce">
+              <span className="text-4xl drop-shadow-lg">🍖</span>
             </div>
           )}
           
-          {/* Ball when playing */}
           {isPlaying && (
-            <div className="absolute -bottom-2 left-0 text-3xl animate-bounce">
-              🎾
+            <div className="absolute -bottom-2 left-0 animate-bounce">
+              <span className="text-4xl drop-shadow-lg">🎾</span>
             </div>
           )}
           
-          {/* Dumbbells when exercising */}
           {isExercising && (
-            <div className="absolute top-0 right-0 text-2xl animate-pulse">
-              💪
+            <div className="absolute top-0 right-0 animate-pulse">
+              <span className="text-3xl">💪</span>
             </div>
           )}
         </div>
+
+        {/* Floating particles */}
+        {particles.map((p) => (
+          <div
+            key={p.id}
+            className="absolute text-2xl animate-float-up"
+            style={{
+              left: `${p.x}%`,
+              top: `${p.y}%`,
+              animationDelay: `${p.delay}s`
+            }}
+          >
+            {p.emoji}
+          </div>
+        ))}
         
-        {/* Pet Name */}
-        <div className="text-center mt-2">
-          <Badge className="bg-white/90 text-gray-800 rounded-full px-4 py-1 text-lg font-bold shadow-lg">
+        {/* Pet Name Badge */}
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20">
+          <Badge className="bg-white/95 text-gray-800 rounded-full px-5 py-2 text-lg font-bold shadow-xl border-2 border-amber-300">
+            <PawPrint className="w-4 h-4 mr-2 text-amber-500" />
             {name}
           </Badge>
-          <div className="mt-1 text-3xl">{getExpression()}</div>
+        </div>
+        
+        {/* Expression indicator */}
+        <div className="absolute bottom-2 right-4 z-20">
+          <span className="text-3xl drop-shadow-lg">{getExpression()}</span>
         </div>
       </div>
     </div>
