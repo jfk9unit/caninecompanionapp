@@ -418,6 +418,249 @@ async def claim_daily_reward(user: User = Depends(get_current_user)):
         "message": f"Day {new_streak} reward claimed! +{total_tokens} tokens"
     }
 
+# ==================== PROMO CODES (Admin Issued) ====================
+
+async def is_admin(user: User) -> bool:
+    """Check if user is an admin"""
+    return user.email in ADMIN_EMAILS
+
+@api_router.post("/admin/promo-codes")
+async def create_promo_code(promo: PromoCodeCreate, user: User = Depends(get_current_user)):
+    """Admin: Create a new promo code"""
+    if not await is_admin(user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if code already exists
+    existing = await db.promo_codes.find_one({"code": promo.code.upper()})
+    if existing:
+        raise HTTPException(status_code=400, detail="Promo code already exists")
+    
+    promo_doc = {
+        "code": promo.code.upper(),
+        "code_type": promo.code_type,
+        "value": promo.value,
+        "max_uses": promo.max_uses,
+        "used_count": 0,
+        "expires_at": promo.expires_at,
+        "description": promo.description,
+        "created_by": user.user_id,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "active": True
+    }
+    
+    await db.promo_codes.insert_one(promo_doc)
+    
+    # Generate shareable link
+    share_link = f"https://caninecompass.app/redeem?code={promo.code.upper()}"
+    
+    return {
+        "success": True,
+        "code": promo.code.upper(),
+        "share_link": share_link,
+        "message": f"Promo code '{promo.code.upper()}' created successfully"
+    }
+
+@api_router.get("/admin/promo-codes")
+async def list_promo_codes(user: User = Depends(get_current_user)):
+    """Admin: List all promo codes"""
+    if not await is_admin(user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    codes = await db.promo_codes.find({}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return {"promo_codes": codes}
+
+@api_router.put("/admin/promo-codes/{code}")
+async def update_promo_code(code: str, request: Request, user: User = Depends(get_current_user)):
+    """Admin: Update a promo code (activate/deactivate)"""
+    if not await is_admin(user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    body = await request.json()
+    update_fields = {}
+    
+    if "active" in body:
+        update_fields["active"] = body["active"]
+    if "max_uses" in body:
+        update_fields["max_uses"] = body["max_uses"]
+    if "expires_at" in body:
+        update_fields["expires_at"] = body["expires_at"]
+    
+    result = await db.promo_codes.update_one(
+        {"code": code.upper()},
+        {"$set": update_fields}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Promo code not found")
+    
+    return {"success": True, "message": f"Promo code '{code.upper()}' updated"}
+
+@api_router.delete("/admin/promo-codes/{code}")
+async def delete_promo_code(code: str, user: User = Depends(get_current_user)):
+    """Admin: Delete a promo code"""
+    if not await is_admin(user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    result = await db.promo_codes.delete_one({"code": code.upper()})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Promo code not found")
+    
+    return {"success": True, "message": f"Promo code '{code.upper()}' deleted"}
+
+@api_router.get("/promo-codes/validate/{code}")
+async def validate_promo_code(code: str, user: User = Depends(get_current_user)):
+    """Validate a promo code before redeeming"""
+    promo = await db.promo_codes.find_one({"code": code.upper(), "active": True}, {"_id": 0})
+    
+    if not promo:
+        raise HTTPException(status_code=404, detail="Invalid or expired promo code")
+    
+    # Check if expired
+    if promo.get("expires_at"):
+        expires = datetime.fromisoformat(promo["expires_at"])
+        if expires < datetime.now(timezone.utc):
+            raise HTTPException(status_code=400, detail="Promo code has expired")
+    
+    # Check max uses
+    if promo.get("max_uses") and promo["used_count"] >= promo["max_uses"]:
+        raise HTTPException(status_code=400, detail="Promo code usage limit reached")
+    
+    # Check if user already redeemed this code
+    already_used = await db.promo_redemptions.find_one({
+        "user_id": user.user_id,
+        "code": code.upper()
+    })
+    
+    if already_used:
+        raise HTTPException(status_code=400, detail="You have already redeemed this code")
+    
+    return {
+        "valid": True,
+        "code": promo["code"],
+        "code_type": promo["code_type"],
+        "value": promo["value"],
+        "description": promo.get("description", ""),
+        "message": f"{'Free tokens' if promo['code_type'] == 'tokens' else 'Discount'}: {promo['value']}{'%' if promo['code_type'] == 'discount' else ' tokens'}"
+    }
+
+@api_router.post("/promo-codes/redeem")
+async def redeem_promo_code(redeem: PromoCodeRedeem, user: User = Depends(get_current_user)):
+    """Redeem a promo code for tokens or discount"""
+    code = redeem.code.upper()
+    
+    promo = await db.promo_codes.find_one({"code": code, "active": True}, {"_id": 0})
+    
+    if not promo:
+        raise HTTPException(status_code=404, detail="Invalid or expired promo code")
+    
+    # Check if expired
+    if promo.get("expires_at"):
+        expires = datetime.fromisoformat(promo["expires_at"])
+        if expires < datetime.now(timezone.utc):
+            raise HTTPException(status_code=400, detail="Promo code has expired")
+    
+    # Check max uses
+    if promo.get("max_uses") and promo["used_count"] >= promo["max_uses"]:
+        raise HTTPException(status_code=400, detail="Promo code usage limit reached")
+    
+    # Check if user already redeemed
+    already_used = await db.promo_redemptions.find_one({
+        "user_id": user.user_id,
+        "code": code
+    })
+    
+    if already_used:
+        raise HTTPException(status_code=400, detail="You have already redeemed this code")
+    
+    reward_message = ""
+    tokens_awarded = 0
+    discount_awarded = 0
+    
+    if promo["code_type"] == "tokens":
+        # Award tokens directly
+        tokens_awarded = promo["value"]
+        await db.users.update_one(
+            {"user_id": user.user_id},
+            {"$inc": {"tokens": tokens_awarded}}
+        )
+        reward_message = f"🎉 You received {tokens_awarded} free tokens!"
+        
+    elif promo["code_type"] == "discount":
+        # Store discount for next purchase
+        discount_awarded = promo["value"]
+        await db.user_discounts.update_one(
+            {"user_id": user.user_id},
+            {"$set": {
+                "discount_percent": discount_awarded,
+                "promo_code": code,
+                "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
+            }},
+            upsert=True
+        )
+        reward_message = f"🎉 {discount_awarded}% discount applied to your next purchase!"
+    
+    # Record redemption
+    await db.promo_redemptions.insert_one({
+        "user_id": user.user_id,
+        "code": code,
+        "code_type": promo["code_type"],
+        "value": promo["value"],
+        "redeemed_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    # Increment used count
+    await db.promo_codes.update_one(
+        {"code": code},
+        {"$inc": {"used_count": 1}}
+    )
+    
+    return {
+        "success": True,
+        "code": code,
+        "code_type": promo["code_type"],
+        "tokens_awarded": tokens_awarded,
+        "discount_awarded": discount_awarded,
+        "message": reward_message
+    }
+
+@api_router.get("/promo-codes/my-discount")
+async def get_my_discount(user: User = Depends(get_current_user)):
+    """Get user's active discount (if any)"""
+    discount = await db.user_discounts.find_one({"user_id": user.user_id}, {"_id": 0})
+    
+    if not discount:
+        return {"has_discount": False}
+    
+    # Check if expired
+    if discount.get("expires_at"):
+        expires = datetime.fromisoformat(discount["expires_at"])
+        if expires < datetime.now(timezone.utc):
+            await db.user_discounts.delete_one({"user_id": user.user_id})
+            return {"has_discount": False}
+    
+    return {
+        "has_discount": True,
+        "discount_percent": discount["discount_percent"],
+        "promo_code": discount.get("promo_code", ""),
+        "expires_at": discount.get("expires_at")
+    }
+
+@api_router.get("/promo-codes/my-history")
+async def get_redemption_history(user: User = Depends(get_current_user)):
+    """Get user's promo code redemption history"""
+    history = await db.promo_redemptions.find(
+        {"user_id": user.user_id},
+        {"_id": 0}
+    ).sort("redeemed_at", -1).to_list(50)
+    
+    return {"redemptions": history}
+
+@api_router.get("/admin/check")
+async def check_admin_status(user: User = Depends(get_current_user)):
+    """Check if current user is an admin"""
+    return {"is_admin": await is_admin(user), "email": user.email}
+
 # ==================== TOKENS & PAYMENTS ====================
 
 @api_router.get("/tokens/packages")
