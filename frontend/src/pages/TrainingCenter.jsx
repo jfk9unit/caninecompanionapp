@@ -8,7 +8,6 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
   GraduationCap,
@@ -21,8 +20,13 @@ import {
   Award,
   Lightbulb,
   Coins,
-  Zap
+  Zap,
+  Share2,
+  Gift,
+  Trophy,
+  Sparkles
 } from "lucide-react";
+import { InteractiveStep, LessonCompletionModal, ProgressShareCard, celebrate } from "@/components/InteractiveTraining";
 
 const levelColors = {
   beginner: { bg: 'bg-green-100', text: 'text-green-700', gradient: 'from-green-500 to-emerald-600' },
