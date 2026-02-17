@@ -3119,34 +3119,135 @@ async def get_user_bookings(user: User = Depends(get_current_user)):
     
     return {"bookings": bookings}
 
-@api_router.post("/nasdu/course/enroll")
-async def enroll_in_course(request: Request, user: User = Depends(get_current_user)):
-    """Enroll in a NASDU course (requires pre-test pass)"""
+# ==================== STRIPE CHECKOUT FOR COURSES & TRAINERS ====================
+
+class TrainerCheckoutRequest(BaseModel):
+    trainer_id: str
+    session_type: str
+    duration: str
+    date: str
+    time: str
+    from_postcode: Optional[str] = None
+    to_postcode: Optional[str] = None
+    notes: Optional[str] = None
+    success_url: str
+    cancel_url: str
+
+@api_router.post("/trainers/checkout")
+async def trainer_checkout(request: TrainerCheckoutRequest, user: User = Depends(get_current_user)):
+    """Create Stripe checkout for trainer booking"""
+    # Verify trainer exists
+    trainer = next((t for t in APPROVED_K9_TRAINERS if t["trainer_id"] == request.trainer_id), None)
+    if not trainer:
+        raise HTTPException(status_code=404, detail="Trainer not found")
+    
+    # Calculate cost
+    if request.session_type == "virtual":
+        base_cost = TRAINER_PRICING["virtual"].get(request.duration, {}).get("price", 45.00)
+    else:
+        base_cost = TRAINER_PRICING["in_person"].get(request.duration, {}).get("price", 179.99)
+    
+    travel_cost = 0
+    call_out_fee = 0
+    estimated_miles = 0
+    
+    if request.session_type == "in_person" and request.from_postcode and request.to_postcode:
+        call_out_fee = TRAINER_PRICING["travel"]["call_out_fee"]
+        estimated_miles = random.randint(10, 40)
+        travel_cost = estimated_miles * TRAINER_PRICING["travel"]["per_mile"]
+    
+    total = round(base_cost + call_out_fee + travel_cost, 2)
+    
+    # Create booking record
+    booking_id = f"booking_{uuid.uuid4().hex[:12]}"
+    booking_record = {
+        "booking_id": booking_id,
+        "user_id": user.user_id,
+        "user_email": user.email,
+        "user_name": user.name,
+        "trainer_id": request.trainer_id,
+        "trainer_name": trainer["name"],
+        "session_type": request.session_type,
+        "duration": request.duration,
+        "date": request.date,
+        "time": request.time,
+        "from_postcode": request.from_postcode,
+        "to_postcode": request.to_postcode,
+        "notes": request.notes,
+        "cost_breakdown": {
+            "session_cost": base_cost,
+            "call_out_fee": call_out_fee,
+            "travel_cost": round(travel_cost, 2),
+            "estimated_miles": estimated_miles,
+            "total": total
+        },
+        "total_cost": total,
+        "status": "pending_payment",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.trainer_bookings.insert_one(booking_record)
+    
+    # Create Stripe checkout session
+    try:
+        duration_label = {
+            "30min": "30 Minutes",
+            "60min": "1 Hour",
+            "120min": "2 Hours",
+            "180min": "3 Hours Intensive"
+        }.get(request.duration, request.duration)
+        
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[{
+                "price_data": {
+                    "currency": "gbp",
+                    "product_data": {
+                        "name": f"K9 Trainer Session - {trainer['name']}",
+                        "description": f"{request.session_type.title()} {duration_label} on {request.date} at {request.time}"
+                    },
+                    "unit_amount": int(total * 100)
+                },
+                "quantity": 1
+            }],
+            mode="payment",
+            success_url=f"{request.success_url}&booking_id={booking_id}",
+            cancel_url=request.cancel_url,
+            customer_email=user.email,
+            metadata={
+                "booking_id": booking_id,
+                "user_id": user.user_id,
+                "type": "trainer_booking"
+            }
+        )
+        
+        # Update booking with session ID
+        await db.trainer_bookings.update_one(
+            {"booking_id": booking_id},
+            {"$set": {"stripe_session_id": session.id}}
+        )
+        
+        return {
+            "checkout_url": session.url,
+            "booking_id": booking_id,
+            "total": total
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create checkout: {str(e)}")
+
+@api_router.post("/nasdu/course/checkout")
+async def course_checkout(request: Request, user: User = Depends(get_current_user)):
+    """Create Stripe checkout for NASDU course enrollment"""
     body = await request.json()
     course_id = body.get("course_id")
-    
-    # Check if user passed pre-test
-    pretest_pass = await db.pretest_results.find_one({
-        "user_id": user.user_id,
-        "passed": True
-    })
-    if not pretest_pass:
-        raise HTTPException(status_code=400, detail="You must pass the pre-test before enrolling in courses")
+    success_url = body.get("success_url", "")
+    cancel_url = body.get("cancel_url", "")
     
     # Get course
     course = next((c for c in NASDU_COURSES if c["course_id"] == course_id), None)
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     
-    # Check existing enrollment
-    existing = await db.course_enrollments.find_one({
-        "user_id": user.user_id,
-        "course_id": course_id
-    })
-    if existing:
-        raise HTTPException(status_code=400, detail="Already enrolled in this course")
-    
-    # Create enrollment
+    # Create enrollment record
     enrollment_id = f"enroll_{uuid.uuid4().hex[:12]}"
     enrollment = {
         "enrollment_id": enrollment_id,
@@ -3161,11 +3262,256 @@ async def enroll_in_course(request: Request, user: User = Depends(get_current_us
     }
     await db.course_enrollments.insert_one(enrollment)
     
-    return {
+    # Create Stripe checkout session
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[{
+                "price_data": {
+                    "currency": "gbp",
+                    "product_data": {
+                        "name": course["title"],
+                        "description": f"NASDU Level {course['level']} - {course['duration_days']} Days Training"
+                    },
+                    "unit_amount": int(course["commission_price"] * 100)
+                },
+                "quantity": 1
+            }],
+            mode="payment",
+            success_url=f"{success_url}&enrollment_id={enrollment_id}",
+            cancel_url=cancel_url,
+            customer_email=user.email,
+            metadata={
+                "enrollment_id": enrollment_id,
+                "user_id": user.user_id,
+                "course_id": course_id,
+                "type": "course_enrollment"
+            }
+        )
+        
+        # Update enrollment with session ID
+        await db.course_enrollments.update_one(
+            {"enrollment_id": enrollment_id},
+            {"$set": {"stripe_session_id": session.id}}
+        )
+        
+        return {
+            "checkout_url": session.url,
+            "enrollment_id": enrollment_id,
+            "price": course["commission_price"]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create checkout: {str(e)}")
+
+@api_router.get("/payments/trainer-booking/{booking_id}")
+async def check_trainer_booking_payment(booking_id: str, user: User = Depends(get_current_user)):
+    """Check payment status for trainer booking"""
+    booking = await db.trainer_bookings.find_one({
+        "booking_id": booking_id,
+        "user_id": user.user_id
+    }, {"_id": 0})
+    
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if booking.get("stripe_session_id"):
+        try:
+            session = stripe.checkout.Session.retrieve(booking["stripe_session_id"])
+            if session.payment_status == "paid" and booking.get("status") == "pending_payment":
+                # Update booking status and send confirmation email
+                await db.trainer_bookings.update_one(
+                    {"booking_id": booking_id},
+                    {"$set": {
+                        "status": "confirmed",
+                        "paid_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                booking["status"] = "confirmed"
+                
+                # Send confirmation email
+                await send_trainer_booking_confirmation(booking)
+                
+        except Exception:
+            pass
+    
+    return booking
+
+@api_router.get("/payments/course-enrollment/{enrollment_id}")
+async def check_course_enrollment_payment(enrollment_id: str, user: User = Depends(get_current_user)):
+    """Check payment status for course enrollment"""
+    enrollment = await db.course_enrollments.find_one({
         "enrollment_id": enrollment_id,
+        "user_id": user.user_id
+    }, {"_id": 0})
+    
+    if not enrollment:
+        raise HTTPException(status_code=404, detail="Enrollment not found")
+    
+    if enrollment.get("stripe_session_id"):
+        try:
+            session = stripe.checkout.Session.retrieve(enrollment["stripe_session_id"])
+            if session.payment_status == "paid" and enrollment.get("status") == "pending_payment":
+                # Update enrollment status and send confirmation email
+                await db.course_enrollments.update_one(
+                    {"enrollment_id": enrollment_id},
+                    {"$set": {
+                        "status": "confirmed",
+                        "paid_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+                enrollment["status"] = "confirmed"
+                
+                # Send confirmation email
+                await send_course_enrollment_confirmation(enrollment)
+                
+        except Exception:
+            pass
+    
+    return enrollment
+
+async def send_trainer_booking_confirmation(booking: dict):
+    """Send email confirmation for trainer booking"""
+    try:
+        duration_label = {
+            "30min": "30 Minutes",
+            "60min": "1 Hour",
+            "120min": "2 Hours",
+            "180min": "3 Hours Intensive"
+        }.get(booking.get("duration", ""), booking.get("duration", ""))
+        
+        resend.api_key = os.environ.get("RESEND_API_KEY")
+        sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+        
+        resend.Emails.send({
+            "from": f"CanineCompass <{sender_email}>",
+            "to": [booking["user_email"]],
+            "subject": f"Booking Confirmed - K9 Training Session with {booking['trainer_name']}",
+            "html": f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #4F46E5, #7C3AED); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                    <h1 style="color: white; margin: 0;">Booking Confirmed!</h1>
+                </div>
+                <div style="padding: 30px; background: #f9fafb; border-radius: 0 0 10px 10px;">
+                    <p>Hi {booking['user_name']},</p>
+                    <p>Your K9 training session has been successfully booked!</p>
+                    
+                    <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                        <h3 style="margin-top: 0; color: #4F46E5;">Appointment Details</h3>
+                        <p><strong>Trainer:</strong> {booking['trainer_name']}</p>
+                        <p><strong>Date:</strong> {booking['date']}</p>
+                        <p><strong>Time:</strong> {booking['time']}</p>
+                        <p><strong>Session Type:</strong> {booking['session_type'].title()}</p>
+                        <p><strong>Duration:</strong> {duration_label}</p>
+                        <p><strong>Total Paid:</strong> £{booking['total_cost']:.2f}</p>
+                        <p><strong>Booking Reference:</strong> {booking['booking_id']}</p>
+                    </div>
+                    
+                    {f"<p><strong>Your Postcode:</strong> {booking.get('to_postcode', 'N/A')}</p>" if booking.get('session_type') == 'in_person' else ""}
+                    
+                    {f"<p><strong>Notes:</strong> {booking.get('notes', 'None')}</p>" if booking.get('notes') else ""}
+                    
+                    <div style="background: #FEF3C7; padding: 15px; border-radius: 10px; margin: 20px 0;">
+                        <p style="margin: 0; color: #92400E;"><strong>Important:</strong></p>
+                        <ul style="color: #92400E; margin: 10px 0;">
+                            <li>Rescheduling incurs a £25 admin fee</li>
+                            <li>All fees are non-refundable</li>
+                            <li>Please ensure your calendar matches the trainer's schedule</li>
+                        </ul>
+                    </div>
+                    
+                    <p>Your trainer will contact you shortly with further details.</p>
+                    
+                    <p>Thank you for choosing CanineCompass!</p>
+                    <p>The CanineCompass Team</p>
+                </div>
+            </div>
+            """
+        })
+    except Exception as e:
+        print(f"Failed to send trainer booking email: {e}")
+
+async def send_course_enrollment_confirmation(enrollment: dict):
+    """Send email confirmation for course enrollment"""
+    try:
+        # Get course details
+        course = next((c for c in NASDU_COURSES if c["course_id"] == enrollment.get("course_id")), None)
+        
+        resend.api_key = os.environ.get("RESEND_API_KEY")
+        sender_email = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+        
+        resend.Emails.send({
+            "from": f"CanineCompass <{sender_email}>",
+            "to": [enrollment["user_email"]],
+            "subject": f"Enrollment Confirmed - {enrollment['course_title']}",
+            "html": f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="background: linear-gradient(135deg, #D97706, #F59E0B); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+                    <h1 style="color: white; margin: 0;">Enrollment Confirmed!</h1>
+                </div>
+                <div style="padding: 30px; background: #f9fafb; border-radius: 0 0 10px 10px;">
+                    <p>Hi {enrollment['user_name']},</p>
+                    <p>Congratulations! Your enrollment in the NASDU course has been confirmed!</p>
+                    
+                    <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                        <h3 style="margin-top: 0; color: #D97706;">Course Details</h3>
+                        <p><strong>Course:</strong> {enrollment['course_title']}</p>
+                        <p><strong>Level:</strong> {course['level'] if course else 'N/A'}</p>
+                        <p><strong>Duration:</strong> {course['duration_days'] if course else 'N/A'} Days ({course['duration_hours'] if course else 'N/A'} Hours)</p>
+                        <p><strong>Location:</strong> {course['location'] if course else 'Various UK Locations'}</p>
+                        <p><strong>Total Paid:</strong> £{enrollment['price']:.2f}</p>
+                        <p><strong>Enrollment Reference:</strong> {enrollment['enrollment_id']}</p>
+                    </div>
+                    
+                    <div style="background: #DBEAFE; padding: 15px; border-radius: 10px; margin: 20px 0;">
+                        <p style="margin: 0; color: #1E40AF;"><strong>What's Next?</strong></p>
+                        <ul style="color: #1E40AF; margin: 10px 0;">
+                            <li>Our team will contact you within 48 hours</li>
+                            <li>You'll receive course materials and preparation guides</li>
+                            <li>We'll confirm your preferred training location and dates</li>
+                        </ul>
+                    </div>
+                    
+                    {f'''
+                    <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                        <h4 style="margin-top: 0;">Prerequisites:</h4>
+                        <ul>{"".join([f"<li>{p}</li>" for p in course.get("prerequisites", [])])}</ul>
+                    </div>
+                    ''' if course and course.get("prerequisites") else ""}
+                    
+                    <p>Thank you for choosing CanineCompass for your NASDU certification journey!</p>
+                    <p>The CanineCompass Team</p>
+                </div>
+            </div>
+            """
+        })
+    except Exception as e:
+        print(f"Failed to send course enrollment email: {e}")
+
+# Keep the old enroll endpoint for backward compatibility but make it redirect to checkout
+@api_router.post("/nasdu/course/enroll")
+async def enroll_in_course(request: Request, user: User = Depends(get_current_user)):
+    """Enroll in a NASDU course - redirects to checkout (pre-test no longer required)"""
+    body = await request.json()
+    course_id = body.get("course_id")
+    
+    # Get course
+    course = next((c for c in NASDU_COURSES if c["course_id"] == course_id), None)
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    
+    # Check existing enrollment
+    existing = await db.course_enrollments.find_one({
+        "user_id": user.user_id,
+        "course_id": course_id,
+        "status": "confirmed"
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Already enrolled in this course")
+    
+    return {
+        "message": "Please use /nasdu/course/checkout endpoint for payment",
         "course": course["title"],
-        "price": course["commission_price"],
-        "status": "pending_payment"
+        "price": course["commission_price"]
     }
 
 @api_router.get("/nasdu/enrollments")
