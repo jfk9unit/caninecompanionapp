@@ -2833,6 +2833,7 @@ async def get_creator_analytics(range: str = "30d", user: User = Depends(get_cur
 from nasdu_courses_data import (
     NASDU_COURSES, 
     NASDU_PRETEST_QUESTIONS, 
+    OUR_K9_TEAM,
     APPROVED_K9_TRAINERS,
     TRAINER_PRICING,
     TRAINING_EQUIPMENT,
