@@ -135,6 +135,29 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - Rank progression: Recruit → Guardian Initiate → Shield Bearer → Threat Analyst → Elite Protector → K9 Master
 - Badge rewards for each completed lesson
 
+### 17. K9 Handler Credentials (NEW)
+- 5-tier credential system:
+  - Tier 1: Guardian Initiate (1 lesson)
+  - Tier 2: Shield Bearer (3 lessons)
+  - Tier 3: Threat Analyst (6 lessons)
+  - Tier 4: Elite Protector (10 lessons)
+  - Tier 5: K9 Protection Master (15 lessons)
+- Downloadable PNG certificates with professional design
+- Unique credential ID: K9-{user_id}-{count}
+- Share credentials to social media
+- Certificate history tracking
+
+### 18. PWA & Mobile App Ready (NEW)
+- Progressive Web App (PWA) support
+- manifest.json with app metadata
+- Service worker for offline support
+- App icons (16x16 to 512x512)
+- iOS splash screens
+- Mobile bottom navigation bar
+- Safe area support for notched phones
+- Installable on Android/iOS home screens
+- Push notification support
+
 ## API Endpoints
 
 ### Auth
@@ -168,6 +191,11 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 ### Achievements
 - GET /api/achievements - List user achievements
 - POST /api/achievements/{id}/share - Share achievement
+
+### K9 Credentials
+- GET /api/k9/credentials - Get user's K9 handler credentials
+- POST /api/k9/generate-certificate - Generate downloadable certificate
+- GET /api/k9/certificates - Get certificate history
 
 ### Leaderboard & Competitions
 - GET /api/leaderboard - Get rankings (filter by category: overall/training/pet/achievements)
@@ -213,7 +241,7 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - voice_logs
 - payment_transactions
 
-- tournament_results
+- k9_certificates
 
 ## Completed (Feb 2026)
 - [x] V1 Core features (Auth, Dogs, Training, Health, Breeds, Activities, Behavior, Travel, Tips)
@@ -224,9 +252,12 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - [x] V2 Leaderboard & Weekly Competitions
 - [x] V2 Seasonal Tournaments (4 seasonal competitions)
 - [x] V2 K9 Security & Protection Training (15 lessons, skill tree)
+- [x] V2 K9 Handler Credentials with downloadable certificates
+- [x] V2 PWA & Mobile App Ready (manifest, service worker, icons)
 - [x] 132 dog breeds in database
 - [x] 90 training lessons (75 regular + 15 K9 security)
 - [x] Referral system
+- [x] Mobile-optimized bottom navigation
 
 ## Backlog
 
