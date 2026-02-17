@@ -336,6 +336,244 @@ async def get_payment_status(session_id: str, user: User = Depends(get_current_u
 async def stripe_webhook(request: Request):
     return {"status": "processed"}
 
+# ==================== PAYPAL PAYMENTS ====================
+
+@api_router.post("/payments/paypal/create")
+async def create_paypal_payment(request: Request, user: User = Depends(get_current_user)):
+    body = await request.json()
+    package_id = body.get("package_id")
+    return_url = body.get("return_url", "")
+    cancel_url = body.get("cancel_url", "")
+    
+    if package_id not in TOKEN_PACKAGES:
+        raise HTTPException(status_code=400, detail="Invalid package")
+    
+    pkg = TOKEN_PACKAGES[package_id]
+    price = pkg["price"]
+    
+    # Check for first purchase discount
+    existing_purchases = await db.payment_transactions.count_documents({
+        "user_id": user.user_id,
+        "payment_status": "completed"
+    })
+    
+    is_first_purchase = existing_purchases == 0
+    discount_amount = 0
+    
+    if is_first_purchase:
+        discount_amount = round(price * FIRST_PURCHASE_DISCOUNT, 2)
+        price = round(price - discount_amount, 2)
+    
+    payment = paypalrestsdk.Payment({
+        "intent": "sale",
+        "payer": {"payment_method": "paypal"},
+        "redirect_urls": {
+            "return_url": return_url,
+            "cancel_url": cancel_url
+        },
+        "transactions": [{
+            "item_list": {
+                "items": [{
+                    "name": f"CanineCompass {package_id.title()} Token Pack",
+                    "sku": package_id,
+                    "price": f"{price:.2f}",
+                    "currency": "GBP",
+                    "quantity": 1
+                }]
+            },
+            "amount": {
+                "total": f"{price:.2f}",
+                "currency": "GBP"
+            },
+            "description": f"{pkg['tokens']} tokens for CanineCompass{' (10% first purchase discount applied!)' if is_first_purchase else ''}"
+        }]
+    })
+    
+    if payment.create():
+        # Store transaction
+        await db.payment_transactions.insert_one({
+            "transaction_id": f"txn_{uuid.uuid4().hex[:12]}",
+            "user_id": user.user_id,
+            "payment_id": payment.id,
+            "provider": "paypal",
+            "package_id": package_id,
+            "tokens": pkg["tokens"],
+            "amount": price,
+            "original_amount": pkg["price"],
+            "discount_applied": is_first_purchase,
+            "discount_amount": discount_amount,
+            "payment_status": "pending",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        approval_url = next((link.href for link in payment.links if link.rel == "approval_url"), None)
+        return {
+            "payment_id": payment.id,
+            "approval_url": approval_url,
+            "is_first_purchase": is_first_purchase,
+            "discount_applied": discount_amount
+        }
+    else:
+        raise HTTPException(status_code=400, detail=payment.error)
+
+@api_router.post("/payments/paypal/execute")
+async def execute_paypal_payment(request: Request, user: User = Depends(get_current_user)):
+    body = await request.json()
+    payment_id = body.get("payment_id")
+    payer_id = body.get("payer_id")
+    
+    payment = paypalrestsdk.Payment.find(payment_id)
+    
+    if payment.execute({"payer_id": payer_id}):
+        txn = await db.payment_transactions.find_one({"payment_id": payment_id}, {"_id": 0})
+        if txn:
+            tokens_to_add = txn["tokens"]
+            await db.users.update_one({"user_id": user.user_id}, {"$inc": {"tokens": tokens_to_add}})
+            await db.payment_transactions.update_one(
+                {"payment_id": payment_id},
+                {"$set": {"payment_status": "completed", "completed_at": datetime.now(timezone.utc).isoformat()}}
+            )
+        return {"success": True, "tokens_added": tokens_to_add}
+    else:
+        raise HTTPException(status_code=400, detail=payment.error)
+
+@api_router.get("/payments/first-purchase-eligible")
+async def check_first_purchase_eligible(user: User = Depends(get_current_user)):
+    """Check if user is eligible for first purchase discount"""
+    existing_purchases = await db.payment_transactions.count_documents({
+        "user_id": user.user_id,
+        "payment_status": "completed"
+    })
+    return {
+        "eligible": existing_purchases == 0,
+        "discount_percent": int(FIRST_PURCHASE_DISCOUNT * 100)
+    }
+
+# ==================== QR CODES & DEEP LINKS ====================
+
+@api_router.get("/referral/qr-code")
+async def get_referral_qr_code(user: User = Depends(get_current_user)):
+    """Generate QR code for user's referral link"""
+    referral_url = f"https://caninecompass.app/join?ref={user.referral_code}"
+    
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(referral_url)
+    qr.make(fit=True)
+    
+    img = qr.make_image(fill_color="#22c55e", back_color="white")
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    buffer.seek(0)
+    
+    img_base64 = base64.b64encode(buffer.getvalue()).decode()
+    
+    return {
+        "qr_code": f"data:image/png;base64,{img_base64}",
+        "referral_url": referral_url,
+        "referral_code": user.referral_code
+    }
+
+@api_router.get("/share/lesson/{lesson_id}")
+async def get_lesson_share_link(lesson_id: str):
+    """Generate shareable deep link for a lesson"""
+    lesson = next((l for l in TRAINING_LESSONS if l["lesson_id"] == lesson_id), None)
+    if not lesson:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+    
+    share_url = f"https://caninecompass.app/training?lesson={lesson_id}"
+    
+    return {
+        "share_url": share_url,
+        "lesson_title": lesson["title"],
+        "lesson_description": lesson["description"],
+        "share_text": f"Check out this dog training lesson: {lesson['title']} on CanineCompass! 🐕"
+    }
+
+@api_router.get("/share/achievement/{achievement_id}")
+async def get_achievement_share_link(achievement_id: str, user: User = Depends(get_current_user)):
+    """Generate shareable deep link for an achievement"""
+    achievement = await db.achievements.find_one({
+        "achievement_id": achievement_id,
+        "user_id": user.user_id
+    }, {"_id": 0})
+    
+    if not achievement:
+        raise HTTPException(status_code=404, detail="Achievement not found")
+    
+    share_url = f"https://caninecompass.app/achievements?view={achievement_id}"
+    
+    return {
+        "share_url": share_url,
+        "achievement_title": achievement["title"],
+        "share_text": f"I earned the '{achievement['title']}' badge on CanineCompass! 🏆"
+    }
+
+@api_router.get("/share/k9-credential/{credential_id}")
+async def get_credential_share_link(credential_id: str, user: User = Depends(get_current_user)):
+    """Generate shareable deep link for K9 credentials"""
+    share_url = f"https://caninecompass.app/verify/{credential_id}"
+    
+    return {
+        "share_url": share_url,
+        "share_text": f"Verify my K9 Handler credentials: {credential_id} 🛡️"
+    }
+
+# ==================== PUSH NOTIFICATIONS ====================
+
+@api_router.get("/notifications/settings")
+async def get_notification_settings(user: User = Depends(get_current_user)):
+    """Get user's notification settings"""
+    settings = await db.notification_settings.find_one({"user_id": user.user_id}, {"_id": 0})
+    if not settings:
+        default_settings = {
+            "user_id": user.user_id,
+            "push_enabled": True,
+            "training_reminders": True,
+            "daily_tips": True,
+            "achievement_alerts": True,
+            "tournament_updates": True,
+            "marketing": False
+        }
+        await db.notification_settings.insert_one(default_settings)
+        return {k: v for k, v in default_settings.items() if k != "user_id"}
+    return {k: v for k, v in settings.items() if k != "user_id"}
+
+@api_router.put("/notifications/settings")
+async def update_notification_settings(settings: NotificationSettings, user: User = Depends(get_current_user)):
+    """Update user's notification settings"""
+    await db.notification_settings.update_one(
+        {"user_id": user.user_id},
+        {"$set": settings.model_dump()},
+        upsert=True
+    )
+    return {"message": "Settings updated", **settings.model_dump()}
+
+@api_router.post("/notifications/subscribe")
+async def subscribe_push_notifications(request: Request, user: User = Depends(get_current_user)):
+    """Subscribe to push notifications (store subscription endpoint)"""
+    body = await request.json()
+    subscription = body.get("subscription")
+    
+    if not subscription:
+        raise HTTPException(status_code=400, detail="Subscription data required")
+    
+    await db.push_subscriptions.update_one(
+        {"user_id": user.user_id},
+        {"$set": {
+            "subscription": subscription,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    
+    return {"message": "Subscribed to push notifications"}
+
+@api_router.delete("/notifications/unsubscribe")
+async def unsubscribe_push_notifications(user: User = Depends(get_current_user)):
+    """Unsubscribe from push notifications"""
+    await db.push_subscriptions.delete_one({"user_id": user.user_id})
+    return {"message": "Unsubscribed from push notifications"}
+
 # ==================== DOG PROFILES ====================
 
 @api_router.get("/dogs")
