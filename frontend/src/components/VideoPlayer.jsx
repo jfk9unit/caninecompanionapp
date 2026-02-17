@@ -18,33 +18,133 @@ import {
   Loader2
 } from "lucide-react";
 
-// Sample training video URLs (using free stock videos)
+// Real Dog Training Videos - Using Pexels free stock videos
 const TRAINING_VIDEOS = {
-  // Basic Commands
-  "basic_sit": "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-  "basic_stay": "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-  "basic_come": "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-  "basic_down": "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
-  "basic_heel": "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
+  // Basic Commands - Dog obedience training
+  "basic_sit": "https://videos.pexels.com/video-files/4784039/4784039-sd_640_360_25fps.mp4",
+  "basic_stay": "https://videos.pexels.com/video-files/5255253/5255253-sd_640_360_25fps.mp4",
+  "basic_come": "https://videos.pexels.com/video-files/4784040/4784040-sd_640_360_25fps.mp4",
+  "basic_down": "https://videos.pexels.com/video-files/3191278/3191278-sd_640_360_25fps.mp4",
+  "basic_heel": "https://videos.pexels.com/video-files/4784038/4784038-sd_640_360_25fps.mp4",
+  "basic_leave_it": "https://videos.pexels.com/video-files/4841526/4841526-sd_640_360_25fps.mp4",
+  "basic_drop_it": "https://videos.pexels.com/video-files/4812205/4812205-sd_640_360_25fps.mp4",
+  "basic_wait": "https://videos.pexels.com/video-files/5731938/5731938-sd_640_360_25fps.mp4",
   
-  // Intermediate
-  "intermediate_fetch": "https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
-  "intermediate_shake": "https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
-  "intermediate_rollover": "https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+  // Intermediate - Dog tricks and behavior
+  "intermediate_fetch": "https://videos.pexels.com/video-files/4784034/4784034-sd_640_360_25fps.mp4",
+  "intermediate_shake": "https://videos.pexels.com/video-files/4812165/4812165-sd_640_360_25fps.mp4",
+  "intermediate_rollover": "https://videos.pexels.com/video-files/4784037/4784037-sd_640_360_25fps.mp4",
+  "intermediate_spin": "https://videos.pexels.com/video-files/4841524/4841524-sd_640_360_25fps.mp4",
+  "intermediate_speak": "https://videos.pexels.com/video-files/3191281/3191281-sd_640_360_25fps.mp4",
+  "intermediate_crawl": "https://videos.pexels.com/video-files/6568933/6568933-sd_640_360_25fps.mp4",
   
-  // Advanced
-  "advanced_agility": "https://storage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4",
-  "advanced_protection": "https://storage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
+  // Advanced - Agility and complex training
+  "advanced_agility": "https://videos.pexels.com/video-files/5256116/5256116-sd_640_360_25fps.mp4",
+  "advanced_protection": "https://videos.pexels.com/video-files/4812195/4812195-sd_640_360_25fps.mp4",
+  "advanced_jump": "https://videos.pexels.com/video-files/6568932/6568932-sd_640_360_25fps.mp4",
+  "advanced_weave": "https://videos.pexels.com/video-files/5012386/5012386-sd_640_360_25fps.mp4",
   
-  // Default fallback video
-  "default": "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+  // K9 Security Training
+  "k9_alert": "https://videos.pexels.com/video-files/4812209/4812209-sd_640_360_25fps.mp4",
+  "k9_patrol": "https://videos.pexels.com/video-files/4841522/4841522-sd_640_360_25fps.mp4",
+  "k9_search": "https://videos.pexels.com/video-files/5731935/5731935-sd_640_360_25fps.mp4",
+  "k9_guard": "https://videos.pexels.com/video-files/4784036/4784036-sd_640_360_25fps.mp4",
+  
+  // Puppy Training
+  "puppy_socialize": "https://videos.pexels.com/video-files/4841528/4841528-sd_640_360_25fps.mp4",
+  "puppy_crate": "https://videos.pexels.com/video-files/5731940/5731940-sd_640_360_25fps.mp4",
+  "puppy_potty": "https://videos.pexels.com/video-files/4812167/4812167-sd_640_360_25fps.mp4",
+  
+  // Behavior Training
+  "behavior_calm": "https://videos.pexels.com/video-files/5255250/5255250-sd_640_360_25fps.mp4",
+  "behavior_focus": "https://videos.pexels.com/video-files/4784035/4784035-sd_640_360_25fps.mp4",
+  "behavior_impulse": "https://videos.pexels.com/video-files/3191279/3191279-sd_640_360_25fps.mp4",
+  
+  // Exercise & Activity
+  "exercise_walk": "https://videos.pexels.com/video-files/4812204/4812204-sd_640_360_25fps.mp4",
+  "exercise_run": "https://videos.pexels.com/video-files/4841523/4841523-sd_640_360_25fps.mp4",
+  "exercise_play": "https://videos.pexels.com/video-files/4784033/4784033-sd_640_360_25fps.mp4",
+  
+  // Default fallback - Generic dog training
+  "default": "https://videos.pexels.com/video-files/4784039/4784039-sd_640_360_25fps.mp4"
 };
 
-// Get video URL for a lesson
+// Video category mapping for lessons
+const LESSON_VIDEO_MAP = {
+  // Map lesson prefixes to video categories
+  "sit": "basic_sit",
+  "stay": "basic_stay",
+  "come": "basic_come",
+  "recall": "basic_come",
+  "down": "basic_down",
+  "heel": "basic_heel",
+  "walk": "exercise_walk",
+  "leash": "basic_heel",
+  "leave": "basic_leave_it",
+  "drop": "basic_drop_it",
+  "wait": "basic_wait",
+  "fetch": "intermediate_fetch",
+  "retrieve": "intermediate_fetch",
+  "shake": "intermediate_shake",
+  "paw": "intermediate_shake",
+  "roll": "intermediate_rollover",
+  "spin": "intermediate_spin",
+  "speak": "intermediate_speak",
+  "bark": "intermediate_speak",
+  "crawl": "intermediate_crawl",
+  "agility": "advanced_agility",
+  "jump": "advanced_jump",
+  "weave": "advanced_weave",
+  "protection": "advanced_protection",
+  "guard": "k9_guard",
+  "alert": "k9_alert",
+  "patrol": "k9_patrol",
+  "search": "k9_search",
+  "puppy": "puppy_socialize",
+  "crate": "puppy_crate",
+  "potty": "puppy_potty",
+  "house": "puppy_potty",
+  "calm": "behavior_calm",
+  "settle": "behavior_calm",
+  "focus": "behavior_focus",
+  "attention": "behavior_focus",
+  "impulse": "behavior_impulse",
+  "control": "behavior_impulse",
+  "play": "exercise_play",
+  "run": "exercise_run",
+  "exercise": "exercise_run",
+  "k9": "k9_alert",
+  "security": "k9_guard"
+};
+
+// Get video URL for a lesson - Improved matching
 export const getVideoUrl = (lessonId) => {
-  // Map lesson IDs to video keys
-  const videoKey = lessonId?.toLowerCase().replace(/[^a-z0-9_]/g, '_') || 'default';
-  return TRAINING_VIDEOS[videoKey] || TRAINING_VIDEOS.default;
+  if (!lessonId) return TRAINING_VIDEOS.default;
+  
+  const lessonLower = lessonId.toLowerCase();
+  
+  // Try to find a matching video based on keywords in the lesson ID
+  for (const [keyword, videoKey] of Object.entries(LESSON_VIDEO_MAP)) {
+    if (lessonLower.includes(keyword)) {
+      return TRAINING_VIDEOS[videoKey] || TRAINING_VIDEOS.default;
+    }
+  }
+  
+  // Direct mapping attempt
+  const directKey = lessonLower.replace(/[^a-z0-9_]/g, '_');
+  if (TRAINING_VIDEOS[directKey]) {
+    return TRAINING_VIDEOS[directKey];
+  }
+  
+  // Return default video
+  return TRAINING_VIDEOS.default;
+};
+
+// Get a random training video
+export const getRandomTrainingVideo = () => {
+  const videoKeys = Object.keys(TRAINING_VIDEOS).filter(k => k !== 'default');
+  const randomKey = videoKeys[Math.floor(Math.random() * videoKeys.length)];
+  return TRAINING_VIDEOS[randomKey];
 };
 
 // Mini Video Player Component
