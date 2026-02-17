@@ -35,13 +35,21 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - Add/edit/delete dog profiles
 - Track breed, age, weight, size, gender, birthday
 
-### 3. Training Center (75 Lessons)
+### 3. Training Center (90 Lessons) - VISUALLY ENHANCED (Feb 2026)
 - Beginner (6-8 tokens): 20 lessons
 - Intermediate (9-11 tokens): 20 lessons  
 - Advanced (12-15 tokens): 35 lessons
-- Categories: Obedience, Behavior, Tricks, Agility, Lifestyle, Health
+- K9 Security (18-25 tokens): 15 lessons
+- Categories: Obedience, Behavior, Tricks, Agility, Lifestyle, Health, Enrichment, Working, Sport, Assistance, K9 Protection
 - Step-by-step progress tracking with pro tips
 - Toy & treat recommendations per lesson
+- **NEW VISUAL FEATURES:**
+  - Category cards with images from Unsplash and gradient overlays
+  - Level header cards with background images showing stats
+  - Lesson cards with training images, progress bars, difficulty indicators
+  - Pre-training questionnaire assessments with scoring system
+  - Beautiful lesson detail modals with image headers
+  - Color-coded categories and levels
 
 ### 4. Token Shop (NEW V2)
 - 4 token packages: Starter (10/£2.89), Value (25/£6.49), Premium (50/£11.99), Ultimate (100/£21.99)
