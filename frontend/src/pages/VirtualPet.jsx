@@ -1056,11 +1056,11 @@ export const VirtualPet = ({ user }) => {
                       loading={false}
                     />
                     <ActivityButton
-                      icon={UtensilsCrossed}
-                      label="Treat"
+                      icon={Cookie}
+                      label="Give Treat"
                       sublabel="+10 Happiness (FREE)"
                       color="bg-gradient-to-r from-amber-500 to-orange-500"
-                      onClick={feedPet}
+                      onClick={giveTreat}
                       disabled={isEating || isSleeping}
                       loading={false}
                     />
@@ -1069,7 +1069,7 @@ export const VirtualPet = ({ user }) => {
                       label="Calm Music"
                       sublabel="+5 Happiness (FREE)"
                       color="bg-gradient-to-r from-cyan-500 to-teal-500"
-                      onClick={() => toast.success(`${pet.name} enjoys the music! 🎵`)}
+                      onClick={playMusic}
                       disabled={isSleeping}
                       loading={false}
                     />
@@ -1084,7 +1084,7 @@ export const VirtualPet = ({ user }) => {
                       label="Play Fetch"
                       sublabel="+15 XP, +25 Happiness (FREE)"
                       color="bg-gradient-to-r from-blue-500 to-cyan-500"
-                      onClick={playWithPet}
+                      onClick={() => playWithPet('fetch')}
                       disabled={isPlaying || isSleeping || pet.energy < 10}
                       loading={actionLoading === 'play'}
                     />
@@ -1093,7 +1093,7 @@ export const VirtualPet = ({ user }) => {
                       label="Tug of War"
                       sublabel="+20 XP, +30 Happiness (FREE)"
                       color="bg-gradient-to-r from-purple-500 to-pink-500"
-                      onClick={playWithPet}
+                      onClick={() => playWithPet('tug')}
                       disabled={isPlaying || isSleeping || pet.energy < 15}
                       loading={false}
                     />
