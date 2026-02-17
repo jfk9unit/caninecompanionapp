@@ -64,7 +64,11 @@
   "scripts": {
     "start": "craco start",
     "build": "craco build",
-    "test": "craco test"
+    "test": "craco test",
+    "android:sync": "npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:build": "yarn build && npx cap sync android",
+    "android:run": "npx cap run android"
   },
   "browserslist": {
     "production": [
