@@ -721,43 +721,26 @@ const TrainingContent = ({ user, selectedDog }) => {
                     </Badge>
                   </div>
 
-                  {/* Video Tutorial Section */}
-                  {(() => {
-                    const video = getLessonVideo(selectedLesson.lesson_id);
-                    return video ? (
-                      <Card className="bg-gradient-to-r from-red-50 to-rose-50 border-red-200 rounded-xl overflow-hidden">
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="p-2 rounded-full bg-red-100">
-                              <Video className="w-5 h-5 text-red-600" />
-                            </div>
-                            <div>
-                              <h4 className="font-medium text-red-800">Video Tutorial</h4>
-                              <p className="text-xs text-red-600">{video.title} • {video.duration}</p>
-                            </div>
-                          </div>
-                          <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-900 group cursor-pointer hover:ring-2 ring-red-400 transition-all"
-                            onClick={() => toast.info('Video tutorial would play here! 🎬')}
-                          >
-                            <img 
-                              src={lessonImage}
-                              alt="Video thumbnail"
-                              className="w-full h-full object-cover opacity-60"
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
-                                <PlayCircle className="w-10 h-10 text-white" />
-                              </div>
-                            </div>
-                            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                              {video.duration}
-                            </div>
-                          </div>
-                          <p className="text-xs text-red-600 mt-2">Watch the expert demonstration before starting!</p>
-                        </CardContent>
-                      </Card>
-                    ) : null;
-                  })()}
+                  {/* Video Tutorial Section - Mini Player */}
+                  <Card className="bg-gradient-to-r from-red-50 to-rose-50 border-red-200 rounded-xl overflow-hidden">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 rounded-full bg-red-100">
+                          <Video className="w-5 h-5 text-red-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-red-800">Video Tutorial</h4>
+                          <p className="text-xs text-red-600">{selectedLesson.title} • Training Demo</p>
+                        </div>
+                      </div>
+                      <MiniVideoPlayer
+                        videoUrl={getVideoUrl(selectedLesson.lesson_id)}
+                        title={selectedLesson.title}
+                        thumbnail={lessonImage}
+                      />
+                      <p className="text-xs text-red-600 mt-2">Watch the expert demonstration before starting!</p>
+                    </CardContent>
+                  </Card>
 
                   {/* Training Steps */}
                   <div className="bg-gray-50 rounded-xl p-4">
