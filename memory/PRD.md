@@ -508,10 +508,48 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - [ ] Community/social features ("Dog Park" feed)
 - [ ] Premium subscription tier
 
+## Completed (Feb 17, 2026)
+
+### 26. Email/Password Authentication & Password Reset (NEW)
+- Email/password registration with bcrypt hashing
+- Email/password login with session management
+- Password reset flow with 6-digit verification codes
+- Resend email integration for sending reset codes
+- 15-minute code expiration for security
+- Auth page with Google OAuth + Email options
+- "Forgot password?" dialog with step-by-step reset flow
+
+### 27. Enhanced Virtual Pet Sounds (NEW)
+- New "Sounds" tab in Virtual Pet with 6 sound buttons
+- Web Audio API synthesized sounds:
+  - Howl: Beautiful long howl
+  - Wolf Howl: Rich, wild wolf-like howl
+  - Deep Growl: Fierce sustained growl
+  - Alert Bark: Sharp double warning bark
+  - Playful Yip: High-pitched playful sound
+  - Happy Bark: Cheerful bark
+- Sound enable/disable toggle in Sounds tab
+
+### 28. Video Tutorial Mini-Player (NEW)
+- MiniVideoPlayer component with full controls
+- Play/Pause toggle button
+- Skip forward/backward (10s)
+- Volume control with mute
+- Fullscreen toggle
+- Replay button
+- Progress bar with seek
+- Integrated into TrainingCenter and K9Training lesson modals
+
+### 29. Performance Optimizations (NEW)
+- Optimized leaderboard queries using MongoDB aggregation pipelines
+- Pre-fetch patterns for N+1 query elimination
+- Bulk data fetching in tournaments and rankings
+
 ## Tech Stack
 - Frontend: React 19.0.0, Tailwind CSS, shadcn/ui, lucide-react
 - Backend: FastAPI 0.110.1, Motor 3.3.1 (async MongoDB)
 - Database: MongoDB
-- Auth: Emergent-managed Google OAuth
+- Auth: Emergent-managed Google OAuth + Email/Password
 - AI: OpenAI GPT-5.2 via emergentintegrations
 - Payments: Stripe, PayPal via emergentintegrations
+- Email: Resend for password reset emails
