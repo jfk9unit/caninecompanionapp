@@ -69,7 +69,13 @@
     "android:sync": "npx cap sync android",
     "android:open": "npx cap open android",
     "android:build": "yarn build && npx cap sync android",
-    "android:run": "npx cap run android"
+    "android:run": "npx cap run android",
+    "ios:sync": "npx cap sync ios",
+    "ios:open": "npx cap open ios",
+    "ios:build": "yarn build && npx cap sync ios",
+    "ios:run": "npx cap run ios",
+    "mobile:sync": "npx cap sync",
+    "mobile:build": "yarn build && npx cap sync"
   },
   "browserslist": {
     "production": [
