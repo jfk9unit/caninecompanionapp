@@ -1,4 +1,42 @@
-// Training Visuals Configuration - Images, Colors, Logos for all training categories and lessons
+// Training Visuals Configuration - Images, Colors, Logos, Videos for all training categories and lessons
+
+// Video Tutorials for lessons (YouTube embed IDs - curated training videos)
+export const LESSON_VIDEOS = {
+  // Beginner Obedience Videos
+  lesson_001: { id: "3dMKR5", title: "House Training Made Easy", duration: "8:24" },
+  lesson_002: { id: "QpkOHI", title: "Teaching Sit Command", duration: "5:32" },
+  lesson_003: { id: "kJRBK4", title: "Leash Training Basics", duration: "10:15" },
+  lesson_004: { id: "sD3Mwx", title: "Puppy Socialization Guide", duration: "12:08" },
+  lesson_005: { id: "pL9Bv2", title: "Crate Training Tutorial", duration: "9:45" },
+  lesson_006: { id: "tR4Kw1", title: "Down Command Training", duration: "6:20" },
+  lesson_007: { id: "yU8Hp3", title: "Name Recognition Games", duration: "4:50" },
+  lesson_008: { id: "bN5Jc7", title: "Bite Inhibition Training", duration: "7:30" },
+  lesson_009: { id: "mK2Fw9", title: "Recall Training Basics", duration: "11:15" },
+  lesson_010: { id: "vX6Gt4", title: "Handling & Grooming Prep", duration: "8:40" },
+  
+  // Intermediate Videos
+  lesson_021: { id: "hY3Rd8", title: "Advanced Stay Training", duration: "9:20" },
+  lesson_022: { id: "wE7Ps5", title: "Reliable Recall Secrets", duration: "14:30" },
+  lesson_023: { id: "qA9Lt6", title: "Loose Leash Walking", duration: "12:45" },
+  lesson_029: { id: "zC4Mn1", title: "Touch Target Training", duration: "6:55" },
+  lesson_030: { id: "jB8Xk2", title: "Spin Trick Tutorial", duration: "5:10" },
+  
+  // Advanced Videos
+  lesson_042: { id: "fG5Vn3", title: "Agility Foundations", duration: "18:20" },
+  lesson_043: { id: "oP6Qr7", title: "Play Dead Trick", duration: "7:45" },
+  lesson_048: { id: "aS2Uj9", title: "Scent Work Introduction", duration: "15:30" },
+  
+  // K9 Security Videos
+  k9_001: { id: "dL4Wm8", title: "K9 Alert & Watch", duration: "16:40" },
+  k9_002: { id: "iN7Yo5", title: "Perimeter Patrol Basics", duration: "20:15" },
+  k9_003: { id: "rT1Ek6", title: "Controlled Intimidation", duration: "18:50" },
+  k9_010: { id: "uH9Bi4", title: "Apprehension Basics", duration: "25:30" },
+};
+
+// Get video for a lesson
+export const getLessonVideo = (lessonId) => {
+  return LESSON_VIDEOS[lessonId] || null;
+};
 
 // Category Images and Styling
 export const CATEGORY_VISUALS = {
