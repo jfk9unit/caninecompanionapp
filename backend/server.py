@@ -1450,7 +1450,8 @@ async def check_first_purchase_eligible(user: User = Depends(get_current_user)):
 @api_router.get("/referral/qr-code")
 async def get_referral_qr_code(user: User = Depends(get_current_user)):
     """Generate QR code for user's referral link"""
-    referral_url = f"https://caninecompass.app/join?ref={user.referral_code}"
+    app_url = os.environ.get('APP_URL', 'https://caninecompass.app')
+    referral_url = f"{app_url}/join?ref={user.referral_code}"
     
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
     qr.add_data(referral_url)
