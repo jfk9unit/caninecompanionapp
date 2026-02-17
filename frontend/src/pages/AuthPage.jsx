@@ -45,8 +45,7 @@ export const AuthPage = () => {
   // Google OAuth login
   const handleGoogleLogin = () => {
     const redirectUrl = window.location.origin + '/dashboard';
-    const authUrl = process.env.REACT_APP_AUTH_URL || 'https://auth.emergentagent.com';
-    window.location.href = `${authUrl}?redirect=${encodeURIComponent(redirectUrl)}`;
+    window.location.href = `https://auth.emergentagent.com?redirect=${encodeURIComponent(redirectUrl)}`;
   };
   
   // Email/Password Login

@@ -14,11 +14,10 @@ import {
 } from "lucide-react";
 
 export const LandingPage = () => {
-  // Use environment variable for auth URL
+  // Google OAuth login
   const handleLogin = () => {
     const redirectUrl = window.location.origin + '/dashboard';
-    const authUrl = process.env.REACT_APP_AUTH_URL || 'https://auth.emergentagent.com';
-    window.location.href = `${authUrl}?redirect=${encodeURIComponent(redirectUrl)}`;
+    window.location.href = `https://auth.emergentagent.com?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
   const features = [
