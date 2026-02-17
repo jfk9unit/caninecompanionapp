@@ -446,6 +446,18 @@ Build a comprehensive canine training and care app covering all levels of dog tr
   - Admin can award tokens via /api/admin/award-tokens
   - VIP status check: /api/user/vip-status
   - Welcome message: /api/welcome-message
+- [x] **Admin Dashboard (Feb 17, 2026)**:
+  - Full admin management panel at /admin route
+  - User statistics: total users, VIP count, tokens distributed, active today
+  - VIP Player Management: Add/remove VIP players dynamically
+  - User list with search and direct token awarding
+  - Quick links to Promo Codes, Leaderboard, Achievements
+  - Database-stored VIPs in addition to hardcoded list
+- [x] **Play Store Compliance Pages (Feb 17, 2026)**:
+  - Privacy Policy page at /privacy (public route)
+  - Terms of Service page at /terms (public route)
+  - Footer links on landing page for legal compliance
+  - Contact emails: privacy@caninecompass.app, legal@caninecompass.app
 
 ## Backlog
 
