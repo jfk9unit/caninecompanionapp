@@ -1477,7 +1477,8 @@ async def get_lesson_share_link(lesson_id: str):
     if not lesson:
         raise HTTPException(status_code=404, detail="Lesson not found")
     
-    share_url = f"https://caninecompass.app/training?lesson={lesson_id}"
+    app_url = os.environ.get('APP_URL', 'https://caninecompass.app')
+    share_url = f"{app_url}/training?lesson={lesson_id}"
     
     return {
         "share_url": share_url,
@@ -1497,7 +1498,8 @@ async def get_achievement_share_link(achievement_id: str, user: User = Depends(g
     if not achievement:
         raise HTTPException(status_code=404, detail="Achievement not found")
     
-    share_url = f"https://caninecompass.app/achievements?view={achievement_id}"
+    app_url = os.environ.get('APP_URL', 'https://caninecompass.app')
+    share_url = f"{app_url}/achievements?view={achievement_id}"
     
     return {
         "share_url": share_url,
@@ -1508,7 +1510,8 @@ async def get_achievement_share_link(achievement_id: str, user: User = Depends(g
 @api_router.get("/share/k9-credential/{credential_id}")
 async def get_credential_share_link(credential_id: str, user: User = Depends(get_current_user)):
     """Generate shareable deep link for K9 credentials"""
-    share_url = f"https://caninecompass.app/verify/{credential_id}"
+    app_url = os.environ.get('APP_URL', 'https://caninecompass.app')
+    share_url = f"{app_url}/verify/{credential_id}"
     
     return {
         "share_url": share_url,
