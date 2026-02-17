@@ -61,12 +61,6 @@ export const TokenShop = ({ user }) => {
     if (sessionId) {
       checkPaymentStatus(sessionId);
     }
-    // Check PayPal return
-    const paymentId = searchParams.get('paymentId');
-    const payerId = searchParams.get('PayerID');
-    if (paymentId && payerId) {
-      executePayPalPayment(paymentId, payerId);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
@@ -99,21 +93,6 @@ export const TokenShop = ({ user }) => {
     }
   };
 
-  const executePayPalPayment = async (paymentId, payerId) => {
-    try {
-      const response = await axios.post(`${API}/payments/paypal/execute`, {
-        payment_id: paymentId,
-        payer_id: payerId
-      }, { withCredentials: true });
-      toast.success(`Payment successful! ${response.data.tokens_added} tokens added!`);
-      fetchData();
-      // Clear URL params
-      window.history.replaceState({}, document.title, window.location.pathname);
-    } catch (error) {
-      toast.error('PayPal payment failed');
-    }
-  };
-
   const handleStripePurchase = async (packageId) => {
     setLoading(packageId);
     try {
@@ -125,24 +104,6 @@ export const TokenShop = ({ user }) => {
       window.location.href = response.data.url;
     } catch (error) {
       toast.error('Failed to start checkout');
-      setLoading(null);
-    }
-  };
-
-  const handlePayPalPurchase = async (packageId) => {
-    setLoading(packageId);
-    try {
-      const response = await axios.post(`${API}/payments/paypal/create`, {
-        package_id: packageId,
-        return_url: `${window.location.origin}/tokens?paypal=success`,
-        cancel_url: `${window.location.origin}/tokens?paypal=cancelled`
-      }, { withCredentials: true });
-      
-      if (response.data.approval_url) {
-        window.location.href = response.data.approval_url;
-      }
-    } catch (error) {
-      toast.error('Failed to start PayPal checkout');
       setLoading(null);
     }
   };
