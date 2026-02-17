@@ -25,8 +25,10 @@ import {
   Percent,
   QrCode,
   Download,
-  Wallet
+  Wallet,
+  Ticket
 } from "lucide-react";
+import { RedeemCodeCard } from "@/components/RedeemCode";
 
 const TOKEN_ICONS = {
   starter: Coins,
