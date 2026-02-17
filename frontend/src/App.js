@@ -23,6 +23,7 @@ import { Leaderboard } from "@/pages/Leaderboard";
 import { K9Training } from "@/pages/K9Training";
 import { K9Credentials } from "@/pages/K9Credentials";
 import { NotificationSettings } from "@/pages/NotificationSettings";
+import { AdminPromoCodes } from "@/pages/AdminPromoCodes";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
