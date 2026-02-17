@@ -40,12 +40,40 @@ export const EliteNasduCourses = ({ user }) => {
     fetchData();
     
     // Check for payment success/cancel
-    if (searchParams.get('success') === 'true') {
-      toast.success("Course enrollment successful! Check your email for confirmation.");
+    const sessionId = searchParams.get('session_id');
+    if (searchParams.get('success') === 'true' && sessionId) {
+      pollPaymentStatus(sessionId);
     } else if (searchParams.get('cancelled') === 'true') {
       toast.info("Payment cancelled");
     }
   }, [searchParams]);
+
+  const pollPaymentStatus = async (sessionId, attempts = 0) => {
+    const maxAttempts = 5;
+    const pollInterval = 2000;
+
+    if (attempts >= maxAttempts) {
+      toast.success("Payment processing. Check your email for confirmation.");
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${API}/payments/checkout/status/${sessionId}`, { withCredentials: true });
+      
+      if (response.data.payment_status === 'paid') {
+        toast.success("Course enrollment confirmed! Check your email for details.");
+        // Clear URL params
+        window.history.replaceState({}, document.title, window.location.pathname);
+        fetchData();
+        return;
+      }
+
+      // Continue polling
+      setTimeout(() => pollPaymentStatus(sessionId, attempts + 1), pollInterval);
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+    }
+  };
 
   const fetchData = async () => {
     try {
