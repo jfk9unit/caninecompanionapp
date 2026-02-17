@@ -5,7 +5,7 @@ from datetime import datetime
 import uuid
 
 class CanineCompassAPITester:
-    def __init__(self, base_url="https://k9-academy.preview.emergentagent.com"):
+    def __init__(self, base_url="https://k9-elite-hub.preview.emergentagent.com"):
         self.base_url = base_url
         self.session_token = None
         self.test_user_id = None
