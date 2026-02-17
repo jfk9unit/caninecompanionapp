@@ -559,13 +559,6 @@ async def mark_daily_memo_seen(user: User = Depends(get_current_user)):
     
     return {"success": True, "message": "Memo marked as seen"}
 
-async def is_vip_player(email: str) -> bool:
-    """Check if a user is a VIP player (from hardcoded list or database)"""
-    if email in VIP_PLAYERS:
-        return True
-    db_vip = await db.vip_players.find_one({"email": email.lower()})
-    return db_vip is not None
-
 @api_router.get("/user/vip-status")
 async def get_vip_status(user: User = Depends(get_current_user)):
     """Check if user is a VIP player"""
