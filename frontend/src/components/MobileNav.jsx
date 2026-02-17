@@ -7,7 +7,9 @@ import {
   Flame,
   Trophy,
   Coins,
-  MoreHorizontal
+  MoreHorizontal,
+  Bell,
+  Award
 } from "lucide-react";
 import {
   Sheet,
@@ -27,8 +29,9 @@ const mainNavItems = [
 
 const moreNavItems = [
   { href: "/achievements", label: "Awards", icon: Trophy },
-  { href: "/k9-credentials", label: "K9 Credentials", icon: Shield },
+  { href: "/k9-credentials", label: "K9 Credentials", icon: Award },
   { href: "/tokens", label: "Token Shop", icon: Coins },
+  { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/health", label: "Health Hub", icon: Home },
 ];
 
