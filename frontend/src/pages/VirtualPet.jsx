@@ -673,17 +673,37 @@ export const VirtualPet = ({ user }) => {
     }
   };
 
-  const playWithPet = async () => {
+  const playWithPet = async (playType = 'fetch') => {
     setActionLoading('play');
     setIsPlaying(true);
+    setCurrentAction('play');
+    
+    // Play sounds based on play type
+    if (soundEnabled) {
+      soundManager.bark('excited');
+      if (playType === 'fetch') {
+        setTimeout(() => soundManager.ballBounce(), 300);
+      }
+    }
+    
     try {
       const response = await axios.post(`${API}/virtual-pet/play`, {}, { withCredentials: true });
       toast.success(`${pet.name} had a blast! +${response.data.xp_gained} XP 🎾`);
+      
+      // Happy bark after playing
+      if (soundEnabled) {
+        setTimeout(() => soundManager.bark('happy'), 500);
+      }
+      
       await fetchPet();
-      setTimeout(() => setIsPlaying(false), 3000);
+      setTimeout(() => {
+        setIsPlaying(false);
+        setCurrentAction(null);
+      }, 3000);
     } catch (error) {
       toast.error('Failed to play with pet');
       setIsPlaying(false);
+      setCurrentAction(null);
     } finally {
       setActionLoading(null);
     }
@@ -692,15 +712,41 @@ export const VirtualPet = ({ user }) => {
   const exercisePet = async (exercise) => {
     setActionLoading(exercise.id);
     setIsExercising(true);
+    setCurrentAction('exercise');
+    
+    // Play sounds based on exercise type
+    if (soundEnabled) {
+      if (exercise.id === 'walk' || exercise.id === 'run') {
+        soundManager.footsteps(exercise.id === 'run' ? 6 : 4);
+        soundManager.bark('happy');
+      } else if (exercise.id === 'swim') {
+        soundManager.splash();
+        setTimeout(() => soundManager.pant(), 500);
+      } else if (exercise.id === 'agility') {
+        soundManager.bark('excited');
+        soundManager.footsteps(6);
+      }
+    }
+    
     try {
-      // Call play endpoint (can be enhanced with specific exercise endpoint)
       const response = await axios.post(`${API}/virtual-pet/play`, {}, { withCredentials: true });
       toast.success(`${pet.name} completed ${exercise.name}! +${response.data.xp_gained} XP 💪`);
+      
+      // Panting after exercise
+      if (soundEnabled) {
+        setTimeout(() => soundManager.pant(), 800);
+      }
+      
       await fetchPet();
-      setTimeout(() => setIsExercising(false), 2000);
+      setTimeout(() => {
+        setIsExercising(false);
+        setCurrentAction(null);
+      }, 2000);
     } catch (error) {
       toast.error('Exercise failed - pet needs more energy!');
+      if (soundEnabled) soundManager.whimper();
       setIsExercising(false);
+      setCurrentAction(null);
     } finally {
       setActionLoading(null);
     }
@@ -708,24 +754,81 @@ export const VirtualPet = ({ user }) => {
 
   const putPetToSleep = () => {
     setIsSleeping(true);
+    setCurrentAction('rest');
+    
+    if (soundEnabled) {
+      soundManager.bark('sleepy');
+      setTimeout(() => soundManager.snore(), 1000);
+    }
+    
     toast.success(`${pet.name} is taking a nap... 💤`);
     setTimeout(() => {
       setIsSleeping(false);
-      // Simulate energy recovery
+      setCurrentAction(null);
+      if (soundEnabled) soundManager.bark('happy');
       toast.success(`${pet.name} woke up refreshed! ☀️`);
     }, 5000);
   };
 
+  const restPet = () => {
+    setIsResting(true);
+    setCurrentAction('rest');
+    
+    if (soundEnabled) {
+      soundManager.bark('sleepy');
+    }
+    
+    toast.success(`${pet.name} is relaxing... 😌`);
+    setTimeout(() => {
+      setIsResting(false);
+      setCurrentAction(null);
+      if (soundEnabled) soundManager.bark('normal');
+    }, 3000);
+  };
+
+  const giveTreat = () => {
+    setCurrentAction('treat');
+    
+    if (soundEnabled) {
+      soundManager.bark('happy');
+      setTimeout(() => soundManager.bark('eating'), 200);
+    }
+    
+    toast.success(`${pet.name} loves the treat! 🍪`);
+    setTimeout(() => setCurrentAction(null), 2000);
+  };
+
+  const playMusic = () => {
+    if (soundEnabled) {
+      soundManager.bark('sleepy');
+    }
+    toast.success(`${pet.name} is enjoying calm music... 🎵`);
+  };
+
   const trainSkill = async (skillId) => {
     setActionLoading(skillId);
+    
+    // Bark when starting training
+    if (soundEnabled) {
+      soundManager.bark('normal');
+    }
+    
     try {
       const response = await axios.post(`${API}/virtual-pet/train`, {
         skill: skillId
       }, { withCredentials: true });
+      
+      // Success sound and bark
+      if (soundEnabled) {
+        soundManager.reward();
+        setTimeout(() => soundManager.bark('happy'), 300);
+      }
+      
       toast.success(`${pet.name} learned a new skill! 🎓`);
       fetchPet();
       fetchTokens();
     } catch (error) {
+      if (soundEnabled) soundManager.whimper();
       if (error.response?.data?.detail?.includes('tokens')) {
         toast.error('Not enough tokens! Visit the Token Shop.');
       } else {
@@ -734,6 +837,12 @@ export const VirtualPet = ({ user }) => {
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const toggleSound = () => {
+    const newState = soundManager.toggle();
+    setSoundEnabled(newState);
+    toast.info(newState ? 'Sounds enabled 🔊' : 'Sounds muted 🔇');
   };
 
   if (loading) {
