@@ -179,6 +179,40 @@ Build a comprehensive canine training and care app covering all levels of dog tr
   - Badge rewards
   - Share Achievement button
 
+### 21. Payment Methods (NEW)
+- Stripe checkout for cards & bank transfers
+- PayPal integration (REQUIRES API KEYS: PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET)
+- Accepted: Visa, Mastercard, Amex, PayPal, Apple Pay, Google Pay, Bank Transfer
+- 10% first purchase discount automatically applied
+- Transaction history with discount tracking
+
+### 22. Push Notifications Settings (NEW)
+- Push notification master toggle
+- Training reminders
+- Daily tips
+- Achievement alerts
+- Tournament updates
+- Promotional offers (marketing)
+- Enable/Disable all buttons
+- Service worker push subscription
+
+### 23. QR Code Referrals (NEW)
+- QR code generation for referral links
+- Download QR code as PNG
+- Shareable referral URL: caninecompass.app/join?ref={code}
+- Web Share API integration
+
+### 24. Deep Linking (NEW)
+- Shareable lesson links: /training?lesson={id}
+- Shareable achievement links: /achievements?view={id}
+- K9 credential verification: /verify/{credential_id}
+- Share text generation for social media
+
+### 25. Enhanced Pet Age (NEW)
+- Age input: years, months, days
+- Granular age tracking for puppies
+- Birthday calculation support
+
 ## API Endpoints
 
 ### Auth
@@ -212,6 +246,25 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 ### Achievements
 - GET /api/achievements - List user achievements
 - POST /api/achievements/{id}/share - Share achievement
+
+### Payments
+- POST /api/payments/stripe/checkout - Create Stripe checkout
+- GET /api/payments/status/{session_id} - Check Stripe payment status
+- POST /api/payments/paypal/create - Create PayPal payment
+- POST /api/payments/paypal/execute - Execute PayPal payment
+- GET /api/payments/first-purchase-eligible - Check first purchase discount eligibility
+
+### Notifications
+- GET /api/notifications/settings - Get notification settings
+- PUT /api/notifications/settings - Update notification settings
+- POST /api/notifications/subscribe - Subscribe to push notifications
+- DELETE /api/notifications/unsubscribe - Unsubscribe from push
+
+### QR Codes & Deep Links
+- GET /api/referral/qr-code - Generate referral QR code
+- GET /api/share/lesson/{lesson_id} - Get lesson share link
+- GET /api/share/achievement/{achievement_id} - Get achievement share link
+- GET /api/share/k9-credential/{credential_id} - Get K9 credential share link
 
 ### K9 Credentials
 - GET /api/k9/credentials - Get user's K9 handler credentials
@@ -262,11 +315,14 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - voice_logs
 - payment_transactions
 
-- k9_certificates
+- notification_settings
+- push_subscriptions
 
 ## Completed (Feb 2026)
 - [x] V1 Core features (Auth, Dogs, Training, Health, Breeds, Activities, Behavior, Travel, Tips)
 - [x] V2 Token Shop with Stripe integration
+- [x] V2 PayPal payment integration (REQUIRES API KEYS)
+- [x] V2 10% first purchase discount
 - [x] V2 Virtual Pet game with skills
 - [x] V2 Achievements with certificates
 - [x] V2 Voice Activity logging with AI
@@ -277,9 +333,13 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - [x] V2 PWA & Mobile App Ready (manifest, service worker, icons)
 - [x] V2 Redesigned Dashboard with Quick Actions & Sharing
 - [x] V2 Interactive Training with timers, confetti, celebrations
+- [x] V2 QR Code referrals with download
+- [x] V2 Push Notification Settings
+- [x] V2 Deep Linking for shared content
+- [x] V2 Pet age in years/months/days
 - [x] 132 dog breeds in database
 - [x] 90 training lessons (75 regular + 15 K9 security)
-- [x] Referral system
+- [x] Referral system with QR codes
 - [x] Mobile-optimized bottom navigation
 
 ## Backlog
