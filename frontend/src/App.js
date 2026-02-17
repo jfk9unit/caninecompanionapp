@@ -20,6 +20,7 @@ import { VirtualPet } from "@/pages/VirtualPet";
 import { Achievements } from "@/pages/Achievements";
 import { VoiceLog } from "@/pages/VoiceLog";
 import { Leaderboard } from "@/pages/Leaderboard";
+import { K9Training } from "@/pages/K9Training";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -199,6 +200,11 @@ function AppRouter() {
         <Route path="/leaderboard" element={
           <ProtectedRoute>
             {({ user }) => <Leaderboard user={user} />}
+          </ProtectedRoute>
+        } />
+        <Route path="/k9-training" element={
+          <ProtectedRoute>
+            {({ user }) => <K9Training user={user} />}
           </ProtectedRoute>
         } />
       </Routes>
