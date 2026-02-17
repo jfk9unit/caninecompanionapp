@@ -628,6 +628,90 @@ async def verify_password_reset(data: PasswordResetVerify, response: Response):
         "name": user["name"]
     }
 
+# ==================== AI CHAT SUPPORT ====================
+
+@api_router.post("/chat/support")
+async def chat_support(data: ChatMessage, user: User = Depends(get_current_user)):
+    """24/7 AI Chat Support - Costs tokens per message"""
+    
+    # Check token balance
+    user_doc = await db.users.find_one({"user_id": user.user_id}, {"_id": 0})
+    current_tokens = user_doc.get("tokens", 0)
+    
+    if current_tokens < CHAT_COST_PER_MESSAGE:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Not enough tokens. You need {CHAT_COST_PER_MESSAGE} tokens per message. Current balance: {current_tokens}"
+        )
+    
+    # Deduct tokens
+    new_balance = current_tokens - CHAT_COST_PER_MESSAGE
+    await db.users.update_one(
+        {"user_id": user.user_id},
+        {"$set": {"tokens": new_balance}}
+    )
+    
+    # Get AI response using Emergent LLM
+    try:
+        llm_key = os.environ.get("EMERGENT_LLM_KEY", "")
+        
+        system_prompt = """You are a friendly and knowledgeable K9 training assistant for CanineCompass, a dog training app. 
+        You help users with:
+        - Dog training techniques and tips
+        - Behavior problems and solutions
+        - Health and nutrition advice
+        - Using the CanineCompass app features
+        - General dog care questions
+        
+        Keep responses helpful, concise (under 150 words), and encouraging. Use dog-related emojis occasionally.
+        Always be positive and supportive. If you don't know something, recommend consulting a veterinarian or professional trainer."""
+        
+        chat = LlmChat(
+            api_key=llm_key,
+            model="gpt-4o-mini",
+            system_message=system_prompt
+        )
+        
+        response = await chat.send_async(UserMessage(content=data.message))
+        ai_reply = response.content
+        
+    except Exception as e:
+        logger.error(f"AI chat error: {str(e)}")
+        # Fallback responses if AI fails
+        fallback_responses = [
+            "🐕 That's a great question! For specific training advice, try our Training Center which has step-by-step lessons. Keep up the great work with your pup!",
+            "🐾 Thanks for asking! I recommend checking out our K9 Training section for detailed guidance. Remember, consistency is key in dog training!",
+            "🦴 Good question! Every dog learns at their own pace. Our Training Center has lots of helpful videos and tips. Stay patient and positive!",
+            "🎾 I appreciate your question! For the best results, practice regularly with your dog. Check out our daily training challenges for motivation!"
+        ]
+        import random
+        ai_reply = random.choice(fallback_responses)
+    
+    # Log chat interaction
+    await db.chat_logs.insert_one({
+        "user_id": user.user_id,
+        "message": data.message,
+        "reply": ai_reply,
+        "tokens_spent": CHAT_COST_PER_MESSAGE,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {
+        "reply": ai_reply,
+        "tokens_spent": CHAT_COST_PER_MESSAGE,
+        "remaining_tokens": new_balance
+    }
+
+@api_router.get("/chat/history")
+async def get_chat_history(limit: int = 50, user: User = Depends(get_current_user)):
+    """Get user's chat history"""
+    history = await db.chat_logs.find(
+        {"user_id": user.user_id},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(limit).to_list(limit)
+    
+    return {"history": history[::-1]}  # Return in chronological order
+
 # ==================== DAILY LOGIN REWARDS ====================
 
 STREAK_REWARDS = {
