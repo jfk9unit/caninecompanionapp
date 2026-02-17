@@ -118,12 +118,21 @@ class DogProfileCreate(BaseModel):
     breed: str
     age_years: int = 0
     age_months: int = 0
-    weight_kg: float
-    size: str
+    age_days: int = 0
+    weight_kg: float = 10.0
+    size: str = "medium"
     gender: str = "unknown"
     birthday: Optional[str] = None
     color: Optional[str] = None
     photo_url: Optional[str] = None
+
+class NotificationSettings(BaseModel):
+    push_enabled: bool = True
+    training_reminders: bool = True
+    daily_tips: bool = True
+    achievement_alerts: bool = True
+    tournament_updates: bool = True
+    marketing: bool = False
 
 # ==================== AUTH HELPERS ====================
 
