@@ -102,7 +102,7 @@ export const LandingPage = () => {
                 and more with our intelligent dog care platform.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 mb-12">
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 <Button 
                   onClick={handleLogin}
                   size="lg"
@@ -121,6 +121,18 @@ export const LandingPage = () => {
                 >
                   Learn More
                 </Button>
+              </div>
+              
+              {/* Email Login Option */}
+              <div className="mb-12">
+                <a 
+                  href="/auth" 
+                  className="text-sm text-gray-600 hover:text-primary flex items-center justify-center sm:justify-start gap-1"
+                  data-testid="email-login-link"
+                >
+                  Or sign in with email
+                  <ArrowRight className="w-3 h-3" />
+                </a>
               </div>
 
               {/* Trust Badges */}
