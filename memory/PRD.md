@@ -545,11 +545,26 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - Pre-fetch patterns for N+1 query elimination
 - Bulk data fetching in tournaments and rankings
 
+### 30. Social Login Options (NEW)
+- Google OAuth (fully integrated via Emergent-managed auth)
+- Apple Sign In button (UI ready - requires Apple Developer Account setup)
+- Facebook Login button (UI ready - requires Facebook Developer Account setup)
+- All three options visible on /auth page
+
+### 31. Enhanced Audio System (NEW)
+- New audioManager.js with realistic dog sounds
+- Web Audio API synthesized sounds as fallback
+- Sound categories: barks (happy, alert, playful, excited), howls (long, wolf, sad), growls (deep, warning, fierce)
+- Additional sounds: whimper, whine, yip, pant, snore, eating
+- Activity sounds: running, drinking, scratching
+- UI feedback sounds: success, coin, levelup
+
 ## Tech Stack
 - Frontend: React 19.0.0, Tailwind CSS, shadcn/ui, lucide-react
 - Backend: FastAPI 0.110.1, Motor 3.3.1 (async MongoDB)
 - Database: MongoDB
-- Auth: Emergent-managed Google OAuth + Email/Password
+- Auth: Emergent-managed Google OAuth + Email/Password + Social Login buttons (Apple, Facebook)
 - AI: OpenAI GPT-5.2 via emergentintegrations
 - Payments: Stripe, PayPal via emergentintegrations
 - Email: Resend for password reset emails
+- Audio: Web Audio API with audioManager.js
