@@ -3147,21 +3147,35 @@ async def trainer_checkout(request: TrainerCheckoutRequest, http_request: Reques
         raise HTTPException(status_code=404, detail="Trainer not found")
     
     # Calculate cost - amounts defined on backend only for security
-    if request.session_type == "virtual":
-        base_cost = TRAINER_PRICING["virtual"].get(request.duration, {}).get("price", 45.00)
+    if request.session_type == "emergency":
+        base_cost = 1349.99
+        duration_label = "24/7 Emergency (24-48hr)"
+    elif request.session_type == "virtual":
+        base_cost = TRAINER_PRICING["virtual"].get(request.duration, {}).get("price", 67.50)
+        duration_label = "30 Minutes" if request.duration == "30min" else "1 Hour"
     else:
-        base_cost = TRAINER_PRICING["in_person"].get(request.duration, {}).get("price", 179.99)
+        base_cost = TRAINER_PRICING["in_person"].get(request.duration, {}).get("price", 150.00)
+        duration_label = {
+            "60min": "1 Hour",
+            "120min": "2 Hours",
+            "180min": "3 Hours Intensive"
+        }.get(request.duration, request.duration)
     
     travel_cost = 0.0
     call_out_fee = 0.0
     estimated_miles = 0
+    k9_risk_fee = 0.0
+    
+    # Add K9 risk & equipment fee for in-person dangerous dog sessions
+    if request.session_type == "in_person":
+        k9_risk_fee = float(TRAINER_PRICING.get("k9_risk_equipment_fee", 8.99))
     
     if request.session_type == "in_person" and request.from_postcode and request.to_postcode:
         call_out_fee = float(TRAINER_PRICING["travel"]["call_out_fee"])
         estimated_miles = random.randint(10, 40)
         travel_cost = float(estimated_miles * TRAINER_PRICING["travel"]["per_mile"])
     
-    total = round(base_cost + call_out_fee + travel_cost, 2)
+    total = round(base_cost + call_out_fee + travel_cost + k9_risk_fee, 2)
     
     # Create booking record
     booking_id = f"booking_{uuid.uuid4().hex[:12]}"
