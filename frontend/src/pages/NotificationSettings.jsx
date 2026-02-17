@@ -318,36 +318,151 @@ export const NotificationSettings = ({ user }) => {
             </Button>
           </div>
 
-          {/* Individual Settings */}
-          <div className="space-y-4">
-            <h2 className="font-heading font-semibold text-lg">Notification Types</h2>
-            
-            {NOTIFICATION_OPTIONS.map((option) => {
-              const Icon = option.icon;
-              return (
-                <Card key={option.id} className="bg-white rounded-xl shadow-card">
-                  <CardContent className="p-5">
-                    <div className="flex items-center gap-4">
-                      <div className={`p-2 rounded-xl bg-gray-100`}>
-                        <Icon className={`w-5 h-5 ${option.color}`} />
-                      </div>
-                      <div className="flex-1">
-                        <Label htmlFor={option.id} className="font-medium cursor-pointer">
-                          {option.title}
-                        </Label>
-                        <p className="text-sm text-muted-foreground">{option.description}</p>
-                      </div>
-                      <Switch
-                        id={option.id}
-                        checked={settings[option.id]}
-                        onCheckedChange={(value) => updateSetting(option.id, value)}
-                        data-testid={`toggle-${option.id}`}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+          {/* Individual Settings - Grouped by Category */}
+          <div className="space-y-6">
+            {/* Daily Reminders Section */}
+            <div>
+              <h2 className="font-heading font-semibold text-lg mb-4 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-blue-500" />
+                Daily Reminders
+              </h2>
+              <div className="space-y-3">
+                {NOTIFICATION_OPTIONS.filter(o => o.category === 'reminders').map((option) => {
+                  const Icon = option.icon;
+                  return (
+                    <Card key={option.id} className="bg-white rounded-xl shadow-card">
+                      <CardContent className="p-5">
+                        <div className="flex items-center gap-4">
+                          <div className={`p-2 rounded-xl bg-gray-100`}>
+                            <Icon className={`w-5 h-5 ${option.color}`} />
+                          </div>
+                          <div className="flex-1">
+                            <Label htmlFor={option.id} className="font-medium cursor-pointer">
+                              {option.title}
+                            </Label>
+                            <p className="text-sm text-muted-foreground">{option.description}</p>
+                          </div>
+                          <Switch
+                            id={option.id}
+                            checked={settings[option.id]}
+                            onCheckedChange={(value) => updateSetting(option.id, value)}
+                            data-testid={`toggle-${option.id}`}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Training Section */}
+            <div>
+              <h2 className="font-heading font-semibold text-lg mb-4 flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-purple-500" />
+                Training & Tips
+              </h2>
+              <div className="space-y-3">
+                {NOTIFICATION_OPTIONS.filter(o => o.category === 'training').map((option) => {
+                  const Icon = option.icon;
+                  return (
+                    <Card key={option.id} className="bg-white rounded-xl shadow-card">
+                      <CardContent className="p-5">
+                        <div className="flex items-center gap-4">
+                          <div className={`p-2 rounded-xl bg-gray-100`}>
+                            <Icon className={`w-5 h-5 ${option.color}`} />
+                          </div>
+                          <div className="flex-1">
+                            <Label htmlFor={option.id} className="font-medium cursor-pointer">
+                              {option.title}
+                            </Label>
+                            <p className="text-sm text-muted-foreground">{option.description}</p>
+                          </div>
+                          <Switch
+                            id={option.id}
+                            checked={settings[option.id]}
+                            onCheckedChange={(value) => updateSetting(option.id, value)}
+                            data-testid={`toggle-${option.id}`}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Achievements Section */}
+            <div>
+              <h2 className="font-heading font-semibold text-lg mb-4 flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-amber-500" />
+                Achievements & Competition
+              </h2>
+              <div className="space-y-3">
+                {NOTIFICATION_OPTIONS.filter(o => o.category === 'achievements').map((option) => {
+                  const Icon = option.icon;
+                  return (
+                    <Card key={option.id} className="bg-white rounded-xl shadow-card">
+                      <CardContent className="p-5">
+                        <div className="flex items-center gap-4">
+                          <div className={`p-2 rounded-xl bg-gray-100`}>
+                            <Icon className={`w-5 h-5 ${option.color}`} />
+                          </div>
+                          <div className="flex-1">
+                            <Label htmlFor={option.id} className="font-medium cursor-pointer">
+                              {option.title}
+                            </Label>
+                            <p className="text-sm text-muted-foreground">{option.description}</p>
+                          </div>
+                          <Switch
+                            id={option.id}
+                            checked={settings[option.id]}
+                            onCheckedChange={(value) => updateSetting(option.id, value)}
+                            data-testid={`toggle-${option.id}`}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Other Section */}
+            <div>
+              <h2 className="font-heading font-semibold text-lg mb-4 flex items-center gap-2">
+                <Megaphone className="w-5 h-5 text-pink-500" />
+                Other
+              </h2>
+              <div className="space-y-3">
+                {NOTIFICATION_OPTIONS.filter(o => o.category === 'other').map((option) => {
+                  const Icon = option.icon;
+                  return (
+                    <Card key={option.id} className="bg-white rounded-xl shadow-card">
+                      <CardContent className="p-5">
+                        <div className="flex items-center gap-4">
+                          <div className={`p-2 rounded-xl bg-gray-100`}>
+                            <Icon className={`w-5 h-5 ${option.color}`} />
+                          </div>
+                          <div className="flex-1">
+                            <Label htmlFor={option.id} className="font-medium cursor-pointer">
+                              {option.title}
+                            </Label>
+                            <p className="text-sm text-muted-foreground">{option.description}</p>
+                          </div>
+                          <Switch
+                            id={option.id}
+                            checked={settings[option.id]}
+                            onCheckedChange={(value) => updateSetting(option.id, value)}
+                            data-testid={`toggle-${option.id}`}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           {/* Device Info */}
