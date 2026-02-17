@@ -431,6 +431,15 @@ Build a comprehensive canine training and care app covering all levels of dog tr
   - Features: code validation, one-time use per user, max uses limit, expiry dates
   - User discount tracking and redemption history
   - Admin access controlled by email whitelist
+- [x] **VIP Player System & Welcome Messages (Feb 17, 2026)**:
+  - VIP players get 1200 tokens on first login/signup
+  - VIP players receive 20 FREE tokens daily + Double XP
+  - VIP players: jfk9unit@gmail.com, rociolopez111@hotmail.com, damoncrook94@gmail.com
+  - Personalized welcome dialog with role-based greetings (Admin/VIP/Member)
+  - 30 rotating daily motivational memos (1 per day)
+  - Admin can award tokens via /api/admin/award-tokens
+  - VIP status check: /api/user/vip-status
+  - Welcome message: /api/welcome-message
 
 ## Backlog
 
