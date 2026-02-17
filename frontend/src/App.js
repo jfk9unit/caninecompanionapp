@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 // Pages
 import { LandingPage } from "@/pages/LandingPage";
+import { AuthPage } from "@/pages/AuthPage";
 import { Dashboard } from "@/pages/Dashboard";
 import { TrainingCenter } from "@/pages/TrainingCenter";
 import { HealthHub } from "@/pages/HealthHub";
@@ -138,6 +139,7 @@ function AppRouter() {
     <AuthContext>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/auth" element={<AuthPage />} />
         <Route path="/dashboard" element={
           <ProtectedRoute>
             {({ user }) => <Dashboard user={user} />}
