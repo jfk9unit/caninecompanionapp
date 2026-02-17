@@ -35,7 +35,9 @@ import {
   Shield,
   ArrowRight,
   ClipboardList,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Video,
+  PlayCircle
 } from "lucide-react";
 import { InteractiveStep, LessonCompletionModal, ProgressShareCard, celebrate } from "@/components/InteractiveTraining";
 import { 
@@ -43,7 +45,8 @@ import {
   LEVEL_VISUALS, 
   getLessonImage,
   getQuestionnaire,
-  calculateQuestionnaireResult
+  calculateQuestionnaireResult,
+  getLessonVideo
 } from "@/data/trainingVisuals";
 
 const levelColors = {
