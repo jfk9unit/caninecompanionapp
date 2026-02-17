@@ -58,6 +58,8 @@ const TrainingContent = ({ user, selectedDog }) => {
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [enrolling, setEnrolling] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [showCompletion, setShowCompletion] = useState(false);
+  const [completedLesson, setCompletedLesson] = useState(null);
 
   useEffect(() => {
     fetchData();
