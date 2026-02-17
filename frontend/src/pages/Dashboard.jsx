@@ -559,14 +559,14 @@ export const Dashboard = ({ user }) => {
               </Card>
             </div>
           </div>
+
+          {/* Welcome Dialog */}
+          <WelcomeDialog 
+            open={showWelcome} 
+            onClose={() => setShowWelcome(false)} 
+          />
         </div>
       )}
-
-      {/* Welcome Dialog */}
-      <WelcomeDialog 
-        open={showWelcome} 
-        onClose={() => setShowWelcome(false)} 
-      />
     </AppLayout>
   );
 };
