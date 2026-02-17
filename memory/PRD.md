@@ -751,6 +751,30 @@ Build a comprehensive canine training and care app covering all levels of dog tr
   - GET /api/equipment/products
   - GET /api/equipment/featured
   - POST /api/equipment/enquiry
+  - GET /api/equipment/delivery-info
+  - POST /api/equipment/calculate-basket
+  - POST /api/equipment/checkout
+  - GET /api/equipment/orders
+
+### 46. Equipment Shop Basket & Checkout (Feb 17, 2026)
+- Full shopping basket functionality with:
+  - Add/remove items with quantity controls
+  - Size and color selection per item
+  - Real-time basket calculation
+- Pricing adjustments:
+  - 32% total markup (22% commission + 10% additional markup - hidden from users)
+  - 0.05% Pay Now discount at checkout
+- Variable delivery costs by category:
+  - Harnesses: Standard £3.99 / Express £7.99
+  - Grooming: Standard £4.49 / Express £8.49
+  - Training: Standard £6.99 / Express £12.99
+  - Bowls: Standard £5.49 / Express £9.99
+  - Beds: Standard £9.99 / Express £18.99
+  - Toys: Standard £3.49 / Express £6.99
+  - Health: Standard £2.99 / Express £5.99
+  - Travel: Standard £5.99 / Express £11.99
+- Free standard shipping on orders over £75
+- Stripe checkout integration for equipment purchases (FULLY INTEGRATED)
 
 ## Current Pricing Structure (Feb 17, 2026)
 ### Trainer Booking (20% service fee built-in)
@@ -763,6 +787,8 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - Admin/Rescheduling Fee: £30.00
 - Deposit: 50% non-refundable
 
-### Equipment Shop (22% commission built-in)
-- Products range from £9.76 to £237.90
-- Enquiry-based ordering (MOCKED)
+### Equipment Shop (32% total markup built-in)
+- Products range from £10.56 to £257.40
+- Free standard shipping over £75
+- 0.05% Pay Now discount at checkout
+- Variable delivery by category (£2.99-£18.99)
