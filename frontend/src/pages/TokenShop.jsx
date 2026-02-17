@@ -3,13 +3,11 @@ import axios from "axios";
 import { API } from "@/App";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
-// PayPal removed - Stripe only
 import { QRCodeSVG } from "qrcode.react";
 import {
   Coins,
