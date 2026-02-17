@@ -94,6 +94,48 @@ export const TermsOfService = ({ user }) => {
               </div>
             </section>
 
+            {/* NASDU Courses & Pre-Test */}
+            <section>
+              <h2 className="text-xl font-semibold mb-3">NASDU Course Enrollment</h2>
+              <div className="space-y-3 text-gray-700">
+                <p>Regarding NASDU course enrollment and pre-test:</p>
+                <ul className="list-disc list-inside space-y-2 ml-4">
+                  <li>Pre-test fee (£19.99) is required before course enrollment and is non-refundable</li>
+                  <li>Pre-test requires 48/50 correct answers (96%) to pass</li>
+                  <li>We act as third-party providers facilitating course allocation with NASDU-approved training centres</li>
+                  <li>All course prices include a 12% service fee covering booking management and support</li>
+                  <li>Course availability and schedules are subject to trainer and centre availability</li>
+                  <li>Course fees are non-refundable once enrollment is confirmed</li>
+                </ul>
+              </div>
+            </section>
+
+            {/* Trainer Booking Policy */}
+            <section>
+              <h2 className="text-xl font-semibold mb-3">K9 Trainer Booking Policy</h2>
+              <div className="space-y-3 text-gray-700">
+                <p className="font-semibold">Virtual Sessions:</p>
+                <ul className="list-disc list-inside space-y-2 ml-4 mb-4">
+                  <li>30 minutes: £29.99</li>
+                  <li>1 hour: £45.00</li>
+                </ul>
+                <p className="font-semibold">In-Person Sessions (Home Visit):</p>
+                <ul className="list-disc list-inside space-y-2 ml-4 mb-4">
+                  <li>1 hour: £179.99</li>
+                  <li>2 hours: £320.00</li>
+                  <li>3 hours intensive: £420.00</li>
+                  <li>Call-out fee: £25.00</li>
+                  <li>Travel: £0.85 per mile (calculated from postcode to postcode)</li>
+                  <li>Additional charges may apply for hotel stays on remote locations</li>
+                </ul>
+                <p className="font-semibold text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                  IMPORTANT: All trainer booking fees are non-refundable. Rescheduling or location changes incur a £25 admin fee. 
+                  Please ensure your calendar fits the trainer's schedule before booking.
+                </p>
+                <p className="mt-3">Currently available for UK customers only. EU and USA expansion planned for future release.</p>
+              </div>
+            </section>
+
             {/* Content */}
             <section>
               <h2 className="text-xl font-semibold mb-3">User Content</h2>
