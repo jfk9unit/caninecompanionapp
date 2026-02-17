@@ -356,14 +356,20 @@ export const BookK9Trainer = ({ user }) => {
             </CardContent>
           </Card>
 
-          {/* Trainers Grid */}
+          {/* Our K9 Team - Available Now */}
           <div>
-            <h2 className="font-heading font-semibold text-xl mb-6">Our Approved Trainers</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-heading font-semibold text-xl flex items-center gap-2">
+                <Shield className="w-5 h-5 text-primary" />
+                Our K9 Team
+              </h2>
+              <Badge className="bg-green-500 text-white">Available Now</Badge>
+            </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {trainers.map((trainer, index) => (
+              {ourTeam.map((trainer, index) => (
                 <Card 
                   key={trainer.trainer_id}
-                  className="rounded-2xl overflow-hidden shadow-card card-hover animate-fade-in"
+                  className="rounded-2xl overflow-hidden shadow-card card-hover animate-fade-in ring-2 ring-green-200"
                   style={{ animationDelay: `${index * 0.1}s` }}
                   data-testid={`trainer-card-${trainer.trainer_id}`}
                 >
@@ -374,12 +380,10 @@ export const BookK9Trainer = ({ user }) => {
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                    {trainer.verified && (
-                      <Badge className="absolute top-4 right-4 bg-green-500 text-white">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        AI Verified
-                      </Badge>
-                    )}
+                    <Badge className="absolute top-4 right-4 bg-green-500 text-white">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Our Team
+                    </Badge>
                     <div className="absolute bottom-4 left-4 right-4">
                       <h3 className="font-semibold text-white text-lg">{trainer.name}</h3>
                       <p className="text-white/80 text-sm">{trainer.title}</p>
@@ -422,12 +426,12 @@ export const BookK9Trainer = ({ user }) => {
                     }}>
                       <DialogTrigger asChild>
                         <Button 
-                          className="w-full rounded-full"
+                          className="w-full rounded-full bg-green-600 hover:bg-green-700"
                           onClick={() => setSelectedTrainer(trainer)}
                           data-testid={`book-trainer-${trainer.trainer_id}`}
                         >
-                          Book Session
-                          <ChevronRight className="w-4 h-4 ml-1" />
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          Book Now
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
