@@ -186,6 +186,12 @@ class EmailPasswordRegister(BaseModel):
     password: str
     name: str
 
+class ChatMessage(BaseModel):
+    message: str
+
+# Chat support cost
+CHAT_COST_PER_MESSAGE = 5
+
 # Admin emails - add your admin emails here
 ADMIN_EMAILS = [
     "admin@caninecompass.app",
