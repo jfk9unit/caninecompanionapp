@@ -594,6 +594,130 @@ async def admin_award_tokens(request: Request, user: User = Depends(get_current_
         "message": f"Awarded {tokens_amount} tokens to {target_email}"
     }
 
+@api_router.get("/admin/stats")
+async def get_admin_stats(user: User = Depends(get_current_user)):
+    """Admin: Get app statistics"""
+    if not await is_admin(user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    total_users = await db.users.count_documents({})
+    total_dogs = await db.dogs.count_documents({})
+    total_tokens_distributed = await db.token_awards.aggregate([
+        {"$group": {"_id": None, "total": {"$sum": "$tokens"}}}
+    ]).to_list(1)
+    
+    # Count active users today
+    today = datetime.now(timezone.utc).date().isoformat()
+    active_today = await db.login_streaks.count_documents({"last_claim_date": today})
+    
+    # Count VIP players
+    vip_count = len(VIP_PLAYERS)
+    
+    # Count promo codes
+    promo_count = await db.promo_codes.count_documents({"active": True})
+    total_redemptions = await db.promo_redemptions.count_documents({})
+    
+    return {
+        "total_users": total_users,
+        "total_dogs": total_dogs,
+        "total_tokens_distributed": total_tokens_distributed[0]["total"] if total_tokens_distributed else 0,
+        "active_today": active_today,
+        "vip_count": vip_count,
+        "active_promo_codes": promo_count,
+        "total_redemptions": total_redemptions
+    }
+
+@api_router.get("/admin/users")
+async def get_all_users(user: User = Depends(get_current_user)):
+    """Admin: Get all users"""
+    if not await is_admin(user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    users = await db.users.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+    
+    # Mark VIP users
+    for u in users:
+        u["is_vip"] = u.get("email") in VIP_PLAYERS
+    
+    return {"users": users}
+
+@api_router.get("/admin/vip-players")
+async def get_vip_players(user: User = Depends(get_current_user)):
+    """Admin: Get list of VIP players"""
+    if not await is_admin(user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Get from database first, then fall back to hardcoded list
+    db_vips = await db.vip_players.find({}, {"_id": 0}).to_list(100)
+    db_vip_emails = [v.get("email") for v in db_vips if v.get("email")]
+    
+    # Combine hardcoded and database VIPs
+    all_vips = list(set(VIP_PLAYERS + db_vip_emails))
+    
+    return {"vip_players": all_vips}
+
+@api_router.post("/admin/vip-players")
+async def add_vip_player(request: Request, user: User = Depends(get_current_user)):
+    """Admin: Add a new VIP player"""
+    if not await is_admin(user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    body = await request.json()
+    email = body.get("email", "").lower().strip()
+    
+    if not email or "@" not in email:
+        raise HTTPException(status_code=400, detail="Valid email required")
+    
+    # Check if already VIP
+    if email in VIP_PLAYERS:
+        raise HTTPException(status_code=400, detail="Already a VIP player (hardcoded)")
+    
+    existing = await db.vip_players.find_one({"email": email})
+    if existing:
+        raise HTTPException(status_code=400, detail="Already a VIP player")
+    
+    # Add to database
+    await db.vip_players.insert_one({
+        "email": email,
+        "added_by": user.email,
+        "added_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    # Award 1200 tokens if user exists
+    user_exists = await db.users.find_one({"email": email})
+    if user_exists and not user_exists.get("vip_bonus_claimed"):
+        await db.users.update_one(
+            {"email": email},
+            {"$inc": {"tokens": 1200}, "$set": {"vip_bonus_claimed": True, "is_vip": True}}
+        )
+    
+    return {"success": True, "message": f"Added {email} as VIP player"}
+
+@api_router.delete("/admin/vip-players/{email}")
+async def remove_vip_player(email: str, user: User = Depends(get_current_user)):
+    """Admin: Remove a VIP player"""
+    if not await is_admin(user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    email = email.lower().strip()
+    
+    # Cannot remove hardcoded VIPs
+    if email in VIP_PLAYERS:
+        raise HTTPException(status_code=400, detail="Cannot remove hardcoded VIP player")
+    
+    result = await db.vip_players.delete_one({"email": email})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="VIP player not found")
+    
+    # Update user record
+    await db.users.update_one(
+        {"email": email},
+        {"$set": {"is_vip": False}}
+    )
+    
+    return {"success": True, "message": f"Removed {email} from VIP players"}
+
 # ==================== PROMO CODES (Admin Issued) ====================
 
 async def is_admin(user: User) -> bool:
