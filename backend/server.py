@@ -137,6 +137,23 @@ class NotificationSettings(BaseModel):
     pet_care_reminders: bool = True
     streak_reminders: bool = True
 
+class PromoCodeCreate(BaseModel):
+    code: str
+    code_type: str = "tokens"  # "tokens" or "discount"
+    value: int = 0  # tokens amount or discount percentage
+    max_uses: Optional[int] = None  # None = unlimited
+    expires_at: Optional[str] = None
+    description: Optional[str] = None
+
+class PromoCodeRedeem(BaseModel):
+    code: str
+
+# Admin emails - add your admin emails here
+ADMIN_EMAILS = [
+    "admin@caninecompass.app",
+    "developer@caninecompass.app"
+]
+
 # ==================== AUTH HELPERS ====================
 
 async def get_current_user(request: Request) -> User:
