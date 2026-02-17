@@ -474,6 +474,107 @@ async def share_achievement(achievement_id: str, user: User = Depends(get_curren
     
     return {"message": "Shared!", "bonus_badge": count == 1}
 
+# ==================== K9 CREDENTIALS ====================
+
+K9_CREDENTIAL_TIERS = {
+    1: {"name": "Guardian Initiate", "min_lessons": 1, "color": "#64748b"},
+    2: {"name": "Shield Bearer", "min_lessons": 3, "color": "#3b82f6"},
+    3: {"name": "Threat Analyst", "min_lessons": 6, "color": "#8b5cf6"},
+    4: {"name": "Elite Protector", "min_lessons": 10, "color": "#f97316"},
+    5: {"name": "K9 Protection Master", "min_lessons": 15, "color": "#eab308"}
+}
+
+@api_router.get("/k9/credentials")
+async def get_k9_credentials(user: User = Depends(get_current_user)):
+    """Get user's K9 handler credentials"""
+    # Get completed K9 lessons
+    enrollments = await db.training_enrollments.find({
+        "user_id": user.user_id,
+        "status": "completed"
+    }, {"_id": 0}).to_list(100)
+    
+    k9_completed = [e for e in enrollments if e.get("lesson_id", "").startswith("k9_")]
+    completed_count = len(k9_completed)
+    
+    # Determine current tier
+    current_tier = 0
+    for tier, info in K9_CREDENTIAL_TIERS.items():
+        if completed_count >= info["min_lessons"]:
+            current_tier = tier
+    
+    # Get completed lesson details
+    completed_lessons = []
+    for e in k9_completed:
+        lesson = next((l for l in TRAINING_LESSONS if l["lesson_id"] == e["lesson_id"]), None)
+        if lesson:
+            completed_lessons.append({
+                "lesson_id": lesson["lesson_id"],
+                "title": lesson["title"],
+                "badge_reward": lesson.get("badge_reward"),
+                "completed_at": e.get("completed_at")
+            })
+    
+    # Calculate next tier progress
+    next_tier = current_tier + 1 if current_tier < 5 else None
+    next_tier_info = K9_CREDENTIAL_TIERS.get(next_tier) if next_tier else None
+    lessons_to_next = (next_tier_info["min_lessons"] - completed_count) if next_tier_info else 0
+    
+    return {
+        "user_name": user.name,
+        "user_picture": user.picture,
+        "current_tier": current_tier,
+        "tier_name": K9_CREDENTIAL_TIERS.get(current_tier, {}).get("name", "Recruit"),
+        "tier_color": K9_CREDENTIAL_TIERS.get(current_tier, {}).get("color", "#9ca3af"),
+        "completed_count": completed_count,
+        "total_lessons": 15,
+        "completed_lessons": completed_lessons,
+        "next_tier": next_tier_info,
+        "lessons_to_next": lessons_to_next,
+        "credential_id": f"K9-{user.user_id[:8].upper()}-{completed_count:02d}",
+        "issued_date": datetime.now(timezone.utc).strftime("%B %d, %Y")
+    }
+
+@api_router.post("/k9/generate-certificate")
+async def generate_k9_certificate(user: User = Depends(get_current_user)):
+    """Generate K9 handler certificate data"""
+    credentials = await get_k9_credentials(user)
+    
+    if credentials["current_tier"] == 0:
+        raise HTTPException(status_code=400, detail="Complete at least 1 K9 lesson to earn credentials")
+    
+    # Store certificate record
+    certificate = {
+        "certificate_id": f"cert_{uuid.uuid4().hex[:12]}",
+        "user_id": user.user_id,
+        "credential_id": credentials["credential_id"],
+        "tier": credentials["current_tier"],
+        "tier_name": credentials["tier_name"],
+        "issued_at": datetime.now(timezone.utc).isoformat(),
+        "lessons_completed": credentials["completed_count"]
+    }
+    
+    await db.k9_certificates.insert_one(certificate)
+    
+    return {
+        "certificate_id": certificate["certificate_id"],
+        "credential_id": credentials["credential_id"],
+        "holder_name": user.name,
+        "tier_name": credentials["tier_name"],
+        "tier_color": credentials["tier_color"],
+        "lessons_completed": credentials["completed_count"],
+        "issued_date": credentials["issued_date"],
+        "verification_url": f"https://caninecompass.app/verify/{certificate['certificate_id']}"
+    }
+
+@api_router.get("/k9/certificates")
+async def get_k9_certificates(user: User = Depends(get_current_user)):
+    """Get all user's K9 certificates"""
+    certificates = await db.k9_certificates.find(
+        {"user_id": user.user_id},
+        {"_id": 0}
+    ).sort("issued_at", -1).to_list(20)
+    return {"certificates": certificates}
+
 # ==================== TRAINING ====================
 
 @api_router.get("/training/lessons")
