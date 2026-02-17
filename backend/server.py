@@ -459,7 +459,112 @@ async def claim_daily_reward(user: User = Depends(get_current_user)):
         "milestone_bonus": milestone_bonus,
         "milestone_badge": milestone_badge,
         "total_tokens": total_tokens,
-        "message": f"Day {new_streak} reward claimed! +{total_tokens} tokens"
+        "message": f"Day {new_streak} reward claimed! +{total_tokens} tokens",
+        "is_vip": user.email in VIP_PLAYERS
+    }
+
+# ==================== WELCOME & DAILY MEMOS ====================
+
+@api_router.get("/welcome-message")
+async def get_welcome_message(user: User = Depends(get_current_user)):
+    """Get personalized welcome message for the user"""
+    is_vip = user.email in VIP_PLAYERS
+    is_admin_user = user.email in ADMIN_EMAILS
+    first_name = user.name.split()[0] if user.name else "Friend"
+    
+    # Get daily memo (based on day of year for variety)
+    day_of_year = datetime.now(timezone.utc).timetuple().tm_yday
+    memo_index = day_of_year % len(DAILY_MEMOS)
+    daily_memo = DAILY_MEMOS[memo_index]
+    
+    # Check if user has seen today's memo
+    today = datetime.now(timezone.utc).date().isoformat()
+    memo_seen = await db.daily_memos_seen.find_one({
+        "user_id": user.user_id,
+        "date": today
+    })
+    
+    # Determine role-based greeting
+    if is_admin_user:
+        role = "admin"
+        greeting = f"Welcome back, {first_name}! 🛡️ Thank you for being an amazing admin and keeping CanineCompass running smoothly. Your dedication makes our community thrive!"
+    elif is_vip:
+        role = "vip"
+        greeting = f"Welcome back, {first_name}! ⭐ As a valued VIP member, you're at the heart of our community. Thank you for your incredible support and dedication to canine excellence!"
+    else:
+        role = "member"
+        greeting = f"Welcome back, {first_name}! 🐕 We're so happy to see you. Your journey to becoming an amazing dog handler continues today!"
+    
+    return {
+        "first_name": first_name,
+        "role": role,
+        "is_vip": is_vip,
+        "is_admin": is_admin_user,
+        "greeting": greeting,
+        "daily_memo": daily_memo,
+        "memo_already_seen": memo_seen is not None,
+        "vip_daily_tokens": 20 if is_vip else None
+    }
+
+@api_router.post("/daily-memo/mark-seen")
+async def mark_daily_memo_seen(user: User = Depends(get_current_user)):
+    """Mark today's daily memo as seen"""
+    today = datetime.now(timezone.utc).date().isoformat()
+    
+    await db.daily_memos_seen.update_one(
+        {"user_id": user.user_id, "date": today},
+        {"$set": {"seen_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True
+    )
+    
+    return {"success": True, "message": "Memo marked as seen"}
+
+@api_router.get("/user/vip-status")
+async def get_vip_status(user: User = Depends(get_current_user)):
+    """Check if user is a VIP player"""
+    is_vip = user.email in VIP_PLAYERS
+    
+    return {
+        "is_vip": is_vip,
+        "vip_benefits": {
+            "daily_tokens": 20,
+            "double_xp": True,
+            "special_badge": "VIP Tester"
+        } if is_vip else None
+    }
+
+@api_router.post("/admin/award-tokens")
+async def admin_award_tokens(request: Request, user: User = Depends(get_current_user)):
+    """Admin: Award tokens to a specific user by email"""
+    if not await is_admin(user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    body = await request.json()
+    target_email = body.get("email")
+    tokens_amount = body.get("tokens", 0)
+    
+    if not target_email or tokens_amount <= 0:
+        raise HTTPException(status_code=400, detail="Email and positive token amount required")
+    
+    result = await db.users.update_one(
+        {"email": target_email},
+        {"$inc": {"tokens": tokens_amount}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Log the award
+    await db.token_awards.insert_one({
+        "target_email": target_email,
+        "tokens": tokens_amount,
+        "awarded_by": user.email,
+        "awarded_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {
+        "success": True,
+        "message": f"Awarded {tokens_amount} tokens to {target_email}"
     }
 
 # ==================== PROMO CODES (Admin Issued) ====================
