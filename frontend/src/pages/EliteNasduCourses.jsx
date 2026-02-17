@@ -29,25 +29,28 @@ import {
 
 export const EliteNasduCourses = ({ user }) => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [pretestStatus, setPretestStatus] = useState(null);
   const [activeCategory, setActiveCategory] = useState("all");
   const [enrolling, setEnrolling] = useState(false);
 
   useEffect(() => {
     fetchData();
-  }, []);
+    
+    // Check for payment success/cancel
+    if (searchParams.get('success') === 'true') {
+      toast.success("Course enrollment successful! Check your email for confirmation.");
+    } else if (searchParams.get('cancelled') === 'true') {
+      toast.info("Payment cancelled");
+    }
+  }, [searchParams]);
 
   const fetchData = async () => {
     try {
-      const [coursesRes, pretestRes] = await Promise.all([
-        axios.get(`${API}/nasdu/courses`, { withCredentials: true }),
-        axios.get(`${API}/nasdu/pretest/status`, { withCredentials: true })
-      ]);
+      const coursesRes = await axios.get(`${API}/nasdu/courses`, { withCredentials: true });
       setCourses(coursesRes.data.courses);
-      setPretestStatus(pretestRes.data);
     } catch (error) {
       console.error('Failed to fetch courses:', error);
     } finally {
