@@ -2498,7 +2498,7 @@ async def get_leaderboard(category: str = "overall", limit: int = 20):
 
 @api_router.get("/leaderboard/my-rank")
 async def get_my_rank(user: User = Depends(get_current_user)):
-    """Get current user's ranking"""
+    """Get current user's ranking - optimized with aggregation"""
     # Calculate user's overall score
     training_count = await db.training_enrollments.count_documents({"user_id": user.user_id, "status": "completed"})
     achievement_count = await db.achievements.count_documents({"user_id": user.user_id})
@@ -2507,17 +2507,34 @@ async def get_my_rank(user: User = Depends(get_current_user)):
     
     my_score = (training_count * 10) + (achievement_count * 5) + (pet_xp) + (user.total_referrals * 15)
     
-    # Count users with higher scores (simplified)
+    # Pre-fetch all data in bulk queries instead of N+1
     all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "total_referrals": 1}).to_list(1000)
-    higher_count = 0
     
+    # Pre-fetch all training counts
+    training_agg = await db.training_enrollments.aggregate([
+        {"$match": {"status": "completed"}},
+        {"$group": {"_id": "$user_id", "count": {"$sum": 1}}}
+    ]).to_list(1000)
+    training_map = {t["_id"]: t["count"] for t in training_agg}
+    
+    # Pre-fetch all achievement counts
+    achievement_agg = await db.achievements.aggregate([
+        {"$group": {"_id": "$user_id", "count": {"$sum": 1}}}
+    ]).to_list(1000)
+    achievement_map = {a["_id"]: a["count"] for a in achievement_agg}
+    
+    # Pre-fetch all pet XP
+    pets = await db.virtual_pets.find({}, {"_id": 0, "user_id": 1, "experience_points": 1}).to_list(1000)
+    pet_map = {p["user_id"]: p.get("experience_points", 0) for p in pets}
+    
+    higher_count = 0
     for u in all_users:
         if u["user_id"] == user.user_id:
             continue
-        tc = await db.training_enrollments.count_documents({"user_id": u["user_id"], "status": "completed"})
-        ac = await db.achievements.count_documents({"user_id": u["user_id"]})
-        p = await db.virtual_pets.find_one({"user_id": u["user_id"]}, {"_id": 0})
-        px = p.get("experience_points", 0) if p else 0
+        user_id = u["user_id"]
+        tc = training_map.get(user_id, 0)
+        ac = achievement_map.get(user_id, 0)
+        px = pet_map.get(user_id, 0)
         score = (tc * 10) + (ac * 5) + (px) + (u.get("total_referrals", 0) * 15)
         if score > my_score:
             higher_count += 1
