@@ -246,7 +246,7 @@ export const AppLayout = ({ user, children }) => {
       </nav>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
         {typeof children === 'function' ? children({ dogs, selectedDog, setSelectedDog: handleSelectDog, refreshDogs: async () => {
           const response = await axios.get(`${API}/dogs`, { withCredentials: true });
           setDogs(response.data);
