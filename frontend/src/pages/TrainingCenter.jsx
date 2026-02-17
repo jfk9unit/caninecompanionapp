@@ -36,7 +36,6 @@ import {
   ArrowRight,
   ClipboardList,
   Image as ImageIcon,
-  Video,
   PlayCircle
 } from "lucide-react";
 import { InteractiveStep, LessonCompletionModal, ProgressShareCard, celebrate } from "@/components/InteractiveTraining";
@@ -45,8 +44,7 @@ import {
   LEVEL_VISUALS, 
   getLessonImage,
   getQuestionnaire,
-  calculateQuestionnaireResult,
-  getLessonVideo
+  calculateQuestionnaireResult
 } from "@/data/trainingVisuals";
 import { AudioTrainingGuide } from "@/components/AudioTrainingGuide";
 
