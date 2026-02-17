@@ -248,6 +248,11 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - GET /api/welcome-message - Get personalized greeting and daily memo
 - POST /api/daily-memo/mark-seen - Mark today's memo as seen
 - POST /api/admin/award-tokens - Award tokens to a user (admin only)
+- GET /api/admin/stats - Get app statistics (admin only)
+- GET /api/admin/users - Get all users list (admin only)
+- GET /api/admin/vip-players - Get VIP players list (admin only)
+- POST /api/admin/vip-players - Add new VIP player (admin only)
+- DELETE /api/admin/vip-players/{email} - Remove VIP player (admin only)
 
 ### Tokens & Payments
 - GET /api/tokens/packages - Get available packages
