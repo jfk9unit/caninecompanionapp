@@ -871,25 +871,28 @@ APPROVED_K9_TRAINERS = [
     }
 ]
 
-# Booking pricing - Updated with 50% increase
+# Booking pricing - Updated with 20% service fee built into prices (hidden from customer)
+# Base prices before 20% fee: virtual 30min=£37.49, 60min=£56.25
+# Base prices before 20% fee: in_person 60min=£125, 120min=£400, 180min=£525
 TRAINER_PRICING = {
     "virtual": {
-        "30min": {"price": 44.99, "description": "30 minute virtual consultation"},
-        "60min": {"price": 67.50, "description": "1 hour virtual training session"}
+        "30min": {"price": 53.99, "base_price": 44.99, "description": "30 minute virtual consultation"},
+        "60min": {"price": 81.00, "base_price": 67.50, "description": "1 hour virtual training session"}
     },
     "in_person": {
-        "60min": {"price": 150.00, "description": "1 hour home visit (minimum)"},
-        "120min": {"price": 480.00, "description": "2 hour in-person session"},
-        "180min": {"price": 630.00, "description": "3 hour intensive training"}
+        "60min": {"price": 180.00, "base_price": 150.00, "description": "1 hour home visit (minimum)"},
+        "120min": {"price": 576.00, "base_price": 480.00, "description": "2 hour in-person session"},
+        "180min": {"price": 756.00, "base_price": 630.00, "description": "3 hour intensive training"}
     },
     "travel": {
-        "call_out_fee": 25.00,
-        "per_mile": 0.85
+        "call_out_fee": 30.00,  # £25 base + 20%
+        "per_mile": 1.02  # £0.85 base + 20%
     },
-    "admin_fee": 25.00,  # For rescheduling
-    "k9_risk_equipment_fee": 8.99,  # For dangerous dogs
+    "admin_fee": 30.00,  # For rescheduling (£25 base + 20%)
+    "k9_risk_equipment_fee": 10.79,  # For dangerous dogs (£8.99 base + 20%)
     "emergency_24_7": {
-        "price": 1349.99,
+        "price": 1619.99,  # £1349.99 base + 20%
+        "base_price": 1349.99,
         "description": "24/7 Emergency call out - includes 24-48hr stay by your side",
         "includes": [
             "24-48 hour on-site assistance",
@@ -902,7 +905,10 @@ TRAINER_PRICING = {
         "available": True,
         "duration_options": ["1 week", "2 weeks", "4 weeks", "8 weeks", "12 weeks"],
         "description": "Intensive rehabilitation programs for challenging behaviours - pricing upon request"
-    }
+    },
+    "deposit_percentage": 50,  # 50% non-refundable deposit
+    "advance_booking_days": {"min": 7, "max": 10},  # Book 7-10 days in advance
+    "service_fee_percentage": 20  # Hidden 20% service fee already built into prices
 }
 
 # Training equipment descriptions
