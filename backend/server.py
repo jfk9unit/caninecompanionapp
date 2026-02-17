@@ -483,7 +483,7 @@ async def claim_daily_reward(user: User = Depends(get_current_user)):
         "milestone_badge": milestone_badge,
         "total_tokens": total_tokens,
         "message": f"Day {new_streak} reward claimed! +{total_tokens} tokens",
-        "is_vip": user.email in VIP_PLAYERS
+        "is_vip": is_vip
     }
 
 # ==================== WELCOME & DAILY MEMOS ====================
