@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Depends
+from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -12,6 +13,10 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
+import qrcode
+from io import BytesIO
+import base64
+import paypalrestsdk
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -19,6 +24,13 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+# PayPal Configuration (Sandbox for testing)
+paypalrestsdk.configure({
+    "mode": os.environ.get("PAYPAL_MODE", "sandbox"),
+    "client_id": os.environ.get("PAYPAL_CLIENT_ID", ""),
+    "client_secret": os.environ.get("PAYPAL_CLIENT_SECRET", "")
+})
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -32,6 +44,9 @@ from breeds_data_2 import ADDITIONAL_BREEDS
 from training_lessons_data import TRAINING_LESSONS
 
 ALL_BREEDS = BREED_DATABASE + ADDITIONAL_BREEDS
+
+# First purchase discount
+FIRST_PURCHASE_DISCOUNT = 0.10  # 10% off
 
 # Token packages
 TOKEN_PACKAGES = {
