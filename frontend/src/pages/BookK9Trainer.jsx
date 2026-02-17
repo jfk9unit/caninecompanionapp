@@ -224,7 +224,7 @@ export const BookK9Trainer = ({ user }) => {
           </div>
 
           {/* Pricing Overview */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             <Card className="rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border-0">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -235,11 +235,11 @@ export const BookK9Trainer = ({ user }) => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center p-3 bg-white rounded-xl">
                   <span>30 Minutes</span>
-                  <span className="font-bold text-blue-600">£29.99</span>
+                  <span className="font-bold text-blue-600">£44.99</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-white rounded-xl">
                   <span>1 Hour</span>
-                  <span className="font-bold text-blue-600">£45.00</span>
+                  <span className="font-bold text-blue-600">£67.50</span>
                 </div>
               </CardContent>
             </Card>
@@ -248,28 +248,111 @@ export const BookK9Trainer = ({ user }) => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Car className="w-5 h-5 text-amber-600" />
-                  In-Person (Home Visit)
+                  Home Visit
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center p-3 bg-white rounded-xl">
-                  <span>1 Hour</span>
-                  <span className="font-bold text-amber-600">£179.99</span>
+                  <span>1 Hour (min)</span>
+                  <span className="font-bold text-amber-600">From £150</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-white rounded-xl">
                   <span>2 Hours</span>
-                  <span className="font-bold text-amber-600">£320.00</span>
+                  <span className="font-bold text-amber-600">£480.00</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-white rounded-xl">
                   <span>3 Hours Intensive</span>
-                  <span className="font-bold text-amber-600">£420.00</span>
+                  <span className="font-bold text-amber-600">£630.00</span>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
                   + £25 call-out fee + £0.85/mile travel
                 </p>
+                <p className="text-sm text-amber-700 font-medium">
+                  + £8.99 K9 risk & equipment fee for dangerous dogs
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-2xl bg-gradient-to-br from-red-50 to-rose-50 border-0 ring-2 ring-red-200">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                    Emergency 24/7
+                  </CardTitle>
+                  <Badge className="bg-red-500 text-white">URGENT</Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="p-4 bg-white rounded-xl">
+                  <p className="text-3xl font-bold text-red-600">£1,349.99</p>
+                  <p className="text-sm text-muted-foreground">24-48hr by your side</p>
+                </div>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    24-48hr on-site assistance
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    Dangerous pet containment
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    Risk assessment & advice
+                  </li>
+                </ul>
               </CardContent>
             </Card>
           </div>
+
+          {/* Rehabilitation Programs */}
+          <Card className="rounded-2xl bg-gradient-to-r from-purple-900 to-indigo-900 text-white border-0">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                <div className="p-4 bg-white/10 rounded-xl">
+                  <Heart className="w-10 h-10 text-purple-300" />
+                </div>
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="font-semibold text-xl mb-2">Rehabilitation Programs</h3>
+                  <p className="text-purple-200">
+                    Intensive rehabilitation for challenging behaviours. Programs available from 1 week to 12 weeks.
+                    Contact us for a personalised assessment and pricing.
+                  </p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="border-white/30 text-white hover:bg-white/10 rounded-full"
+                  onClick={() => window.location.href = '/dashboard'}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Speak to 24/7 Support
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 24/7 Support Bot Recommendation */}
+          <Card className="rounded-2xl bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+            <CardContent className="p-6 flex flex-col sm:flex-row items-center gap-4">
+              <div className="p-3 bg-green-500 rounded-full">
+                <MessageSquare className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1 text-center sm:text-left">
+                <h3 className="font-semibold text-green-800">Have Questions?</h3>
+                <p className="text-green-700 text-sm">
+                  Speak with our 24/7 AI support bot for FAQs, pricing enquiries, and booking assistance.
+                </p>
+              </div>
+              <Button 
+                onClick={() => window.location.href = '/dashboard'}
+                className="rounded-full bg-green-600 hover:bg-green-700"
+              >
+                Chat Now
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* Trainers Grid */}
           <div>
