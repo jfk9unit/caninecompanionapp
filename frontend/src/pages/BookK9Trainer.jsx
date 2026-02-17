@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 import {
@@ -26,15 +27,17 @@ import {
   CheckCircle,
   Award,
   MessageSquare,
-  PoundSterling,
   AlertTriangle,
   ChevronRight,
   Shield,
-  Target,
   Wrench,
   Heart,
   CreditCard,
-  Mail
+  Mail,
+  Plus,
+  Minus,
+  Trash2,
+  Info
 } from "lucide-react";
 
 export const BookK9Trainer = ({ user }) => {
@@ -43,23 +46,27 @@ export const BookK9Trainer = ({ user }) => {
   const [approvedTrainers, setApprovedTrainers] = useState([]);
   const [pricingInfo, setPricingInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedTrainer, setSelectedTrainer] = useState(null);
-  const [sessionType, setSessionType] = useState("virtual");
-  const [duration, setDuration] = useState("60min");
+  
+  // Multi-trainer selection state
+  const [selectedTrainers, setSelectedTrainers] = useState([]);
+  const [sessionType, setSessionType] = useState("in_person");
   const [fromPostcode, setFromPostcode] = useState("");
   const [toPostcode, setToPostcode] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [notes, setNotes] = useState("");
+  const [includeRiskFee, setIncludeRiskFee] = useState(false);
+  
+  // Calculator state
   const [costBreakdown, setCostBreakdown] = useState(null);
   const [calculating, setCalculating] = useState(false);
   const [booking, setBooking] = useState(false);
-  const [showBookingDialog, setShowBookingDialog] = useState(false);
+  const [showCalculatorDialog, setShowCalculatorDialog] = useState(false);
+  const [paymentType, setPaymentType] = useState("deposit");
 
   useEffect(() => {
     fetchData();
     
-    // Check for payment success/cancel
     const sessionId = searchParams.get('session_id');
     if (searchParams.get('success') === 'true' && sessionId) {
       pollPaymentStatus(sessionId);
@@ -70,32 +77,23 @@ export const BookK9Trainer = ({ user }) => {
 
   const pollPaymentStatus = async (sessionId, attempts = 0) => {
     const maxAttempts = 5;
-    const pollInterval = 2000;
-
     if (attempts >= maxAttempts) {
       toast.success("Payment processing. Check your email for confirmation.");
       return;
     }
-
     try {
       const response = await axios.get(`${API}/payments/checkout/status/${sessionId}`, { withCredentials: true });
-      
       if (response.data.payment_status === 'paid') {
         toast.success("Booking confirmed! Check your email for appointment details.");
-        // Clear URL params
         window.history.replaceState({}, document.title, window.location.pathname);
-        // Reset form
-        setSelectedTrainer(null);
+        setSelectedTrainers([]);
         setSelectedDate("");
         setSelectedTime("");
         setNotes("");
         setCostBreakdown(null);
-        setShowBookingDialog(false);
         return;
       }
-
-      // Continue polling
-      setTimeout(() => pollPaymentStatus(sessionId, attempts + 1), pollInterval);
+      setTimeout(() => pollPaymentStatus(sessionId, attempts + 1), 2000);
     } catch (error) {
       console.error('Error checking payment status:', error);
     }
@@ -117,16 +115,50 @@ export const BookK9Trainer = ({ user }) => {
     }
   };
 
+  const addTrainer = (trainer) => {
+    if (selectedTrainers.find(t => t.trainer_id === trainer.trainer_id)) {
+      toast.info("Trainer already added");
+      return;
+    }
+    setSelectedTrainers([...selectedTrainers, { ...trainer, hours: 1 }]);
+    toast.success(`${trainer.name} added to booking`);
+  };
+
+  const removeTrainer = (trainerId) => {
+    setSelectedTrainers(selectedTrainers.filter(t => t.trainer_id !== trainerId));
+  };
+
+  const updateTrainerHours = (trainerId, hours) => {
+    setSelectedTrainers(selectedTrainers.map(t => 
+      t.trainer_id === trainerId ? { ...t, hours: Math.max(1, Math.min(12, hours)) } : t
+    ));
+  };
+
   const calculateCost = async () => {
+    if (selectedTrainers.length === 0) {
+      toast.error("Please select at least one trainer");
+      return;
+    }
+    
     setCalculating(true);
     try {
-      const response = await axios.post(`${API}/trainers/calculate-cost`, {
+      const response = await axios.post(`${API}/trainers/calculate-multi`, {
+        trainers: selectedTrainers.map(t => ({ trainer_id: t.trainer_id, hours: t.hours })),
         session_type: sessionType,
-        duration: duration,
+        date: selectedDate || new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        time: selectedTime || "10:00",
         from_postcode: fromPostcode,
-        to_postcode: toPostcode
+        to_postcode: toPostcode,
+        include_k9_risk_fee: includeRiskFee
       }, { withCredentials: true });
+      
+      if (response.data.error) {
+        toast.error(response.data.message);
+        return;
+      }
+      
       setCostBreakdown(response.data);
+      setShowCalculatorDialog(true);
     } catch (error) {
       toast.error("Failed to calculate cost");
     } finally {
@@ -134,24 +166,25 @@ export const BookK9Trainer = ({ user }) => {
     }
   };
 
-  const handleBooking = async () => {
-    if (!selectedTrainer || !selectedDate || !selectedTime) {
-      toast.error("Please fill in all required fields");
+  const handleMultiBooking = async () => {
+    if (!selectedDate || !selectedTime) {
+      toast.error("Please select date and time");
       return;
     }
-
+    
     setBooking(true);
     try {
-      const response = await axios.post(`${API}/trainers/checkout`, {
-        trainer_id: selectedTrainer.trainer_id,
+      const response = await axios.post(`${API}/trainers/multi-checkout`, {
+        trainers: selectedTrainers.map(t => ({ trainer_id: t.trainer_id, hours: t.hours })),
         session_type: sessionType,
-        duration: duration,
         date: selectedDate,
         time: selectedTime,
         from_postcode: sessionType === "in_person" ? fromPostcode : null,
         to_postcode: sessionType === "in_person" ? toPostcode : null,
         notes: notes,
-        origin_url: window.location.origin
+        include_k9_risk_fee: includeRiskFee,
+        origin_url: window.location.origin,
+        payment_type: paymentType
       }, { withCredentials: true });
       
       if (response.data.checkout_url) {
@@ -164,14 +197,12 @@ export const BookK9Trainer = ({ user }) => {
     }
   };
 
-  useEffect(() => {
-    if (sessionType === "in_person" && fromPostcode && toPostcode) {
-      const timer = setTimeout(() => calculateCost(), 500);
-      return () => clearTimeout(timer);
-    } else if (sessionType === "virtual") {
-      calculateCost();
-    }
-  }, [sessionType, duration, fromPostcode, toPostcode]);
+  // Get minimum date (7 days from now)
+  const getMinDate = () => {
+    const date = new Date();
+    date.setDate(date.getDate() + 7);
+    return date.toISOString().split('T')[0];
+  };
 
   if (loading) {
     return (
@@ -203,28 +234,378 @@ export const BookK9Trainer = ({ user }) => {
               </div>
               <h1 className="font-heading font-bold text-3xl md:text-4xl lg:text-5xl text-white mb-4">
                 Book Your Personal
-                <span className="block text-purple-300">K9 Trainer</span>
+                <span className="block text-purple-300">K9 Training Team</span>
               </h1>
               <p className="text-white/80 text-lg max-w-2xl mb-6">
-                Expert trainers verified by AI, specialising in behaviour modification, 
-                protection training, and professional K9 development.
+                Select multiple trainers for comprehensive training sessions. 
+                50% non-refundable deposit secures your booking.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Badge className="bg-green-500/20 text-green-300 border-green-500/30 px-3 py-1">
                   <CheckCircle className="w-4 h-4 mr-1" />
                   AI Verified
                 </Badge>
-                <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 px-3 py-1">
-                  <Video className="w-4 h-4 mr-1" />
-                  Virtual Sessions
-                </Badge>
                 <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/30 px-3 py-1">
-                  <Car className="w-4 h-4 mr-1" />
-                  Home Visits
+                  <Calendar className="w-4 h-4 mr-1" />
+                  Book 7-10 Days Ahead
+                </Badge>
+                <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 px-3 py-1">
+                  <CreditCard className="w-4 h-4 mr-1" />
+                  50% Deposit
                 </Badge>
               </div>
             </div>
           </div>
+
+          {/* Booking Terms Notice */}
+          <Card className="bg-amber-50 border-amber-200 rounded-2xl">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="p-2 bg-amber-100 rounded-lg">
+                  <Info className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-amber-900">Important Booking Terms</h3>
+                  <ul className="mt-2 space-y-1 text-sm text-amber-800">
+                    <li>• <strong>50% non-refundable deposit</strong> is required to secure your booking</li>
+                    <li>• Please book <strong>7-10 days in advance</strong> to ensure availability</li>
+                    <li>• <strong>Full payment</strong> must be made before our team is deployed</li>
+                    <li>• Rescheduling incurs a <strong>£30 admin fee</strong></li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Selected Trainers & Calculator */}
+          {selectedTrainers.length > 0 && (
+            <Card className="rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Calculator className="w-5 h-5 text-indigo-600" />
+                    Your Booking ({selectedTrainers.length} Trainer{selectedTrainers.length > 1 ? 's' : ''})
+                  </span>
+                  <Badge className="bg-indigo-600 text-white">
+                    {selectedTrainers.reduce((acc, t) => acc + t.hours, 0)} Total Hours
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Selected Trainers List */}
+                <div className="space-y-3">
+                  {selectedTrainers.map((trainer) => (
+                    <div key={trainer.trainer_id} className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={trainer.image_url} 
+                          alt={trainer.name}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                        <div>
+                          <h4 className="font-semibold">{trainer.name}</h4>
+                          <p className="text-xs text-muted-foreground">{trainer.title}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-8 w-8"
+                            onClick={() => updateTrainerHours(trainer.trainer_id, trainer.hours - 1)}
+                          >
+                            <Minus className="w-4 h-4" />
+                          </Button>
+                          <span className="w-16 text-center font-semibold">{trainer.hours} hr{trainer.hours > 1 ? 's' : ''}</span>
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="h-8 w-8"
+                            onClick={() => updateTrainerHours(trainer.trainer_id, trainer.hours + 1)}
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => removeTrainer(trainer.trainer_id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Session Type */}
+                <div className="space-y-2">
+                  <Label>Session Type</Label>
+                  <Tabs value={sessionType} onValueChange={setSessionType}>
+                    <TabsList className="w-full grid grid-cols-3">
+                      <TabsTrigger value="virtual">
+                        <Video className="w-4 h-4 mr-2" />
+                        Virtual
+                      </TabsTrigger>
+                      <TabsTrigger value="in_person">
+                        <Car className="w-4 h-4 mr-2" />
+                        Home Visit
+                      </TabsTrigger>
+                      <TabsTrigger value="emergency" className="text-red-600 data-[state=active]:text-red-600">
+                        <AlertTriangle className="w-4 h-4 mr-2" />
+                        24/7 Emergency
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+
+                {/* Postcodes for in-person */}
+                {sessionType === "in_person" && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Trainer's Postcode</Label>
+                      <Input 
+                        placeholder="e.g., SW1A 1AA"
+                        value={fromPostcode}
+                        onChange={(e) => setFromPostcode(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Your Postcode</Label>
+                      <Input 
+                        placeholder="e.g., EC1A 1BB"
+                        value={toPostcode}
+                        onChange={(e) => setToPostcode(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* K9 Risk Fee Checkbox */}
+                {sessionType === "in_person" && (
+                  <div className="flex items-center space-x-2 p-3 bg-amber-50 rounded-xl">
+                    <Checkbox 
+                      id="risk-fee" 
+                      checked={includeRiskFee}
+                      onCheckedChange={setIncludeRiskFee}
+                    />
+                    <label htmlFor="risk-fee" className="text-sm">
+                      <span className="font-medium">Include K9 Risk & Equipment Fee</span>
+                      <span className="text-muted-foreground"> (£10.79 per trainer for dangerous dogs)</span>
+                    </label>
+                  </div>
+                )}
+
+                {/* Date and Time */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Date (7-10 days ahead)</Label>
+                    <Input 
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      min={getMinDate()}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Time</Label>
+                    <Select value={selectedTime} onValueChange={setSelectedTime}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00"].map((time) => (
+                          <SelectItem key={time} value={time}>{time}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div className="space-y-2">
+                  <Label>Notes (Optional)</Label>
+                  <Textarea 
+                    placeholder="Describe your training goals or any behavioural issues..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={2}
+                  />
+                </div>
+
+                {/* Calculate Button */}
+                <Button 
+                  onClick={calculateCost}
+                  disabled={calculating}
+                  className="w-full rounded-full bg-indigo-600 hover:bg-indigo-700"
+                  data-testid="calculate-cost-btn"
+                >
+                  {calculating ? "Calculating..." : (
+                    <>
+                      <Calculator className="w-4 h-4 mr-2" />
+                      Calculate Total Cost
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Cost Calculator Dialog */}
+          <Dialog open={showCalculatorDialog} onOpenChange={setShowCalculatorDialog}>
+            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Calculator className="w-5 h-5 text-indigo-600" />
+                  Cost Breakdown
+                </DialogTitle>
+                <DialogDescription>
+                  Review your booking costs before proceeding to payment
+                </DialogDescription>
+              </DialogHeader>
+              
+              {costBreakdown && (
+                <div className="space-y-4 py-4">
+                  {/* Trainer Breakdowns */}
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm">Per Trainer Costs</h4>
+                    {costBreakdown.trainer_breakdowns.map((tb, index) => (
+                      <div key={index} className="p-3 bg-slate-50 rounded-xl">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium">{tb.trainer_name}</span>
+                          <span className="font-bold text-indigo-600">£{tb.trainer_total.toFixed(2)}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {tb.hours} hour{tb.hours > 1 ? 's' : ''} × £{tb.hourly_rate.toFixed(2)}/hr
+                          {tb.k9_risk_fee > 0 && ` + £${tb.k9_risk_fee.toFixed(2)} risk fee`}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Summary */}
+                  <Card className="bg-slate-100 rounded-xl border-0">
+                    <CardContent className="p-4 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Session Costs ({costBreakdown.summary.total_trainers} trainer{costBreakdown.summary.total_trainers > 1 ? 's' : ''}, {costBreakdown.summary.total_hours} hrs)</span>
+                        <span>£{costBreakdown.summary.session_costs_subtotal.toFixed(2)}</span>
+                      </div>
+                      {costBreakdown.summary.k9_risk_fees_total > 0 && (
+                        <div className="flex justify-between text-sm text-amber-700">
+                          <span>K9 Risk & Equipment Fees</span>
+                          <span>£{costBreakdown.summary.k9_risk_fees_total.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {costBreakdown.summary.call_out_fee > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span>Call-out Fee</span>
+                          <span>£{costBreakdown.summary.call_out_fee.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {costBreakdown.summary.travel_cost > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span>Travel ({costBreakdown.summary.estimated_miles} miles)</span>
+                          <span>£{costBreakdown.summary.travel_cost.toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between font-bold text-lg pt-2 border-t border-slate-300">
+                        <span>Grand Total</span>
+                        <span className="text-indigo-600">£{costBreakdown.summary.grand_total.toFixed(2)}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Payment Options */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm">Payment Option</h4>
+                    <div 
+                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentType === 'deposit' ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200'}`}
+                      onClick={() => setPaymentType('deposit')}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold">50% Deposit (Recommended)</p>
+                          <p className="text-xs text-muted-foreground">Pay remaining balance before deployment</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-bold text-indigo-600">£{costBreakdown.payment_terms.deposit_amount.toFixed(2)}</p>
+                          <p className="text-xs text-muted-foreground">Due now</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div 
+                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentType === 'full' ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200'}`}
+                      onClick={() => setPaymentType('full')}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold">Full Payment</p>
+                          <p className="text-xs text-muted-foreground">Pay everything upfront</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-bold text-indigo-600">£{costBreakdown.summary.grand_total.toFixed(2)}</p>
+                          <p className="text-xs text-muted-foreground">Due now</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Remaining Balance Notice */}
+                  {paymentType === 'deposit' && (
+                    <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
+                      <div className="flex items-start gap-2">
+                        <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-blue-700">
+                          <p><strong>Remaining Balance: £{costBreakdown.payment_terms.remaining_balance.toFixed(2)}</strong></p>
+                          <p>Must be paid before our team is deployed to your location.</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Policies */}
+                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <div className="text-sm text-amber-700">
+                        <p className="font-semibold">Important:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>50% deposit is non-refundable</li>
+                          <li>Rescheduling fee: £{costBreakdown.policies.rescheduling_fee.toFixed(2)}</li>
+                          <li>Please book 7-10 days in advance</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <DialogFooter className="flex-col gap-2">
+                <Button 
+                  onClick={handleMultiBooking}
+                  disabled={booking || !selectedDate || !selectedTime}
+                  className="w-full rounded-full bg-indigo-600 hover:bg-indigo-700"
+                  data-testid="proceed-payment-btn"
+                >
+                  {booking ? "Processing..." : (
+                    <>
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      {paymentType === 'deposit' 
+                        ? `Pay Deposit - £${costBreakdown?.payment_terms.deposit_amount.toFixed(2)}`
+                        : `Pay Full Amount - £${costBreakdown?.summary.grand_total.toFixed(2)}`
+                      }
+                    </>
+                  )}
+                </Button>
+                <p className="text-xs text-center text-muted-foreground">
+                  <Mail className="w-3 h-3 inline mr-1" />
+                  Confirmation email will be sent after payment
+                </p>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Pricing Overview */}
           <div className="grid md:grid-cols-3 gap-6">
@@ -237,13 +618,10 @@ export const BookK9Trainer = ({ user }) => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center p-3 bg-white rounded-xl">
-                  <span>30 Minutes</span>
-                  <span className="font-bold text-blue-600">£44.99</span>
+                  <span>Per Hour</span>
+                  <span className="font-bold text-blue-600">£81.00</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-white rounded-xl">
-                  <span>1 Hour</span>
-                  <span className="font-bold text-blue-600">£67.50</span>
-                </div>
+                <p className="text-xs text-muted-foreground">Prices include all fees</p>
               </CardContent>
             </Card>
             
@@ -256,22 +634,14 @@ export const BookK9Trainer = ({ user }) => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center p-3 bg-white rounded-xl">
-                  <span>1 Hour (min)</span>
-                  <span className="font-bold text-amber-600">From £150</span>
+                  <span>Per Hour</span>
+                  <span className="font-bold text-amber-600">£180.00</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-white rounded-xl">
-                  <span>2 Hours</span>
-                  <span className="font-bold text-amber-600">£480.00</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-white rounded-xl">
-                  <span>3 Hours Intensive</span>
-                  <span className="font-bold text-amber-600">£630.00</span>
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  + £25 call-out fee + £0.85/mile travel
+                <p className="text-sm text-muted-foreground">
+                  + £30 call-out fee + £1.02/mile travel
                 </p>
                 <p className="text-sm text-amber-700 font-medium">
-                  + £8.99 K9 risk & equipment fee for dangerous dogs
+                  + £10.79 K9 risk fee (dangerous dogs)
                 </p>
               </CardContent>
             </Card>
@@ -288,76 +658,14 @@ export const BookK9Trainer = ({ user }) => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="p-4 bg-white rounded-xl">
-                  <p className="text-3xl font-bold text-red-600">£1,349.99</p>
+                  <p className="text-3xl font-bold text-red-600">£1,619.99</p>
                   <p className="text-sm text-muted-foreground">24-48hr by your side</p>
                 </div>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    24-48hr on-site assistance
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    Dangerous pet containment
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    Risk assessment & advice
-                  </li>
-                </ul>
               </CardContent>
             </Card>
           </div>
 
-          {/* Rehabilitation Programs */}
-          <Card className="rounded-2xl bg-gradient-to-r from-purple-900 to-indigo-900 text-white border-0">
-            <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="p-4 bg-white/10 rounded-xl">
-                  <Heart className="w-10 h-10 text-purple-300" />
-                </div>
-                <div className="flex-1 text-center md:text-left">
-                  <h3 className="font-semibold text-xl mb-2">Rehabilitation Programs</h3>
-                  <p className="text-purple-200">
-                    Intensive rehabilitation for challenging behaviours. Programs available from 1 week to 12 weeks.
-                    Contact us for a personalised assessment and pricing.
-                  </p>
-                </div>
-                <Button 
-                  variant="outline" 
-                  className="border-white/30 text-white hover:bg-white/10 rounded-full"
-                  onClick={() => window.location.href = '/dashboard'}
-                >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Speak to 24/7 Support
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 24/7 Support Bot Recommendation */}
-          <Card className="rounded-2xl bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-            <CardContent className="p-6 flex flex-col sm:flex-row items-center gap-4">
-              <div className="p-3 bg-green-500 rounded-full">
-                <MessageSquare className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1 text-center sm:text-left">
-                <h3 className="font-semibold text-green-800">Have Questions?</h3>
-                <p className="text-green-700 text-sm">
-                  Speak with our 24/7 AI support bot for FAQs, pricing enquiries, and booking assistance.
-                </p>
-              </div>
-              <Button 
-                onClick={() => window.location.href = '/dashboard'}
-                className="rounded-full bg-green-600 hover:bg-green-700"
-              >
-                Chat Now
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Our K9 Team - Available Now */}
+          {/* Our K9 Team */}
           <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-heading font-semibold text-xl flex items-center gap-2">
@@ -367,263 +675,90 @@ export const BookK9Trainer = ({ user }) => {
               <Badge className="bg-green-500 text-white">Available Now</Badge>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {ourTeam.map((trainer, index) => (
-                <Card 
-                  key={trainer.trainer_id}
-                  className="rounded-2xl overflow-hidden shadow-card card-hover animate-fade-in ring-2 ring-green-200"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                  data-testid={`trainer-card-${trainer.trainer_id}`}
-                >
-                  <div className="h-48 relative">
-                    <img 
-                      src={trainer.image_url}
-                      alt={trainer.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                    <Badge className="absolute top-4 right-4 bg-green-500 text-white">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Our Team
-                    </Badge>
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <h3 className="font-semibold text-white text-lg">{trainer.name}</h3>
-                      <p className="text-white/80 text-sm">{trainer.title}</p>
-                    </div>
-                  </div>
-                  
-                  <CardContent className="p-5 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                        <span className="font-semibold">{trainer.rating}</span>
-                        <span className="text-muted-foreground text-sm">({trainer.reviews} reviews)</span>
-                      </div>
-                      <Badge variant="outline" className="rounded-full">
-                        <MapPin className="w-3 h-3 mr-1" />
-                        {trainer.location}
-                      </Badge>
-                    </div>
-                    
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {trainer.bio}
-                    </p>
-                    
-                    <div className="flex flex-wrap gap-1">
-                      {trainer.specializations.slice(0, 3).map((spec, i) => (
-                        <Badge key={i} variant="outline" className="rounded-full text-xs">
-                          {spec}
+              {ourTeam.map((trainer, index) => {
+                const isSelected = selectedTrainers.find(t => t.trainer_id === trainer.trainer_id);
+                return (
+                  <Card 
+                    key={trainer.trainer_id}
+                    className={`rounded-2xl overflow-hidden shadow-card card-hover animate-fade-in ${isSelected ? 'ring-2 ring-indigo-500' : 'ring-2 ring-green-200'}`}
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                    data-testid={`trainer-card-${trainer.trainer_id}`}
+                  >
+                    <div className="h-48 relative">
+                      <img 
+                        src={trainer.image_url}
+                        alt={trainer.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                      {isSelected ? (
+                        <Badge className="absolute top-4 right-4 bg-indigo-500 text-white">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Selected
                         </Badge>
-                      ))}
+                      ) : (
+                        <Badge className="absolute top-4 right-4 bg-green-500 text-white">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Our Team
+                        </Badge>
+                      )}
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <h3 className="font-semibold text-white text-lg">{trainer.name}</h3>
+                        <p className="text-white/80 text-sm">{trainer.title}</p>
+                      </div>
                     </div>
                     
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Award className="w-4 h-4" />
-                      {trainer.experience_years} years experience
-                    </div>
-                    
-                    <Dialog open={showBookingDialog && selectedTrainer?.trainer_id === trainer.trainer_id} onOpenChange={(open) => {
-                      setShowBookingDialog(open);
-                      if (open) setSelectedTrainer(trainer);
-                    }}>
-                      <DialogTrigger asChild>
-                        <Button 
-                          className="w-full rounded-full bg-green-600 hover:bg-green-700"
-                          onClick={() => setSelectedTrainer(trainer)}
-                          data-testid={`book-trainer-${trainer.trainer_id}`}
-                        >
-                          <CreditCard className="w-4 h-4 mr-2" />
-                          Book Now
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                          <DialogTitle>Book {trainer.name}</DialogTitle>
-                          <DialogDescription>
-                            {trainer.title} - {trainer.location}
-                          </DialogDescription>
-                        </DialogHeader>
-                        
-                        <div className="space-y-6 py-4">
-                          {/* Session Type */}
-                          <div className="space-y-2">
-                            <Label>Session Type</Label>
-                            <Tabs value={sessionType} onValueChange={(val) => {
-                              setSessionType(val);
-                              if (val === 'emergency') setDuration('emergency');
-                              else setDuration('60min');
-                            }}>
-                              <TabsList className="w-full grid grid-cols-3">
-                                <TabsTrigger value="virtual" className="text-xs sm:text-sm">
-                                  <Video className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                                  Virtual
-                                </TabsTrigger>
-                                <TabsTrigger value="in_person" className="text-xs sm:text-sm">
-                                  <Car className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                                  Home Visit
-                                </TabsTrigger>
-                                <TabsTrigger value="emergency" className="text-xs sm:text-sm text-red-600 data-[state=active]:text-red-600">
-                                  <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                                  24/7
-                                </TabsTrigger>
-                              </TabsList>
-                            </Tabs>
-                          </div>
-                          
-                          {/* Duration */}
-                          <div className="space-y-2">
-                            <Label>Duration</Label>
-                            <Select value={duration} onValueChange={setDuration}>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {sessionType === "virtual" ? (
-                                  <>
-                                    <SelectItem value="30min">30 Minutes - £44.99</SelectItem>
-                                    <SelectItem value="60min">1 Hour - £67.50</SelectItem>
-                                  </>
-                                ) : sessionType === "emergency" ? (
-                                  <SelectItem value="emergency">24/7 Emergency (24-48hr) - £1,349.99</SelectItem>
-                                ) : (
-                                  <>
-                                    <SelectItem value="60min">1 Hour - From £150</SelectItem>
-                                    <SelectItem value="120min">2 Hours - £480.00</SelectItem>
-                                    <SelectItem value="180min">3 Hours Intensive - £630.00</SelectItem>
-                                  </>
-                                )}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          {/* Postcodes for in-person */}
-                          {sessionType === "in_person" && (
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label>Trainer's Postcode</Label>
-                                <Input 
-                                  placeholder="e.g., SW1A 1AA"
-                                  value={fromPostcode}
-                                  onChange={(e) => setFromPostcode(e.target.value)}
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Your Postcode</Label>
-                                <Input 
-                                  placeholder="e.g., EC1A 1BB"
-                                  value={toPostcode}
-                                  onChange={(e) => setToPostcode(e.target.value)}
-                                />
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Date and Time */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label>Date</Label>
-                              <Input 
-                                type="date"
-                                value={selectedDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                                min={new Date().toISOString().split('T')[0]}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Time</Label>
-                              <Select value={selectedTime} onValueChange={setSelectedTime}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select time" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {["09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00"].map((time) => (
-                                    <SelectItem key={time} value={time}>{time}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          
-                          {/* Notes */}
-                          <div className="space-y-2">
-                            <Label>Notes (Optional)</Label>
-                            <Textarea 
-                              placeholder="Describe your training goals or any behavioural issues..."
-                              value={notes}
-                              onChange={(e) => setNotes(e.target.value)}
-                              rows={3}
-                            />
-                          </div>
-                          
-                          {/* Cost Breakdown */}
-                          {costBreakdown && (
-                            <Card className="bg-slate-50 rounded-xl border-0">
-                              <CardContent className="p-4 space-y-2">
-                                <div className="flex justify-between text-sm">
-                                  <span>Session Cost</span>
-                                  <span>£{costBreakdown.session_cost.toFixed(2)}</span>
-                                </div>
-                                {costBreakdown.call_out_fee > 0 && (
-                                  <div className="flex justify-between text-sm">
-                                    <span>Call-out Fee</span>
-                                    <span>£{costBreakdown.call_out_fee.toFixed(2)}</span>
-                                  </div>
-                                )}
-                                {costBreakdown.travel_cost > 0 && (
-                                  <div className="flex justify-between text-sm">
-                                    <span>Travel ({costBreakdown.estimated_miles} miles)</span>
-                                    <span>£{costBreakdown.travel_cost.toFixed(2)}</span>
-                                  </div>
-                                )}
-                                {costBreakdown.k9_risk_fee > 0 && (
-                                  <div className="flex justify-between text-sm text-amber-700">
-                                    <span>K9 Risk & Equipment Fee</span>
-                                    <span>£{costBreakdown.k9_risk_fee.toFixed(2)}</span>
-                                  </div>
-                                )}
-                                <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                                  <span>Total</span>
-                                  <span className="text-primary">£{costBreakdown.total.toFixed(2)}</span>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          )}
-                          
-                          {/* Important Notice */}
-                          <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
-                            <div className="flex items-start gap-2">
-                              <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                              <div className="text-sm text-amber-700">
-                                <p className="font-semibold">Important:</p>
-                                <p>£25 admin fee applies for rescheduling. All fees are non-refundable.</p>
-                              </div>
-                            </div>
-                          </div>
+                    <CardContent className="p-5 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                          <span className="font-semibold">{trainer.rating}</span>
+                          <span className="text-muted-foreground text-sm">({trainer.reviews} reviews)</span>
                         </div>
-                        
-                        <DialogFooter>
-                          <Button 
-                            onClick={handleBooking}
-                            disabled={booking || !selectedDate || !selectedTime}
-                            className="w-full rounded-full"
-                            data-testid="confirm-booking-btn"
-                          >
-                            {booking ? "Processing..." : (
-                              <>
-                                <CreditCard className="w-4 h-4 mr-2" />
-                                Pay & Book - £{costBreakdown?.total.toFixed(2) || '...'}
-                              </>
-                            )}
-                          </Button>
-                          <p className="text-xs text-center text-muted-foreground mt-2">
-                            <Mail className="w-3 h-3 inline mr-1" />
-                            Confirmation email will be sent after payment
-                          </p>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </CardContent>
-                </Card>
-              ))}
+                        <Badge variant="outline" className="rounded-full">
+                          <MapPin className="w-3 h-3 mr-1" />
+                          {trainer.location}
+                        </Badge>
+                      </div>
+                      
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {trainer.bio}
+                      </p>
+                      
+                      <div className="flex flex-wrap gap-1">
+                        {trainer.specializations.slice(0, 3).map((spec, i) => (
+                          <Badge key={i} variant="outline" className="rounded-full text-xs">
+                            {spec}
+                          </Badge>
+                        ))}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Award className="w-4 h-4" />
+                        {trainer.experience_years} years experience
+                      </div>
+                      
+                      <Button 
+                        className={`w-full rounded-full ${isSelected ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-green-600 hover:bg-green-700'}`}
+                        onClick={() => isSelected ? removeTrainer(trainer.trainer_id) : addTrainer(trainer)}
+                        data-testid={`select-trainer-${trainer.trainer_id}`}
+                      >
+                        {isSelected ? (
+                          <>
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Selected - Click to Remove
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add to Booking
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
 
@@ -709,48 +844,44 @@ export const BookK9Trainer = ({ user }) => {
 
           {/* Equipment & Issues Section */}
           {pricingInfo && (
-            <>
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Equipment Used */}
-                <Card className="rounded-2xl">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Wrench className="w-5 h-5 text-primary" />
-                      Training Equipment
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {pricingInfo.equipment.map((item, index) => (
-                      <div key={index} className="p-3 bg-slate-50 rounded-xl">
-                        <p className="font-semibold text-sm">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">{item.description}</p>
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card className="rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Wrench className="w-5 h-5 text-primary" />
+                    Training Equipment
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {pricingInfo.equipment.map((item, index) => (
+                    <div key={index} className="p-3 bg-slate-50 rounded-xl">
+                      <p className="font-semibold text-sm">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+              
+              <Card className="rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Heart className="w-5 h-5 text-primary" />
+                    Issues We Address
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {pricingInfo.behavioural_issues.slice(0, 5).map((issue, index) => (
+                    <div key={index} className="p-3 bg-slate-50 rounded-xl">
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="font-semibold text-sm">{issue.issue}</p>
+                        <Badge variant="outline" className="text-xs">{issue.typical_sessions}</Badge>
                       </div>
-                    ))}
-                  </CardContent>
-                </Card>
-                
-                {/* Behavioural Issues */}
-                <Card className="rounded-2xl">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Heart className="w-5 h-5 text-primary" />
-                      Issues We Address
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {pricingInfo.behavioural_issues.slice(0, 5).map((issue, index) => (
-                      <div key={index} className="p-3 bg-slate-50 rounded-xl">
-                        <div className="flex justify-between items-center mb-1">
-                          <p className="font-semibold text-sm">{issue.issue}</p>
-                          <Badge variant="outline" className="text-xs">{issue.typical_sessions}</Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{issue.description}</p>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </div>
-            </>
+                      <p className="text-xs text-muted-foreground">{issue.description}</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* Terms Notice */}
@@ -767,15 +898,19 @@ export const BookK9Trainer = ({ user }) => {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
-                  Rescheduling incurs a £25 admin fee - please ensure your calendar fits the trainer's schedule
+                  <strong>50% non-refundable deposit</strong> required to secure booking
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
-                  All fees are non-refundable once booking is confirmed
+                  Please book <strong>7-10 days in advance</strong> to ensure availability
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
-                  Travel costs vary based on distance and may include hotel stays for remote locations
+                  <strong>Full payment</strong> must be made before our team is deployed
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                  Rescheduling incurs a £30 admin fee
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
