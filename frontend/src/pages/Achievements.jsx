@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   Trophy,
@@ -18,8 +19,12 @@ import {
   Heart,
   Users,
   Sparkles,
-  CheckCircle
+  CheckCircle,
+  Eye,
+  ExternalLink,
+  Copy
 } from "lucide-react";
+import { generateAchievementCertificate, downloadCertificate, shareCertificate } from "@/utils/certificateGenerator";
 
 const BADGE_STYLES = {
   bronze: "from-amber-600 to-amber-800",
