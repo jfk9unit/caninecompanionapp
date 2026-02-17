@@ -578,6 +578,18 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - SocialPromoCard on dashboard sidebar
 - ShareDialog component for detailed sharing
 
+### 34. Audio Training Guides (NEW - Feb 17, 2026)
+- Replaced video tutorials with text-to-speech audio guides
+- Step-by-step text instructions with numbered steps
+- "Listen to Guide" button uses browser's Speech Synthesis API (FREE)
+- Pro tips and warning sections
+- Current step highlighting during playback
+- Guides for basic commands: sit, stay, come, down, heel
+
+### 35. Virtual Pet Simplification (Feb 17, 2026)
+- Removed "Sounds" tab from Virtual Pet
+- Simplified to 4 tabs: Care, Play, Exercise, Train
+
 ## Tech Stack
 - Frontend: React 19.0.0, Tailwind CSS, shadcn/ui, lucide-react
 - Backend: FastAPI 0.110.1, Motor 3.3.1 (async MongoDB)
@@ -586,4 +598,4 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - AI: GPT-4o-mini via emergentintegrations (24/7 chat support)
 - Payments: Stripe, PayPal via emergentintegrations
 - Email: Resend for password reset emails
-- Audio: Web Audio API with audioManager.js
+- Audio: Browser Speech Synthesis API for training guides (FREE)
