@@ -154,6 +154,47 @@ ADMIN_EMAILS = [
     "developer@caninecompass.app"
 ]
 
+# VIP Players - Special rewards: 20 tokens daily + initial 1200 tokens bonus
+VIP_PLAYERS = [
+    "jfk9unit@gmail.com",
+    "rociolopez111@hotmail.com",
+    "damoncrook94@gmail.com"
+]
+
+# Daily Motivational Memos
+DAILY_MEMOS = [
+    {"title": "Pawsitive Energy!", "message": "Every day with your pup is a gift. Make today count with some quality training time! 🐕"},
+    {"title": "Training Tip", "message": "Consistency is key! Just 10 minutes of daily training can make a huge difference in your dog's behavior."},
+    {"title": "Celebrate Small Wins", "message": "Did your dog sit on command today? That's worth celebrating! Progress happens one paw at a time. 🎉"},
+    {"title": "Bond Building", "message": "Training isn't just about commands - it's about building an unbreakable bond with your furry friend. ❤️"},
+    {"title": "Stay Patient", "message": "Remember, your dog wants to please you! Stay patient and positive, and the results will follow."},
+    {"title": "Adventure Awaits", "message": "Take your training outdoors today! New environments help reinforce learned behaviors. 🌳"},
+    {"title": "You're Doing Great!", "message": "Being a responsible dog owner takes dedication. We're proud of the effort you're putting in! ⭐"},
+    {"title": "Health Reminder", "message": "A healthy dog is a happy dog! Don't forget regular check-ups and plenty of fresh water. 💧"},
+    {"title": "Play Time!", "message": "All work and no play makes training dull. Mix in some fun activities with your training today! 🎾"},
+    {"title": "Community Love", "message": "You're part of an amazing community of dog lovers. Share your progress and inspire others! 🐾"},
+    {"title": "New Skills Unlock", "message": "Ready to try something new? Check out our advanced training programs for exciting challenges! 🏆"},
+    {"title": "Treat Time!", "message": "Positive reinforcement works wonders. High-value treats make training sessions more exciting! 🦴"},
+    {"title": "Rest & Recover", "message": "Dogs need downtime too! Balance training with plenty of rest for optimal learning. 😴"},
+    {"title": "Weather Wisdom", "message": "Adapt your training to the weather - indoor games work great on rainy days! ☔"},
+    {"title": "Milestone Moment", "message": "Look how far you've come! Take a moment to appreciate your training journey. 🌟"},
+    {"title": "Safety First", "message": "A well-trained dog is a safe dog. Keep practicing those recall commands! 🦮"},
+    {"title": "Puppy Love", "message": "Your dog's tail wag is the best reward. Keep spreading joy and positive vibes! 💝"},
+    {"title": "Expert Tip", "message": "End training sessions on a positive note - always finish with a command your dog knows well!"},
+    {"title": "Weekend Warrior", "message": "Weekends are perfect for longer training sessions. Plan something special for you and your pup! 🎊"},
+    {"title": "Gratitude Moment", "message": "Thank you for being an awesome dog parent! Your dedication makes the world better for dogs everywhere. 🙏"},
+    {"title": "Challenge Accepted", "message": "Push your boundaries today! Try teaching your dog one new trick. You might surprise yourself! 💪"},
+    {"title": "Social Skills", "message": "Socialization is training too! Introduce your dog to new friends (safely) to build confidence."},
+    {"title": "Morning Motivation", "message": "Rise and shine, champion trainer! Today is full of possibilities for you and your pup! ☀️"},
+    {"title": "Evening Reflection", "message": "What did you and your dog accomplish today? Every bit of progress counts! 🌙"},
+    {"title": "K9 Excellence", "message": "You're on the path to K9 handler excellence! Keep pushing towards those certifications! 🎖️"},
+    {"title": "Loyalty Rewarded", "message": "Your commitment to training shows true love. Dogs sense that dedication! 💖"},
+    {"title": "Fun Fact", "message": "Dogs can learn over 1,000 words! Keep expanding your pup's vocabulary with new commands. 📚"},
+    {"title": "Team Spirit", "message": "You and your dog are a team. Together, there's nothing you can't achieve! 🤝"},
+    {"title": "Pawfection", "message": "There's no such thing as a perfect dog or owner - but you're both perfectly matched! 🐶"},
+    {"title": "Keep Going!", "message": "Every expert was once a beginner. Your dedication today builds tomorrow's success! 🚀"}
+]
+
 # ==================== AUTH HELPERS ====================
 
 async def get_current_user(request: Request) -> User:
