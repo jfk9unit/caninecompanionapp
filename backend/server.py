@@ -812,7 +812,232 @@ WEEKLY_CHALLENGES = [
     {"id": "health_hero", "title": "Health Hero", "description": "Log 2 health records this week", "target": 2, "reward_tokens": 3, "type": "health"},
     {"id": "pet_lover", "title": "Pet Lover", "description": "Play with your virtual pet 10 times", "target": 10, "reward_tokens": 5, "type": "pet"},
     {"id": "social_star", "title": "Social Star", "description": "Share 2 achievements with friends", "target": 2, "reward_tokens": 4, "type": "social"},
+    {"id": "k9_trainee", "title": "K9 Trainee", "description": "Complete 1 K9 security lesson", "target": 1, "reward_tokens": 10, "type": "k9"},
 ]
+
+# Seasonal Tournaments - Monthly competitions with special themes
+SEASONAL_TOURNAMENTS = {
+    "spring_training": {
+        "id": "spring_training",
+        "name": "Spring Training Championship",
+        "description": "Complete the most training lessons this month to win exclusive rewards!",
+        "theme": "training",
+        "months": [3, 4, 5],  # March, April, May
+        "prizes": {
+            "1st": {"tokens": 100, "badge": "Spring Champion", "badge_type": "gold"},
+            "2nd": {"tokens": 50, "badge": "Spring Runner-Up", "badge_type": "silver"},
+            "3rd": {"tokens": 25, "badge": "Spring Bronze", "badge_type": "bronze"},
+            "top_10": {"tokens": 10, "badge": "Spring Contender", "badge_type": "bronze"}
+        },
+        "scoring": "training_completed"
+    },
+    "summer_games": {
+        "id": "summer_games",
+        "name": "Summer Games Tournament",
+        "description": "Show off your pet's skills and earn the most XP to win!",
+        "theme": "pet",
+        "months": [6, 7, 8],  # June, July, August
+        "prizes": {
+            "1st": {"tokens": 100, "badge": "Summer Champion", "badge_type": "gold"},
+            "2nd": {"tokens": 50, "badge": "Summer Runner-Up", "badge_type": "silver"},
+            "3rd": {"tokens": 25, "badge": "Summer Bronze", "badge_type": "bronze"},
+            "top_10": {"tokens": 10, "badge": "Summer Contender", "badge_type": "bronze"}
+        },
+        "scoring": "pet_xp"
+    },
+    "autumn_achiever": {
+        "id": "autumn_achiever",
+        "name": "Autumn Achiever Challenge",
+        "description": "Earn the most achievements this season to prove you're the ultimate dog parent!",
+        "theme": "achievements",
+        "months": [9, 10, 11],  # September, October, November
+        "prizes": {
+            "1st": {"tokens": 100, "badge": "Autumn Champion", "badge_type": "gold"},
+            "2nd": {"tokens": 50, "badge": "Autumn Runner-Up", "badge_type": "silver"},
+            "3rd": {"tokens": 25, "badge": "Autumn Bronze", "badge_type": "bronze"},
+            "top_10": {"tokens": 10, "badge": "Autumn Contender", "badge_type": "bronze"}
+        },
+        "scoring": "achievements"
+    },
+    "winter_guardian": {
+        "id": "winter_guardian",
+        "name": "Winter Guardian Championship",
+        "description": "Master K9 security training and become the ultimate protector!",
+        "theme": "k9_protection",
+        "months": [12, 1, 2],  # December, January, February
+        "prizes": {
+            "1st": {"tokens": 150, "badge": "Winter Guardian Champion", "badge_type": "gold"},
+            "2nd": {"tokens": 75, "badge": "Winter Guardian Elite", "badge_type": "silver"},
+            "3rd": {"tokens": 35, "badge": "Winter Guardian Pro", "badge_type": "bronze"},
+            "top_10": {"tokens": 15, "badge": "Winter Guardian Trainee", "badge_type": "bronze"}
+        },
+        "scoring": "k9_training"
+    }
+}
+
+def get_current_tournament():
+    """Get the currently active seasonal tournament"""
+    current_month = datetime.now(timezone.utc).month
+    for tournament_id, tournament in SEASONAL_TOURNAMENTS.items():
+        if current_month in tournament["months"]:
+            return tournament
+    return None
+
+@api_router.get("/tournaments/current")
+async def get_current_tournament_info():
+    """Get current active tournament with leaderboard"""
+    tournament = get_current_tournament()
+    if not tournament:
+        return {"active": False, "message": "No active tournament"}
+    
+    now = datetime.now(timezone.utc)
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    
+    # Get participants and scores based on tournament type
+    participants = []
+    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "name": 1, "picture": 1}).to_list(100)
+    
+    for user in all_users:
+        score = 0
+        if tournament["scoring"] == "training_completed":
+            score = await db.training_enrollments.count_documents({
+                "user_id": user["user_id"],
+                "status": "completed"
+            })
+        elif tournament["scoring"] == "pet_xp":
+            pet = await db.virtual_pets.find_one({"user_id": user["user_id"]}, {"_id": 0})
+            score = pet.get("experience_points", 0) if pet else 0
+        elif tournament["scoring"] == "achievements":
+            score = await db.achievements.count_documents({"user_id": user["user_id"]})
+        elif tournament["scoring"] == "k9_training":
+            enrollments = await db.training_enrollments.find({
+                "user_id": user["user_id"],
+                "status": "completed"
+            }, {"_id": 0}).to_list(100)
+            k9_lessons = [e for e in enrollments if e.get("lesson_id", "").startswith("k9_")]
+            score = len(k9_lessons)
+        
+        if score > 0:
+            participants.append({
+                "user_id": user["user_id"],
+                "name": user.get("name", "Anonymous"),
+                "picture": user.get("picture"),
+                "score": score
+            })
+    
+    participants.sort(key=lambda x: x["score"], reverse=True)
+    
+    # Add ranks
+    for i, p in enumerate(participants):
+        p["rank"] = i + 1
+    
+    # Calculate days remaining
+    if now.month == 12:
+        next_month = now.replace(year=now.year + 1, month=1, day=1)
+    else:
+        next_month = now.replace(month=now.month + 1, day=1)
+    days_remaining = (next_month - now).days
+    
+    return {
+        "active": True,
+        "tournament": {
+            "id": tournament["id"],
+            "name": tournament["name"],
+            "description": tournament["description"],
+            "theme": tournament["theme"],
+            "prizes": tournament["prizes"],
+            "scoring": tournament["scoring"]
+        },
+        "leaderboard": participants[:20],
+        "total_participants": len(participants),
+        "days_remaining": days_remaining,
+        "month_start": month_start.isoformat()
+    }
+
+@api_router.get("/tournaments/my-position")
+async def get_my_tournament_position(user: User = Depends(get_current_user)):
+    """Get current user's position in active tournament"""
+    tournament = get_current_tournament()
+    if not tournament:
+        return {"active": False}
+    
+    # Calculate user's score
+    score = 0
+    if tournament["scoring"] == "training_completed":
+        score = await db.training_enrollments.count_documents({
+            "user_id": user.user_id,
+            "status": "completed"
+        })
+    elif tournament["scoring"] == "pet_xp":
+        pet = await db.virtual_pets.find_one({"user_id": user.user_id}, {"_id": 0})
+        score = pet.get("experience_points", 0) if pet else 0
+    elif tournament["scoring"] == "achievements":
+        score = await db.achievements.count_documents({"user_id": user.user_id})
+    elif tournament["scoring"] == "k9_training":
+        enrollments = await db.training_enrollments.find({
+            "user_id": user.user_id,
+            "status": "completed"
+        }, {"_id": 0}).to_list(100)
+        k9_lessons = [e for e in enrollments if e.get("lesson_id", "").startswith("k9_")]
+        score = len(k9_lessons)
+    
+    # Count users with higher scores
+    all_users = await db.users.find({}, {"_id": 0, "user_id": 1}).to_list(1000)
+    higher_count = 0
+    
+    for u in all_users:
+        if u["user_id"] == user.user_id:
+            continue
+        u_score = 0
+        if tournament["scoring"] == "training_completed":
+            u_score = await db.training_enrollments.count_documents({
+                "user_id": u["user_id"],
+                "status": "completed"
+            })
+        elif tournament["scoring"] == "pet_xp":
+            pet = await db.virtual_pets.find_one({"user_id": u["user_id"]}, {"_id": 0})
+            u_score = pet.get("experience_points", 0) if pet else 0
+        elif tournament["scoring"] == "achievements":
+            u_score = await db.achievements.count_documents({"user_id": u["user_id"]})
+        elif tournament["scoring"] == "k9_training":
+            enrollments = await db.training_enrollments.find({
+                "user_id": u["user_id"],
+                "status": "completed"
+            }, {"_id": 0}).to_list(100)
+            k9_lessons = [e for e in enrollments if e.get("lesson_id", "").startswith("k9_")]
+            u_score = len(k9_lessons)
+        
+        if u_score > score:
+            higher_count += 1
+    
+    rank = higher_count + 1
+    prize_tier = None
+    if rank == 1:
+        prize_tier = "1st"
+    elif rank == 2:
+        prize_tier = "2nd"
+    elif rank == 3:
+        prize_tier = "3rd"
+    elif rank <= 10:
+        prize_tier = "top_10"
+    
+    return {
+        "active": True,
+        "rank": rank,
+        "score": score,
+        "prize_tier": prize_tier,
+        "potential_prize": tournament["prizes"].get(prize_tier) if prize_tier else None,
+        "tournament_name": tournament["name"]
+    }
+
+@api_router.get("/tournaments/history")
+async def get_tournament_history(user: User = Depends(get_current_user)):
+    """Get user's tournament participation history"""
+    history = await db.tournament_results.find(
+        {"user_id": user.user_id},
+        {"_id": 0}
+    ).sort("ended_at", -1).to_list(20)
+    return {"history": history}
 
 @api_router.get("/leaderboard")
 async def get_leaderboard(category: str = "overall", limit: int = 20):
