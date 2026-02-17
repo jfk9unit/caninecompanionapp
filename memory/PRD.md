@@ -232,6 +232,17 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - GET /api/daily-reward/status - Get streak and reward status
 - POST /api/daily-reward/claim - Claim daily reward
 
+### Admin Promo Codes
+- GET /api/admin/check - Check if user is admin
+- POST /api/admin/promo-codes - Create promo code (admin only)
+- GET /api/admin/promo-codes - List all promo codes (admin only)
+- PUT /api/admin/promo-codes/{code} - Update promo code (admin only)
+- DELETE /api/admin/promo-codes/{code} - Delete promo code (admin only)
+- GET /api/promo-codes/validate/{code} - Validate a promo code
+- POST /api/promo-codes/redeem - Redeem a promo code
+- GET /api/promo-codes/my-discount - Get user's active discount
+- GET /api/promo-codes/my-history - Get redemption history
+
 ### Tokens & Payments
 - GET /api/tokens/packages - Get available packages
 - GET /api/tokens/balance - Get user token balance
