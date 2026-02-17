@@ -41,6 +41,7 @@ const navItems = [
   { href: "/k9-training", label: "K9 Security", icon: Shield },
   { href: "/elite-courses", label: "Elite", icon: BookOpen },
   { href: "/book-trainer", label: "Trainers", icon: Award },
+  { href: "/equipment", label: "Equipment", icon: ShoppingBag },
   { href: "/pet", label: "Pet", icon: Sparkles },
   { href: "/leaderboard", label: "Compete", icon: Flame },
   { href: "/tokens", label: "Shop", icon: Coins },
