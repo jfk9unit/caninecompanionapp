@@ -3027,14 +3027,21 @@ async def calculate_booking_cost(request: Request):
     to_postcode = body.get("to_postcode")
     
     # Base session cost
-    if session_type == "virtual":
-        base_cost = TRAINER_PRICING["virtual"].get(duration, {}).get("price", 45.00)
+    if session_type == "emergency":
+        base_cost = 1349.99
+    elif session_type == "virtual":
+        base_cost = TRAINER_PRICING["virtual"].get(duration, {}).get("price", 67.50)
     else:
-        base_cost = TRAINER_PRICING["in_person"].get(duration, {}).get("price", 179.99)
+        base_cost = TRAINER_PRICING["in_person"].get(duration, {}).get("price", 150.00)
     
     travel_cost = 0
     call_out_fee = 0
     estimated_miles = 0
+    k9_risk_fee = 0.0
+    
+    # Add K9 risk & equipment fee for in-person sessions
+    if session_type == "in_person":
+        k9_risk_fee = TRAINER_PRICING.get("k9_risk_equipment_fee", 8.99)
     
     # Calculate travel for in-person
     if session_type == "in_person" and from_postcode and to_postcode:
@@ -3047,13 +3054,14 @@ async def calculate_booking_cost(request: Request):
         estimated_miles = random.randint(10, 40)
         travel_cost = estimated_miles * TRAINER_PRICING["travel"]["per_mile"]
     
-    total = base_cost + call_out_fee + travel_cost
+    total = base_cost + call_out_fee + travel_cost + k9_risk_fee
     
     return {
         "session_cost": base_cost,
         "call_out_fee": call_out_fee,
         "travel_cost": round(travel_cost, 2),
         "estimated_miles": estimated_miles,
+        "k9_risk_fee": k9_risk_fee,
         "total": round(total, 2),
         "admin_fee_note": f"Rescheduling incurs £{TRAINER_PRICING['admin_fee']} admin fee"
     }
