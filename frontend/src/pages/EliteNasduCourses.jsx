@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Shield,
   Award,
@@ -23,7 +23,8 @@ import {
   PoundSterling,
   Users,
   AlertTriangle,
-  BookOpen
+  BookOpen,
+  CreditCard
 } from "lucide-react";
 
 export const EliteNasduCourses = ({ user }) => {
