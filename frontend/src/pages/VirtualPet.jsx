@@ -827,6 +827,42 @@ export const VirtualPet = ({ user }) => {
     toast.success(`${pet.name} is enjoying calm music... 🎵`);
   };
 
+  // New sound actions
+  const doHowl = () => {
+    if (soundEnabled) {
+      soundManager.howl();
+    }
+    toast.success(`${pet.name} lets out a beautiful howl! 🐺🎶`);
+  };
+
+  const doWolfHowl = () => {
+    if (soundEnabled) {
+      soundManager.wolfHowl();
+    }
+    toast.success(`${pet.name} howls like a wild wolf! 🐺🌙`);
+  };
+
+  const doGrowl = () => {
+    if (soundEnabled) {
+      soundManager.deepGrowl();
+    }
+    toast.success(`${pet.name} shows their fierce side! 😤`);
+  };
+
+  const doAlertBark = () => {
+    if (soundEnabled) {
+      soundManager.alertBark();
+    }
+    toast.success(`${pet.name} is on alert! 🚨`);
+  };
+
+  const doPlayfulYip = () => {
+    if (soundEnabled) {
+      soundManager.playfulYip();
+    }
+    toast.success(`${pet.name} is feeling playful! 🎉`);
+  };
+
   const trainSkill = async (skillId) => {
     setActionLoading(skillId);
     
