@@ -878,15 +878,15 @@ export const VirtualPet = ({ user }) => {
       
       // Success sound and bark
       if (soundEnabled) {
-        soundManager.reward();
-        setTimeout(() => soundManager.bark('happy'), 300);
+        audioManager.success();
+        setTimeout(() => audioManager.barkHappy(), 300);
       }
       
       toast.success(`${pet.name} learned a new skill! 🎓`);
       fetchPet();
       fetchTokens();
     } catch (error) {
-      if (soundEnabled) soundManager.whimper();
+      if (soundEnabled) audioManager.whimper();
       if (error.response?.data?.detail?.includes('tokens')) {
         toast.error('Not enough tokens! Visit the Token Shop.');
       } else {
@@ -898,7 +898,8 @@ export const VirtualPet = ({ user }) => {
   };
 
   const toggleSound = () => {
-    const newState = soundManager.toggle();
+    const newState = !soundEnabled;
+    audioManager.setEnabled(newState);
     setSoundEnabled(newState);
     toast.info(newState ? 'Sounds enabled 🔊' : 'Sounds muted 🔇');
   };
