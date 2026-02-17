@@ -393,25 +393,52 @@ export const Dashboard = ({ user }) => {
                           placeholder="e.g., Golden Retriever"
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label>Age (months)</Label>
-                          <Input
-                            type="number"
-                            value={newDog.age_months}
-                            onChange={(e) => setNewDog({...newDog, age_months: e.target.value})}
-                            placeholder="12"
-                          />
+                      <div>
+                        <Label>Age</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <Input
+                              type="number"
+                              value={newDog.age_years}
+                              onChange={(e) => setNewDog({...newDog, age_years: e.target.value})}
+                              placeholder="0"
+                              min="0"
+                              max="25"
+                            />
+                            <span className="text-xs text-muted-foreground">Years</span>
+                          </div>
+                          <div>
+                            <Input
+                              type="number"
+                              value={newDog.age_months}
+                              onChange={(e) => setNewDog({...newDog, age_months: e.target.value})}
+                              placeholder="0"
+                              min="0"
+                              max="11"
+                            />
+                            <span className="text-xs text-muted-foreground">Months</span>
+                          </div>
+                          <div>
+                            <Input
+                              type="number"
+                              value={newDog.age_days}
+                              onChange={(e) => setNewDog({...newDog, age_days: e.target.value})}
+                              placeholder="0"
+                              min="0"
+                              max="30"
+                            />
+                            <span className="text-xs text-muted-foreground">Days</span>
+                          </div>
                         </div>
-                        <div>
-                          <Label>Weight (kg)</Label>
-                          <Input
-                            type="number"
-                            value={newDog.weight_kg}
-                            onChange={(e) => setNewDog({...newDog, weight_kg: e.target.value})}
-                            placeholder="10"
-                          />
-                        </div>
+                      </div>
+                      <div>
+                        <Label>Weight (kg)</Label>
+                        <Input
+                          type="number"
+                          value={newDog.weight_kg}
+                          onChange={(e) => setNewDog({...newDog, weight_kg: e.target.value})}
+                          placeholder="10"
+                        />
                       </div>
                       <div>
                         <Label>Size</Label>
