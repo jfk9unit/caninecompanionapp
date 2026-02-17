@@ -34,16 +34,17 @@ import {
   Trophy,
   Mic,
   Flame,
+  Shield,
 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/training", label: "Training", icon: GraduationCap },
+  { href: "/k9-training", label: "K9 Security", icon: Shield },
   { href: "/pet", label: "Pet", icon: Sparkles },
   { href: "/leaderboard", label: "Compete", icon: Flame },
   { href: "/achievements", label: "Awards", icon: Trophy },
   { href: "/health", label: "Health", icon: Heart },
-  { href: "/activities", label: "Activities", icon: Calendar },
   { href: "/tokens", label: "Shop", icon: Coins },
 ];
 
