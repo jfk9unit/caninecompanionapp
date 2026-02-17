@@ -217,97 +217,77 @@ export const TokenShop = ({ user }) => {
             </Card>
           </div>
 
-          {/* Payment Method Tabs */}
-          <Tabs value={paymentMethod} onValueChange={setPaymentMethod} className="w-full">
-            <TabsList className="bg-white rounded-full p-1 shadow-card w-full sm:w-auto">
-              <TabsTrigger value="stripe" className="rounded-full px-6 gap-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white">
-                <CreditCard className="w-4 h-4" />
-                Cards & Banks
-              </TabsTrigger>
-              <TabsTrigger value="paypal" className="rounded-full px-6 gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white">
-                <Wallet className="w-4 h-4" />
-                PayPal
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value={paymentMethod} className="mt-6">
-              {/* Token Packages */}
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {Object.entries(packages).map(([id, pkg], index) => {
-                  const Icon = TOKEN_ICONS[id] || Coins;
-                  const gradient = TOKEN_COLORS[id] || "from-gray-400 to-gray-500";
-                  const isPopular = id === 'value';
-                  const originalPrice = pkg.price;
-                  const finalPrice = getDiscountedPrice(pkg.price);
-                  
-                  return (
-                    <Card 
-                      key={id}
-                      className={`rounded-2xl shadow-card card-hover relative overflow-hidden animate-fade-in ${
-                        isPopular ? 'border-2 border-primary ring-2 ring-primary/20' : 'bg-white'
-                      }`}
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                      data-testid={`token-package-${id}`}
-                    >
-                      {isPopular && (
-                        <div className="absolute top-0 right-0 bg-primary text-white text-xs px-3 py-1 rounded-bl-xl font-medium">
-                          Best Value
-                        </div>
-                      )}
-                      {isFirstPurchase && (
-                        <div className="absolute top-0 left-0 bg-green-500 text-white text-xs px-2 py-1 rounded-br-xl font-medium">
-                          -10%
-                        </div>
-                      )}
-                      <CardContent className="p-6 space-y-4">
-                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center`}>
-                          <Icon className="w-7 h-7 text-white" />
-                        </div>
+          {/* Token Packages */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Object.entries(packages).map(([id, pkg], index) => {
+              const Icon = TOKEN_ICONS[id] || Coins;
+              const gradient = TOKEN_COLORS[id] || "from-gray-400 to-gray-500";
+              const isPopular = id === 'value';
+              const originalPrice = pkg.price;
+              const finalPrice = getDiscountedPrice(pkg.price);
+              
+              return (
+                <Card 
+                  key={id}
+                  className={`rounded-2xl shadow-card card-hover relative overflow-hidden animate-fade-in ${
+                    isPopular ? 'border-2 border-primary ring-2 ring-primary/20' : 'bg-white'
+                  }`}
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                  data-testid={`token-package-${id}`}
+                >
+                  {isPopular && (
+                    <div className="absolute top-0 right-0 bg-primary text-white text-xs px-3 py-1 rounded-bl-xl font-medium">
+                      Best Value
+                    </div>
+                  )}
+                  {isFirstPurchase && (
+                    <div className="absolute top-0 left-0 bg-green-500 text-white text-xs px-2 py-1 rounded-br-xl font-medium">
+                      -10%
+                    </div>
+                  )}
+                  <CardContent className="p-6 space-y-4">
+                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+                      <Icon className="w-7 h-7 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-heading font-semibold text-lg capitalize">{id}</h3>
+                      <p className="text-3xl font-bold mt-1">
+                        {pkg.tokens} <span className="text-sm font-normal text-muted-foreground">tokens</span>
+                      </p>
+                    </div>
+                    <div className="pt-2 border-t">
+                      {isFirstPurchase ? (
                         <div>
-                          <h3 className="font-heading font-semibold text-lg capitalize">{id}</h3>
-                          <p className="text-3xl font-bold mt-1">
-                            {pkg.tokens} <span className="text-sm font-normal text-muted-foreground">tokens</span>
-                          </p>
+                          <p className="text-sm text-muted-foreground line-through">£{originalPrice.toFixed(2)}</p>
+                          <p className="text-2xl font-bold text-green-600">£{finalPrice}</p>
                         </div>
-                        <div className="pt-2 border-t">
-                          {isFirstPurchase ? (
-                            <div>
-                              <p className="text-sm text-muted-foreground line-through">£{originalPrice.toFixed(2)}</p>
-                              <p className="text-2xl font-bold text-green-600">£{finalPrice}</p>
-                            </div>
-                          ) : (
-                            <p className="text-2xl font-bold text-primary">£{finalPrice}</p>
-                          )}
-                          <p className="text-xs text-muted-foreground">
-                            £{(parseFloat(finalPrice) / pkg.tokens).toFixed(2)} per token
-                          </p>
-                        </div>
-                        <Button 
-                          onClick={() => paymentMethod === 'stripe' ? handleStripePurchase(id) : handlePayPalPurchase(id)}
-                          disabled={loading === id}
-                          className={`w-full rounded-full ${
-                            paymentMethod === 'paypal' 
-                              ? 'bg-blue-500 hover:bg-blue-600' 
-                              : 'bg-primary hover:bg-primary-hover'
-                          }`}
-                          data-testid={`buy-${id}-btn`}
-                        >
-                          {loading === id ? (
-                            <span className="animate-pulse">Processing...</span>
-                          ) : (
-                            <>
-                              {paymentMethod === 'paypal' ? <Wallet className="w-4 h-4 mr-2" /> : <CreditCard className="w-4 h-4 mr-2" />}
-                              Buy Now
-                            </>
-                          )}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </TabsContent>
-          </Tabs>
+                      ) : (
+                        <p className="text-2xl font-bold text-primary">£{finalPrice}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        £{(parseFloat(finalPrice) / pkg.tokens).toFixed(2)} per token
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={() => handleStripePurchase(id)}
+                      disabled={loading === id}
+                      className="w-full rounded-full bg-primary hover:bg-primary-hover"
+                      data-testid={`buy-${id}-btn`}
+                    >
+                      {loading === id ? (
+                        <span className="animate-pulse">Processing...</span>
+                      ) : (
+                        <>
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          Buy Now
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
 
           {/* Payment Methods Info */}
           <Card className="bg-gray-50 rounded-2xl border-0">
