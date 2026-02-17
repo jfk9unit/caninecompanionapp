@@ -75,7 +75,7 @@ export const Achievements = ({ user }) => {
     try {
       await axios.post(`${API}/achievements/${achievement.achievement_id}/share`, {}, { withCredentials: true });
       
-      const shareText = `I earned the "${achievement.title}" badge on CanineCompass! 🏆`;
+      const shareText = `🏆 I earned the "${achievement.title}" badge on CanineCompass!\n\n${achievement.description}\n\nJoin me at CanineCompass!`;
       
       if (navigator.share) {
         await navigator.share({
@@ -98,80 +98,30 @@ export const Achievements = ({ user }) => {
     }
   };
 
-  const downloadCertificate = (achievement) => {
-    // Generate a simple certificate
-    const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 600;
-    const ctx = canvas.getContext('2d');
+  const previewCertificate = (achievement) => {
+    const canvas = generateAchievementCertificate(achievement, user?.name);
+    setPreviewCanvas(canvas);
+    setPreviewAchievement(achievement);
+    setPreviewOpen(true);
+  };
+
+  const handleDownloadCertificate = (achievement) => {
+    const canvas = generateAchievementCertificate(achievement, user?.name);
+    downloadCertificate(canvas, `Achievement-${achievement.achievement_id}.png`);
+    toast.success('Gold certificate downloaded! 🏆');
+  };
+
+  const handleShareCertificate = async () => {
+    if (!previewCanvas || !previewAchievement) return;
     
-    // Background
-    ctx.fillStyle = '#f8f9fa';
-    ctx.fillRect(0, 0, 800, 600);
+    const shareText = `🏆 I earned the "${previewAchievement.title}" badge on CanineCompass!\n\n${previewAchievement.description}\n\nJoin me at CanineCompass!`;
     
-    // Border
-    ctx.strokeStyle = '#22c55e';
-    ctx.lineWidth = 10;
-    ctx.strokeRect(20, 20, 760, 560);
+    const shared = await shareCertificate(previewCanvas, previewAchievement.title, shareText);
     
-    // Inner border
-    ctx.strokeStyle = '#86efac';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(40, 40, 720, 520);
-    
-    // Title
-    ctx.fillStyle = '#166534';
-    ctx.font = 'bold 36px Georgia';
-    ctx.textAlign = 'center';
-    ctx.fillText('Certificate of Achievement', 400, 100);
-    
-    // Subtitle
-    ctx.fillStyle = '#374151';
-    ctx.font = '20px Georgia';
-    ctx.fillText('This certifies that', 400, 180);
-    
-    // User name
-    ctx.fillStyle = '#166534';
-    ctx.font = 'bold 32px Georgia';
-    ctx.fillText(user?.name || 'Dog Parent', 400, 230);
-    
-    // Achievement
-    ctx.fillStyle = '#374151';
-    ctx.font = '20px Georgia';
-    ctx.fillText('has successfully earned the badge', 400, 300);
-    
-    // Badge name
-    ctx.fillStyle = '#166534';
-    ctx.font = 'bold 28px Georgia';
-    ctx.fillText(`"${achievement.title}"`, 400, 350);
-    
-    // Description
-    ctx.fillStyle = '#6b7280';
-    ctx.font = '16px Georgia';
-    ctx.fillText(achievement.description, 400, 400);
-    
-    // Date
-    ctx.fillStyle = '#9ca3af';
-    ctx.font = '14px Georgia';
-    const date = new Date(achievement.earned_at).toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-    ctx.fillText(`Awarded on ${date}`, 400, 480);
-    
-    // Logo text
-    ctx.fillStyle = '#22c55e';
-    ctx.font = 'bold 18px Arial';
-    ctx.fillText('CanineCompass', 400, 540);
-    
-    // Download
-    const link = document.createElement('a');
-    link.download = `certificate-${achievement.achievement_id}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    
-    toast.success('Certificate downloaded!');
+    if (!shared) {
+      await navigator.clipboard.writeText(shareText);
+      toast.success('Share text copied to clipboard!');
+    }
   };
 
   const filteredAchievements = activeTab === 'all' 
