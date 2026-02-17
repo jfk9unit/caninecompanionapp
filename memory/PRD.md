@@ -228,6 +228,10 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - GET /api/auth/me - Get current user
 - POST /api/auth/logout - End session
 
+### Daily Login Rewards
+- GET /api/daily-reward/status - Get streak and reward status
+- POST /api/daily-reward/claim - Claim daily reward
+
 ### Tokens & Payments
 - GET /api/tokens/packages - Get available packages
 - GET /api/tokens/balance - Get user token balance
