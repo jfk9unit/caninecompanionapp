@@ -430,11 +430,30 @@ const TrainingContent = ({ user, selectedDog }) => {
                     </Button>
                   )}
                 </div>
+
+                {/* Share Progress Card */}
+                {isInProgress && enrollment && (
+                  <ProgressShareCard
+                    completed={enrollment.completed_steps?.length || 0}
+                    total={selectedLesson.steps?.length || 1}
+                    lessonTitle={selectedLesson.title}
+                  />
+                )}
               </div>
             );
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* Lesson Completion Modal */}
+      <LessonCompletionModal
+        isOpen={showCompletion}
+        onClose={() => setShowCompletion(false)}
+        lessonTitle={completedLesson?.title}
+        tokensEarned={0}
+        xpEarned={completedLesson?.token_cost * 10 || 50}
+        badgeEarned={completedLesson?.badge_reward}
+      />
     </div>
   );
 };
