@@ -664,11 +664,11 @@ export const VirtualPet = ({ user }) => {
     setIsEating(true);
     setCurrentAction('feed');
     
-    // Play eating sounds
+    // Play realistic eating sounds
     if (soundEnabled) {
-      soundManager.bark('happy');
-      setTimeout(() => soundManager.bark('eating'), 300);
-      setTimeout(() => soundManager.bark('eating'), 600);
+      audioManager.barkHappy();
+      setTimeout(() => audioManager.play('eat'), 300);
+      setTimeout(() => audioManager.play('eat'), 600);
     }
     
     try {
@@ -677,7 +677,7 @@ export const VirtualPet = ({ user }) => {
       
       // Happy bark after eating
       if (soundEnabled) {
-        setTimeout(() => soundManager.bark('happy'), 800);
+        setTimeout(() => audioManager.barkHappy(), 800);
       }
       
       await fetchPet();
@@ -687,7 +687,7 @@ export const VirtualPet = ({ user }) => {
       }, 2000);
     } catch (error) {
       toast.error('Failed to feed pet');
-      if (soundEnabled) soundManager.whimper();
+      if (soundEnabled) audioManager.whimper();
       setIsEating(false);
       setCurrentAction(null);
     } finally {
@@ -700,11 +700,11 @@ export const VirtualPet = ({ user }) => {
     setIsPlaying(true);
     setCurrentAction('play');
     
-    // Play sounds based on play type
+    // Play realistic sounds based on play type
     if (soundEnabled) {
-      soundManager.bark('excited');
+      audioManager.barkExcited();
       if (playType === 'fetch') {
-        setTimeout(() => soundManager.ballBounce(), 300);
+        setTimeout(() => audioManager.barkPlayful(), 300);
       }
     }
     
@@ -714,7 +714,7 @@ export const VirtualPet = ({ user }) => {
       
       // Happy bark after playing
       if (soundEnabled) {
-        setTimeout(() => soundManager.bark('happy'), 500);
+        setTimeout(() => audioManager.barkHappy(), 500);
       }
       
       await fetchPet();
@@ -727,7 +727,7 @@ export const VirtualPet = ({ user }) => {
       setIsPlaying(false);
       setCurrentAction(null);
     } finally {
-      setActionLoading(null);
+      setActionLoading(null));
     }
   };
 
