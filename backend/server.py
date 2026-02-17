@@ -2990,16 +2990,37 @@ async def get_pretest_status(user: User = Depends(get_current_user)):
     }
 
 @api_router.get("/trainers")
-async def get_trainers(specialization: Optional[str] = None, location: Optional[str] = None):
-    """Get approved K9 trainers"""
-    trainers = APPROVED_K9_TRAINERS.copy()
+async def get_trainers(specialization: Optional[str] = None, location: Optional[str] = None, team_only: bool = False):
+    """Get K9 trainers - our team (available) and approved contractors (coming soon)"""
+    our_team = OUR_K9_TEAM.copy()
+    approved = APPROVED_K9_TRAINERS.copy()
     
     if specialization:
-        trainers = [t for t in trainers if specialization.lower() in [s.lower() for s in t["specializations"]]]
+        our_team = [t for t in our_team if specialization.lower() in [s.lower() for s in t["specializations"]]]
+        approved = [t for t in approved if specialization.lower() in [s.lower() for s in t["specializations"]]]
     if location:
-        trainers = [t for t in trainers if location.lower() in t["location"].lower()]
+        our_team = [t for t in our_team if location.lower() in t["location"].lower()]
+        approved = [t for t in approved if location.lower() in t["location"].lower()]
     
-    return {"trainers": trainers, "total": len(trainers)}
+    if team_only:
+        return {"trainers": our_team, "total": len(our_team), "type": "our_team"}
+    
+    return {
+        "our_team": our_team,
+        "approved_contractors": approved,
+        "our_team_count": len(our_team),
+        "approved_count": len(approved)
+    }
+
+@api_router.get("/trainers/our-team")
+async def get_our_team():
+    """Get our K9 team members only (available for booking)"""
+    return {"trainers": OUR_K9_TEAM, "total": len(OUR_K9_TEAM)}
+
+@api_router.get("/trainers/approved")
+async def get_approved_trainers():
+    """Get 3rd party approved trainers (coming soon)"""
+    return {"trainers": APPROVED_K9_TRAINERS, "total": len(APPROVED_K9_TRAINERS), "status": "coming_soon"}
 
 @api_router.get("/trainers/{trainer_id}")
 async def get_trainer(trainer_id: str):
