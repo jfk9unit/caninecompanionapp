@@ -535,7 +535,10 @@ async def get_notification_settings(user: User = Depends(get_current_user)):
             "daily_tips": True,
             "achievement_alerts": True,
             "tournament_updates": True,
-            "marketing": False
+            "marketing": False,
+            "auto_login_reminder": True,
+            "pet_care_reminders": True,
+            "streak_reminders": True
         }
         await db.notification_settings.insert_one(default_settings)
         return {k: v for k, v in default_settings.items() if k != "user_id"}
