@@ -2420,7 +2420,7 @@ async def get_current_tournament_info():
 
 @api_router.get("/tournaments/my-position")
 async def get_my_tournament_position(user: User = Depends(get_current_user)):
-    """Get current user's position in active tournament"""
+    """Get current user's position in active tournament - optimized"""
     tournament = get_current_tournament()
     if not tournament:
         return {"active": False}
@@ -2445,32 +2445,37 @@ async def get_my_tournament_position(user: User = Depends(get_current_user)):
         k9_lessons = [e for e in enrollments if e.get("lesson_id", "").startswith("k9_")]
         score = len(k9_lessons)
     
-    # Count users with higher scores
+    # Pre-fetch all scores using aggregation (optimized - no N+1)
     all_users = await db.users.find({}, {"_id": 0, "user_id": 1}).to_list(1000)
-    higher_count = 0
+    score_map = {}
     
+    if tournament["scoring"] == "training_completed":
+        training_agg = await db.training_enrollments.aggregate([
+            {"$match": {"status": "completed"}},
+            {"$group": {"_id": "$user_id", "count": {"$sum": 1}}}
+        ]).to_list(1000)
+        score_map = {t["_id"]: t["count"] for t in training_agg}
+    elif tournament["scoring"] == "pet_xp":
+        pets = await db.virtual_pets.find({}, {"_id": 0, "user_id": 1, "experience_points": 1}).to_list(1000)
+        score_map = {p["user_id"]: p.get("experience_points", 0) for p in pets}
+    elif tournament["scoring"] == "achievements":
+        achievement_agg = await db.achievements.aggregate([
+            {"$group": {"_id": "$user_id", "count": {"$sum": 1}}}
+        ]).to_list(1000)
+        score_map = {a["_id"]: a["count"] for a in achievement_agg}
+    elif tournament["scoring"] == "k9_training":
+        k9_agg = await db.training_enrollments.aggregate([
+            {"$match": {"status": "completed", "lesson_id": {"$regex": "^k9_"}}},
+            {"$group": {"_id": "$user_id", "count": {"$sum": 1}}}
+        ]).to_list(1000)
+        score_map = {k["_id"]: k["count"] for k in k9_agg}
+    
+    # Count users with higher scores using pre-fetched data
+    higher_count = 0
     for u in all_users:
         if u["user_id"] == user.user_id:
             continue
-        u_score = 0
-        if tournament["scoring"] == "training_completed":
-            u_score = await db.training_enrollments.count_documents({
-                "user_id": u["user_id"],
-                "status": "completed"
-            })
-        elif tournament["scoring"] == "pet_xp":
-            pet = await db.virtual_pets.find_one({"user_id": u["user_id"]}, {"_id": 0})
-            u_score = pet.get("experience_points", 0) if pet else 0
-        elif tournament["scoring"] == "achievements":
-            u_score = await db.achievements.count_documents({"user_id": u["user_id"]})
-        elif tournament["scoring"] == "k9_training":
-            enrollments = await db.training_enrollments.find({
-                "user_id": u["user_id"],
-                "status": "completed"
-            }, {"_id": 0}).to_list(100)
-            k9_lessons = [e for e in enrollments if e.get("lesson_id", "").startswith("k9_")]
-            u_score = len(k9_lessons)
-        
+        u_score = score_map.get(u["user_id"], 0)
         if u_score > score:
             higher_count += 1
     
