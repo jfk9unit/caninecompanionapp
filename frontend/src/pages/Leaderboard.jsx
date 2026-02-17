@@ -23,7 +23,10 @@ import {
   Users,
   Clock,
   CheckCircle,
-  ChevronUp
+  ChevronUp,
+  Shield,
+  Swords,
+  Calendar
 } from "lucide-react";
 
 const RANK_STYLES = {
@@ -37,7 +40,15 @@ const CHALLENGE_ICONS = {
   tasks: Target,
   health: Star,
   pet: Sparkles,
-  social: Users
+  social: Users,
+  k9: Shield
+};
+
+const TOURNAMENT_THEMES = {
+  training: { icon: GraduationCap, color: "from-purple-500 to-indigo-600" },
+  pet: { icon: Sparkles, color: "from-pink-500 to-rose-600" },
+  achievements: { icon: Trophy, color: "from-amber-500 to-orange-600" },
+  k9_protection: { icon: Shield, color: "from-slate-700 to-zinc-800" }
 };
 
 export const Leaderboard = ({ user }) => {
@@ -45,6 +56,8 @@ export const Leaderboard = ({ user }) => {
   const [myRank, setMyRank] = useState(null);
   const [challenges, setChallenges] = useState([]);
   const [weekInfo, setWeekInfo] = useState({});
+  const [tournament, setTournament] = useState(null);
+  const [myTournamentPos, setMyTournamentPos] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overall");
   const [claiming, setClaiming] = useState(null);
@@ -57,7 +70,7 @@ export const Leaderboard = ({ user }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [leaderboardRes, rankRes, challengesRes] = await Promise.all([
+      const [leaderboardRes, rankRes, challengesRes, tournamentRes, tournamentPosRes] = await Promise.all([
         axios.get(`${API}/leaderboard?category=${activeTab}`, { withCredentials: true }),
         axios.get(`${API}/leaderboard/my-rank`, { withCredentials: true }),
         axios.get(`${API}/competitions/challenges`, { withCredentials: true })
