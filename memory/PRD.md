@@ -708,3 +708,61 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 2. 3rd Party Trainer Booking - Coming Soon
 3. Multi-language support - UI only (selector exists but no translations)
 4. Realistic pet sounds - Using synthesized Web Audio API sounds
+
+### 44. Multi-Trainer Booking Calculator (Feb 17, 2026)
+- Enhanced BookK9Trainer page with multi-trainer selection
+- Calculator features:
+  - Select multiple trainers with adjustable hours per trainer
+  - Per-trainer cost breakdown in dialog
+  - Session costs with 20% hidden service fee built into prices
+  - K9 Risk & Equipment Fee: £10.79 per trainer (optional for dangerous dogs)
+  - Travel costs: £30 call-out + £1.02/mile
+  - 50% non-refundable deposit system
+  - 7-10 day advance booking requirement
+  - Full payment required before team deployment
+- Pricing tiers:
+  - Virtual: £81/hour (includes 20% fee)
+  - In-Person: £180/hour (includes 20% fee)
+  - Emergency 24/7: £1,619.99 flat rate
+- Payment options: Deposit (50%) or Full Payment
+- Stripe checkout via emergentintegrations library
+
+### 45. Dog Equipment Shop (Feb 17, 2026)
+- New EquipmentShop page at /equipment
+- 31 products across 8 categories:
+  - Harnesses & Leads
+  - Grooming & Care
+  - Training Equipment
+  - Bowls & Feeders
+  - Beds & Crates
+  - Toys & Enrichment
+  - Health & Wellness
+  - Travel & Safety
+- Pricing: 22% commission built into display prices (hidden from customer)
+- Features:
+  - Category filtering tabs
+  - Product search
+  - Featured products section
+  - Product cards with ratings and reviews
+  - Size/color/quantity selectors in enquiry dialog
+  - MOCKED purchases - enquiry-based ordering only
+- Backend endpoints:
+  - GET /api/equipment/categories
+  - GET /api/equipment/products
+  - GET /api/equipment/featured
+  - POST /api/equipment/enquiry
+
+## Current Pricing Structure (Feb 17, 2026)
+### Trainer Booking (20% service fee built-in)
+- Virtual Sessions: £81.00/hour
+- In-Person Home Visit: £180.00/hour
+- Emergency 24/7: £1,619.99 flat rate
+- Call-out Fee: £30.00
+- Travel: £1.02/mile
+- K9 Risk Fee: £10.79 per trainer
+- Admin/Rescheduling Fee: £30.00
+- Deposit: 50% non-refundable
+
+### Equipment Shop (22% commission built-in)
+- Products range from £9.76 to £237.90
+- Enquiry-based ordering (MOCKED)
