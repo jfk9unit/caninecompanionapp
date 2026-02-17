@@ -2252,7 +2252,7 @@ def get_current_tournament():
 
 @api_router.get("/tournaments/current")
 async def get_current_tournament_info():
-    """Get current active tournament with leaderboard"""
+    """Get current active tournament with leaderboard - optimized"""
     tournament = get_current_tournament()
     if not tournament:
         return {"active": False, "message": "No active tournament"}
@@ -2260,30 +2260,37 @@ async def get_current_tournament_info():
     now = datetime.now(timezone.utc)
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     
-    # Get participants and scores based on tournament type
-    participants = []
+    # Get all users
     all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "name": 1, "picture": 1}).to_list(100)
     
+    # Pre-fetch scores based on tournament type (avoid N+1)
+    score_map = {}
+    
+    if tournament["scoring"] == "training_completed":
+        training_agg = await db.training_enrollments.aggregate([
+            {"$match": {"status": "completed"}},
+            {"$group": {"_id": "$user_id", "count": {"$sum": 1}}}
+        ]).to_list(1000)
+        score_map = {t["_id"]: t["count"] for t in training_agg}
+    elif tournament["scoring"] == "pet_xp":
+        pets = await db.virtual_pets.find({}, {"_id": 0, "user_id": 1, "experience_points": 1}).to_list(1000)
+        score_map = {p["user_id"]: p.get("experience_points", 0) for p in pets}
+    elif tournament["scoring"] == "achievements":
+        achievement_agg = await db.achievements.aggregate([
+            {"$group": {"_id": "$user_id", "count": {"$sum": 1}}}
+        ]).to_list(1000)
+        score_map = {a["_id"]: a["count"] for a in achievement_agg}
+    elif tournament["scoring"] == "k9_training":
+        k9_agg = await db.training_enrollments.aggregate([
+            {"$match": {"status": "completed", "lesson_id": {"$regex": "^k9_"}}},
+            {"$group": {"_id": "$user_id", "count": {"$sum": 1}}}
+        ]).to_list(1000)
+        score_map = {k["_id"]: k["count"] for k in k9_agg}
+    
+    # Build participants list using pre-fetched data
+    participants = []
     for user in all_users:
-        score = 0
-        if tournament["scoring"] == "training_completed":
-            score = await db.training_enrollments.count_documents({
-                "user_id": user["user_id"],
-                "status": "completed"
-            })
-        elif tournament["scoring"] == "pet_xp":
-            pet = await db.virtual_pets.find_one({"user_id": user["user_id"]}, {"_id": 0})
-            score = pet.get("experience_points", 0) if pet else 0
-        elif tournament["scoring"] == "achievements":
-            score = await db.achievements.count_documents({"user_id": user["user_id"]})
-        elif tournament["scoring"] == "k9_training":
-            enrollments = await db.training_enrollments.find({
-                "user_id": user["user_id"],
-                "status": "completed"
-            }, {"_id": 0}).to_list(100)
-            k9_lessons = [e for e in enrollments if e.get("lesson_id", "").startswith("k9_")]
-            score = len(k9_lessons)
-        
+        score = score_map.get(user["user_id"], 0)
         if score > 0:
             participants.append({
                 "user_id": user["user_id"],
