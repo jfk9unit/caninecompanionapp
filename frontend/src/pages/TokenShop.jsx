@@ -238,6 +238,24 @@ export const TokenShop = ({ user }) => {
             </Card>
           )}
 
+          {/* Promo Code Redemption Section */}
+          <div className="grid lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <RedeemCodeCard onRedeem={fetchData} />
+            </div>
+            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border-0">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <Ticket className="w-6 h-6 text-purple-500" />
+                  <h3 className="font-semibold">Got a Code?</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Enter promo codes from our partners or developers to get free tokens or discounts on your purchases.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Payment Method Tabs */}
           <Tabs value={paymentMethod} onValueChange={setPaymentMethod} className="w-full">
             <TabsList className="bg-white rounded-full p-1 shadow-card w-full sm:w-auto">
