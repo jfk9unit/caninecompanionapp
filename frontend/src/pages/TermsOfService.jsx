@@ -116,23 +116,37 @@ export const TermsOfService = ({ user }) => {
               <div className="space-y-3 text-gray-700">
                 <p className="font-semibold">Virtual Sessions:</p>
                 <ul className="list-disc list-inside space-y-2 ml-4 mb-4">
-                  <li>30 minutes: £29.99</li>
-                  <li>1 hour: £45.00</li>
+                  <li>30 minutes: £44.99</li>
+                  <li>1 hour: £67.50</li>
                 </ul>
-                <p className="font-semibold">In-Person Sessions (Home Visit):</p>
+                <p className="font-semibold">Home Visit Sessions:</p>
                 <ul className="list-disc list-inside space-y-2 ml-4 mb-4">
-                  <li>1 hour: £179.99</li>
-                  <li>2 hours: £320.00</li>
-                  <li>3 hours intensive: £420.00</li>
+                  <li>1 hour (minimum): From £150</li>
+                  <li>2 hours: £480.00</li>
+                  <li>3 hours intensive: £630.00</li>
                   <li>Call-out fee: £25.00</li>
                   <li>Travel: £0.85 per mile (calculated from postcode to postcode)</li>
+                  <li>K9 Risk & Equipment Fee: £8.99 (for dangerous dogs)</li>
                   <li>Additional charges may apply for hotel stays on remote locations</li>
+                </ul>
+                <p className="font-semibold">24/7 Emergency Call Outs:</p>
+                <ul className="list-disc list-inside space-y-2 ml-4 mb-4">
+                  <li>Emergency service: £1,349.99</li>
+                  <li>Includes 24-48 hour by your side assistance</li>
+                  <li>Risk assessment and containment of dangerous pets</li>
+                  <li>Expert advice and support</li>
+                </ul>
+                <p className="font-semibold">Rehabilitation Programs:</p>
+                <ul className="list-disc list-inside space-y-2 ml-4 mb-4">
+                  <li>Available from 1 week to 12 weeks</li>
+                  <li>Pricing upon request - contact our 24/7 support for assessment</li>
                 </ul>
                 <p className="font-semibold text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
                   IMPORTANT: All trainer booking fees are non-refundable. Rescheduling or location changes incur a £25 admin fee. 
                   Please ensure your calendar fits the trainer's schedule before booking.
                 </p>
                 <p className="mt-3">Currently available for UK customers only. EU and USA expansion planned for future release.</p>
+                <p className="mt-2 text-green-700">For FAQs and booking assistance, speak with our 24/7 AI support bot.</p>
               </div>
             </section>
 
