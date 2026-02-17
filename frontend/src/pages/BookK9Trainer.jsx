@@ -38,7 +38,8 @@ import {
 
 export const BookK9Trainer = ({ user }) => {
   const [searchParams] = useSearchParams();
-  const [trainers, setTrainers] = useState([]);
+  const [ourTeam, setOurTeam] = useState([]);
+  const [approvedTrainers, setApprovedTrainers] = useState([]);
   const [pricingInfo, setPricingInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedTrainer, setSelectedTrainer] = useState(null);
