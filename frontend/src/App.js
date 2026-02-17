@@ -268,6 +268,11 @@ function AppRouter() {
             {({ user }) => <BookK9Trainer user={user} />}
           </ProtectedRoute>
         } />
+        <Route path="/equipment" element={
+          <ProtectedRoute>
+            {({ user }) => <EquipmentShop user={user} />}
+          </ProtectedRoute>
+        } />
         <Route path="/coming-soon" element={
           <ProtectedRoute>
             {({ user }) => <ComingSoon user={user} />}
