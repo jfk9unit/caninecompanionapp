@@ -104,22 +104,45 @@ export const DailyRewardCard = ({ onClaim }) => {
   const claimedToday = status.claimed_today;
   const nextReward = status.next_reward;
   const streakDay = currentStreak > 0 ? ((currentStreak - 1) % 7) + 1 : 0;
+  
+  // VIP players get 20 tokens daily
+  const dailyTokens = isVip ? 20 : (nextReward?.tokens || 1);
 
   return (
     <>
-      <Card className="rounded-2xl bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 border-amber-200 overflow-hidden">
+      <Card className={`rounded-2xl overflow-hidden ${
+        isVip 
+          ? 'bg-gradient-to-br from-amber-100 via-yellow-50 to-orange-100 border-2 border-amber-400 shadow-lg' 
+          : 'bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 border-amber-200'
+      }`}>
         <CardContent className="p-0">
           {/* Header */}
-          <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-4 text-white">
+          <div className={`p-4 text-white ${
+            isVip 
+              ? 'bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500' 
+              : 'bg-gradient-to-r from-amber-500 to-orange-500'
+          }`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-white/20 rounded-xl">
-                  <Gift className="w-6 h-6" />
+                  {isVip ? <Star className="w-6 h-6" /> : <Gift className="w-6 h-6" />}
                 </div>
                 <div>
-                  <h3 className="font-bold">Daily Rewards</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold">Daily Rewards</h3>
+                    {isVip && (
+                      <Badge className="bg-white/30 text-white text-[10px] rounded-full px-2">
+                        VIP
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-xs text-white/80">
-                    {claimedToday ? 'Come back tomorrow!' : 'Claim your reward!'}
+                    {claimedToday 
+                      ? 'Come back tomorrow!' 
+                      : isVip 
+                        ? '20 FREE tokens waiting!' 
+                        : 'Claim your reward!'
+                    }
                   </p>
                 </div>
               </div>
@@ -133,6 +156,17 @@ export const DailyRewardCard = ({ onClaim }) => {
             </div>
           </div>
 
+          {/* VIP Banner */}
+          {isVip && !claimedToday && (
+            <div className="bg-gradient-to-r from-yellow-400 to-amber-400 px-4 py-2 text-center">
+              <p className="text-sm font-semibold text-amber-900 flex items-center justify-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                VIP Bonus: Get 20 tokens + Double XP today!
+                <Sparkles className="w-4 h-4" />
+              </p>
+            </div>
+          )}
+
           {/* Week Progress */}
           <div className="p-4">
             <div className="flex justify-between mb-4">
@@ -142,6 +176,7 @@ export const DailyRewardCard = ({ onClaim }) => {
                 const isCurrent = dayNum === (streakDay + 1) && !claimedToday;
                 const isPast = dayNum < (streakDay + 1);
                 const reward = STREAK_REWARDS[dayNum];
+                const displayTokens = isVip ? 20 : reward.tokens;
                 
                 return (
                   <div key={day} className="text-center flex-1">
@@ -163,17 +198,21 @@ export const DailyRewardCard = ({ onClaim }) => {
                       )}
                     </div>
                     <p className="text-[10px] text-muted-foreground">{day}</p>
-                    <p className="text-[10px] font-semibold text-amber-600">+{reward.tokens}</p>
+                    <p className={`text-[10px] font-semibold ${isVip ? 'text-amber-600' : 'text-amber-600'}`}>
+                      +{displayTokens}
+                    </p>
                   </div>
                 );
               })}
             </div>
 
             {/* Next Reward Info */}
-            <div className="bg-white rounded-xl p-3 mb-4 border border-amber-200">
+            <div className={`rounded-xl p-3 mb-4 border ${
+              isVip ? 'bg-amber-50 border-amber-300' : 'bg-white border-amber-200'
+            }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-amber-100 rounded-lg">
+                  <div className={`p-2 rounded-lg ${isVip ? 'bg-amber-200' : 'bg-amber-100'}`}>
                     <Coins className="w-5 h-5 text-amber-600" />
                   </div>
                   <div>
