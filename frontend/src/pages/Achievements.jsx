@@ -333,6 +333,59 @@ export const Achievements = ({ user }) => {
               ))}
             </div>
           </div>
+
+          {/* Certificate Preview Dialog */}
+          <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-xl">
+                  <Award className="w-6 h-6 text-amber-500" />
+                  Achievement Certificate
+                </DialogTitle>
+              </DialogHeader>
+              
+              <div className="mt-4">
+                {/* Certificate Preview */}
+                <div className="bg-slate-900 rounded-xl p-4 overflow-hidden">
+                  {previewCanvas && (
+                    <img 
+                      src={previewCanvas.toDataURL('image/png')}
+                      alt="Certificate Preview"
+                      className="w-full rounded-lg shadow-2xl"
+                    />
+                  )}
+                </div>
+                
+                {/* Actions */}
+                <div className="flex flex-wrap gap-3 mt-6 justify-center">
+                  <Button
+                    onClick={() => {
+                      if (previewAchievement) {
+                        handleDownloadCertificate(previewAchievement);
+                        setPreviewOpen(false);
+                      }
+                    }}
+                    className="rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-black font-bold px-8"
+                  >
+                    <Download className="w-5 h-5 mr-2" />
+                    Download Gold Certificate
+                  </Button>
+                  <Button
+                    onClick={handleShareCertificate}
+                    variant="outline"
+                    className="rounded-full px-8"
+                  >
+                    <Share2 className="w-5 h-5 mr-2" />
+                    Share on Social
+                  </Button>
+                </div>
+                
+                <p className="text-center text-sm text-muted-foreground mt-4">
+                  Share your golden achievement with the world! ✨
+                </p>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       )}
     </AppLayout>
