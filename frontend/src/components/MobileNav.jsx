@@ -31,12 +31,14 @@ const mainNavItems = [
 ];
 
 const moreNavItems = [
+  { href: "/elite-courses", label: "Elite Courses", icon: BookOpen },
+  { href: "/book-trainer", label: "Book Trainer", icon: User },
   { href: "/achievements", label: "Awards", icon: Trophy },
   { href: "/k9-credentials", label: "K9 Credentials", icon: Award },
   { href: "/tokens", label: "Token Shop", icon: Coins },
+  { href: "/coming-soon", label: "Coming Soon", icon: Clock },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/health", label: "Health Hub", icon: Home },
-  { href: "/admin", label: "Admin", icon: Shield },
 ];
 
 export const MobileNav = () => {
