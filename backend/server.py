@@ -482,6 +482,18 @@ async def get_welcome_message(user: User = Depends(get_current_user)):
     is_admin_user = user.email in ADMIN_EMAILS
     first_name = user.name.split()[0] if user.name else "Friend"
     
+    # Check if VIP player needs their initial 1200 token bonus
+    vip_bonus_just_claimed = False
+    if is_vip:
+        user_doc = await db.users.find_one({"user_id": user.user_id}, {"_id": 0})
+        if user_doc and not user_doc.get("vip_bonus_claimed"):
+            # Award 1200 tokens to existing VIP player
+            await db.users.update_one(
+                {"user_id": user.user_id},
+                {"$inc": {"tokens": 1200}, "$set": {"vip_bonus_claimed": True, "is_vip": True}}
+            )
+            vip_bonus_just_claimed = True
+    
     # Get daily memo (based on day of year for variety)
     day_of_year = datetime.now(timezone.utc).timetuple().tm_yday
     memo_index = day_of_year % len(DAILY_MEMOS)
@@ -500,7 +512,10 @@ async def get_welcome_message(user: User = Depends(get_current_user)):
         greeting = f"Welcome back, {first_name}! 🛡️ Thank you for being an amazing admin and keeping CanineCompass running smoothly. Your dedication makes our community thrive!"
     elif is_vip:
         role = "vip"
-        greeting = f"Welcome back, {first_name}! ⭐ As a valued VIP member, you're at the heart of our community. Thank you for your incredible support and dedication to canine excellence!"
+        if vip_bonus_just_claimed:
+            greeting = f"🎉 CONGRATULATIONS, {first_name}! 🎉 You've been selected as a VIP Tester! 1,200 bonus tokens have been added to your account. As a VIP, you'll receive 20 FREE tokens every day you open the app. Thank you for being part of our exclusive testing team!"
+        else:
+            greeting = f"Welcome back, {first_name}! ⭐ As a valued VIP member, you're at the heart of our community. Remember: you get 20 FREE tokens every day! Thank you for your incredible support!"
     else:
         role = "member"
         greeting = f"Welcome back, {first_name}! 🐕 We're so happy to see you. Your journey to becoming an amazing dog handler continues today!"
@@ -513,7 +528,9 @@ async def get_welcome_message(user: User = Depends(get_current_user)):
         "greeting": greeting,
         "daily_memo": daily_memo,
         "memo_already_seen": memo_seen is not None,
-        "vip_daily_tokens": 20 if is_vip else None
+        "vip_daily_tokens": 20 if is_vip else None,
+        "vip_bonus_just_claimed": vip_bonus_just_claimed,
+        "vip_bonus_amount": 1200 if vip_bonus_just_claimed else 0
     }
 
 @api_router.post("/daily-memo/mark-seen")
