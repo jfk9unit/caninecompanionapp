@@ -35,7 +35,7 @@ export const AuthPage = () => {
   const [registerConfirmPassword, setRegisterConfirmPassword] = useState("");
   
   // Password reset state
-  const [resetStep, setResetStep] = useState("request"); // "request", "verify", "success"
+  const [resetStep, setResetStep] = useState("request");
   const [resetEmail, setResetEmail] = useState("");
   const [resetCode, setResetCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -58,7 +58,7 @@ export const AuthPage = () => {
     
     setLoading(true);
     try {
-      const response = await axios.post(`${API}/auth/login`, {
+      await axios.post(`${API}/auth/login`, {
         email: loginEmail,
         password: loginPassword
       }, { withCredentials: true });
@@ -92,7 +92,7 @@ export const AuthPage = () => {
     
     setLoading(true);
     try {
-      const response = await axios.post(`${API}/auth/register`, {
+      await axios.post(`${API}/auth/register`, {
         email: registerEmail,
         password: registerPassword,
         name: registerName
@@ -117,14 +117,11 @@ export const AuthPage = () => {
     
     setLoading(true);
     try {
-      await axios.post(`${API}/auth/password-reset/request`, {
-        email: resetEmail
-      });
-      
+      await axios.post(`${API}/auth/password-reset/request`, { email: resetEmail });
       toast.success("Verification code sent to your email!");
       setResetStep("verify");
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to send reset code. Please try again.");
+      toast.error(error.response?.data?.detail || "Failed to send reset code.");
     } finally {
       setLoading(false);
     }
@@ -158,11 +155,9 @@ export const AuthPage = () => {
       
       toast.success("Password reset successful!");
       setResetStep("success");
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 2000);
+      setTimeout(() => { window.location.href = "/dashboard"; }, 2000);
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to reset password. Please check your code.");
+      toast.error(error.response?.data?.detail || "Failed to reset password.");
     } finally {
       setLoading(false);
     }
@@ -219,48 +214,7 @@ export const AuthPage = () => {
               {/* Facebook Login Button */}
               <Button
                 onClick={() => toast.info("Facebook Login coming soon! Use Google or email for now.")}
-                variant="outline"
-                className="w-full rounded-xl h-12 flex items-center justify-center gap-3 hover:bg-blue-700 border-[#1877F2] bg-[#1877F2] text-white transition-colors"
-                data-testid="facebook-login-btn"
-              >
-                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-                Continue with Facebook
-              </Button>
-            </div>
-            
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">Or continue with email</span>
-              </div>
-            </div>"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Continue with Google
-              </Button>
-              
-              {/* Apple Sign In Button */}
-              <Button
-                onClick={() => toast.info("Apple Sign In requires Apple Developer Account setup. Contact admin to configure.")}
-                variant="outline"
-                className="w-full rounded-xl h-12 flex items-center justify-center gap-3 hover:bg-gray-900 hover:text-white border-gray-800 bg-black text-white transition-colors"
-                data-testid="apple-login-btn"
-              >
-                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
-                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                </svg>
-                Continue with Apple
-              </Button>
-              
-              {/* Facebook Login Button */}
-              <Button
-                onClick={() => toast.info("Facebook Login requires Facebook Developer Account setup. Contact admin to configure.")}
-                variant="outline"
-                className="w-full rounded-xl h-12 flex items-center justify-center gap-3 hover:bg-blue-700 border-[#1877F2] bg-[#1877F2] text-white transition-colors"
+                className="w-full rounded-xl h-12 flex items-center justify-center gap-3 bg-[#1877F2] hover:bg-[#166FE5] text-white"
                 data-testid="facebook-login-btn"
               >
                 <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
@@ -282,12 +236,8 @@ export const AuthPage = () => {
             {/* Login/Register Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid grid-cols-2 w-full rounded-xl bg-gray-100 p-1">
-                <TabsTrigger value="login" className="rounded-lg data-[state=active]:bg-white">
-                  Sign In
-                </TabsTrigger>
-                <TabsTrigger value="register" className="rounded-lg data-[state=active]:bg-white">
-                  Sign Up
-                </TabsTrigger>
+                <TabsTrigger value="login" className="rounded-lg data-[state=active]:bg-white">Sign In</TabsTrigger>
+                <TabsTrigger value="register" className="rounded-lg data-[state=active]:bg-white">Sign Up</TabsTrigger>
               </TabsList>
               
               {/* Login Tab */}
@@ -297,59 +247,21 @@ export const AuthPage = () => {
                     <Label htmlFor="login-email">Email</Label>
                     <div className="relative mt-1">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <Input
-                        id="login-email"
-                        type="email"
-                        value={loginEmail}
-                        onChange={(e) => setLoginEmail(e.target.value)}
-                        placeholder="you@example.com"
-                        className="pl-10 rounded-xl"
-                        data-testid="login-email-input"
-                      />
+                      <Input id="login-email" type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} placeholder="you@example.com" className="pl-10 rounded-xl" data-testid="login-email-input" />
                     </div>
                   </div>
-                  
                   <div>
                     <Label htmlFor="login-password">Password</Label>
                     <div className="relative mt-1">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <Input
-                        id="login-password"
-                        type="password"
-                        value={loginPassword}
-                        onChange={(e) => setLoginPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="pl-10 rounded-xl"
-                        data-testid="login-password-input"
-                      />
+                      <Input id="login-password" type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="••••••••" className="pl-10 rounded-xl" data-testid="login-password-input" />
                     </div>
                   </div>
-                  
                   <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setShowResetDialog(true)}
-                      className="text-sm text-green-600 hover:text-green-700 font-medium"
-                      data-testid="forgot-password-btn"
-                    >
-                      Forgot password?
-                    </button>
+                    <button type="button" onClick={() => setShowResetDialog(true)} className="text-sm text-green-600 hover:text-green-700 font-medium" data-testid="forgot-password-btn">Forgot password?</button>
                   </div>
-                  
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full rounded-xl h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
-                    data-testid="login-submit-btn"
-                  >
-                    {loading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        Sign In
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </>
-                    )}
+                  <Button type="submit" disabled={loading} className="w-full rounded-xl h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700" data-testid="login-submit-btn">
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Sign In <ArrowRight className="w-4 h-4 ml-2" /></>}
                   </Button>
                 </form>
               </TabsContent>
@@ -361,80 +273,32 @@ export const AuthPage = () => {
                     <Label htmlFor="register-name">Name</Label>
                     <div className="relative mt-1">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <Input
-                        id="register-name"
-                        type="text"
-                        value={registerName}
-                        onChange={(e) => setRegisterName(e.target.value)}
-                        placeholder="Your name"
-                        className="pl-10 rounded-xl"
-                        data-testid="register-name-input"
-                      />
+                      <Input id="register-name" type="text" value={registerName} onChange={(e) => setRegisterName(e.target.value)} placeholder="Your name" className="pl-10 rounded-xl" data-testid="register-name-input" />
                     </div>
                   </div>
-                  
                   <div>
                     <Label htmlFor="register-email">Email</Label>
                     <div className="relative mt-1">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <Input
-                        id="register-email"
-                        type="email"
-                        value={registerEmail}
-                        onChange={(e) => setRegisterEmail(e.target.value)}
-                        placeholder="you@example.com"
-                        className="pl-10 rounded-xl"
-                        data-testid="register-email-input"
-                      />
+                      <Input id="register-email" type="email" value={registerEmail} onChange={(e) => setRegisterEmail(e.target.value)} placeholder="you@example.com" className="pl-10 rounded-xl" data-testid="register-email-input" />
                     </div>
                   </div>
-                  
                   <div>
                     <Label htmlFor="register-password">Password</Label>
                     <div className="relative mt-1">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <Input
-                        id="register-password"
-                        type="password"
-                        value={registerPassword}
-                        onChange={(e) => setRegisterPassword(e.target.value)}
-                        placeholder="Min 6 characters"
-                        className="pl-10 rounded-xl"
-                        data-testid="register-password-input"
-                      />
+                      <Input id="register-password" type="password" value={registerPassword} onChange={(e) => setRegisterPassword(e.target.value)} placeholder="Min 6 characters" className="pl-10 rounded-xl" data-testid="register-password-input" />
                     </div>
                   </div>
-                  
                   <div>
                     <Label htmlFor="register-confirm">Confirm Password</Label>
                     <div className="relative mt-1">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <Input
-                        id="register-confirm"
-                        type="password"
-                        value={registerConfirmPassword}
-                        onChange={(e) => setRegisterConfirmPassword(e.target.value)}
-                        placeholder="Confirm your password"
-                        className="pl-10 rounded-xl"
-                        data-testid="register-confirm-input"
-                      />
+                      <Input id="register-confirm" type="password" value={registerConfirmPassword} onChange={(e) => setRegisterConfirmPassword(e.target.value)} placeholder="Confirm your password" className="pl-10 rounded-xl" data-testid="register-confirm-input" />
                     </div>
                   </div>
-                  
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full rounded-xl h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
-                    data-testid="register-submit-btn"
-                  >
-                    {loading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        Create Account
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </>
-                    )}
+                  <Button type="submit" disabled={loading} className="w-full rounded-xl h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700" data-testid="register-submit-btn">
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Create Account <ArrowRight className="w-4 h-4 ml-2" /></>}
                   </Button>
                 </form>
               </TabsContent>
@@ -445,8 +309,7 @@ export const AuthPage = () => {
         {/* Back to home */}
         <div className="text-center mt-6">
           <a href="/" className="text-sm text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            Back to home
+            <ArrowLeft className="w-4 h-4" /> Back to home
           </a>
         </div>
       </div>
@@ -474,32 +337,11 @@ export const AuthPage = () => {
                 <Label htmlFor="reset-email">Email Address</Label>
                 <div className="relative mt-1">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    id="reset-email"
-                    type="email"
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="pl-10 rounded-xl"
-                    data-testid="reset-email-input"
-                  />
+                  <Input id="reset-email" type="email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} placeholder="you@example.com" className="pl-10 rounded-xl" data-testid="reset-email-input" />
                 </div>
               </div>
-              
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-xl bg-green-600 hover:bg-green-700"
-                data-testid="reset-request-btn"
-              >
-                {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    Send Verification Code
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </>
-                )}
+              <Button type="submit" disabled={loading} className="w-full rounded-xl bg-green-600 hover:bg-green-700" data-testid="reset-request-btn">
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Send Verification Code <ArrowRight className="w-4 h-4 ml-2" /></>}
               </Button>
             </form>
           )}
@@ -508,73 +350,26 @@ export const AuthPage = () => {
             <form onSubmit={handleVerifyReset} className="space-y-4 mt-4">
               <div>
                 <Label htmlFor="reset-code">Verification Code</Label>
-                <Input
-                  id="reset-code"
-                  type="text"
-                  value={resetCode}
-                  onChange={(e) => setResetCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="000000"
-                  className="text-center text-2xl tracking-[0.5em] rounded-xl font-mono"
-                  maxLength={6}
-                  data-testid="reset-code-input"
-                />
+                <Input id="reset-code" type="text" value={resetCode} onChange={(e) => setResetCode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" className="text-center text-2xl tracking-[0.5em] rounded-xl font-mono" maxLength={6} data-testid="reset-code-input" />
               </div>
-              
               <div>
                 <Label htmlFor="new-password">New Password</Label>
                 <div className="relative mt-1">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    id="new-password"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Min 6 characters"
-                    className="pl-10 rounded-xl"
-                    data-testid="new-password-input"
-                  />
+                  <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Min 6 characters" className="pl-10 rounded-xl" data-testid="new-password-input" />
                 </div>
               </div>
-              
               <div>
                 <Label htmlFor="confirm-new-password">Confirm New Password</Label>
                 <div className="relative mt-1">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    id="confirm-new-password"
-                    type="password"
-                    value={confirmNewPassword}
-                    onChange={(e) => setConfirmNewPassword(e.target.value)}
-                    placeholder="Confirm your password"
-                    className="pl-10 rounded-xl"
-                    data-testid="confirm-new-password-input"
-                  />
+                  <Input id="confirm-new-password" type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} placeholder="Confirm your password" className="pl-10 rounded-xl" data-testid="confirm-new-password-input" />
                 </div>
               </div>
-              
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-xl bg-green-600 hover:bg-green-700"
-                data-testid="reset-verify-btn"
-              >
-                {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    Reset Password
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </>
-                )}
+              <Button type="submit" disabled={loading} className="w-full rounded-xl bg-green-600 hover:bg-green-700" data-testid="reset-verify-btn">
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Reset Password <ArrowRight className="w-4 h-4 ml-2" /></>}
               </Button>
-              
-              <button
-                type="button"
-                onClick={() => setResetStep("request")}
-                className="w-full text-sm text-gray-500 hover:text-gray-700 mt-2"
-              >
-                Didn't receive the code? Try again
-              </button>
+              <button type="button" onClick={() => setResetStep("request")} className="w-full text-sm text-gray-500 hover:text-gray-700 mt-2">Didn't receive the code? Try again</button>
             </form>
           )}
           
