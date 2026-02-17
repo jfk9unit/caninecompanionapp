@@ -58,12 +58,46 @@ export const BookK9Trainer = ({ user }) => {
     fetchData();
     
     // Check for payment success/cancel
-    if (searchParams.get('success') === 'true') {
-      toast.success("Booking confirmed! Check your email for appointment details.");
+    const sessionId = searchParams.get('session_id');
+    if (searchParams.get('success') === 'true' && sessionId) {
+      pollPaymentStatus(sessionId);
     } else if (searchParams.get('cancelled') === 'true') {
       toast.info("Payment cancelled");
     }
   }, [searchParams]);
+
+  const pollPaymentStatus = async (sessionId, attempts = 0) => {
+    const maxAttempts = 5;
+    const pollInterval = 2000;
+
+    if (attempts >= maxAttempts) {
+      toast.success("Payment processing. Check your email for confirmation.");
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${API}/payments/checkout/status/${sessionId}`, { withCredentials: true });
+      
+      if (response.data.payment_status === 'paid') {
+        toast.success("Booking confirmed! Check your email for appointment details.");
+        // Clear URL params
+        window.history.replaceState({}, document.title, window.location.pathname);
+        // Reset form
+        setSelectedTrainer(null);
+        setSelectedDate("");
+        setSelectedTime("");
+        setNotes("");
+        setCostBreakdown(null);
+        setShowBookingDialog(false);
+        return;
+      }
+
+      // Continue polling
+      setTimeout(() => pollPaymentStatus(sessionId, attempts + 1), pollInterval);
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+    }
+  };
 
   const fetchData = async () => {
     try {
