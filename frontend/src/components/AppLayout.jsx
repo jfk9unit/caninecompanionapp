@@ -30,6 +30,7 @@ import {
   Flame,
   Shield,
   Award,
+  ShoppingBag,
 } from "lucide-react";
 import { MobileNav } from "@/components/MobileNav";
 import { LanguageSelector } from "@/components/LanguageSelector";
