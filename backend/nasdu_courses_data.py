@@ -816,22 +816,38 @@ APPROVED_K9_TRAINERS = [
     }
 ]
 
-# Booking pricing
+# Booking pricing - Updated with 50% increase
 TRAINER_PRICING = {
     "virtual": {
-        "30min": {"price": 29.99, "description": "30 minute virtual consultation"},
-        "60min": {"price": 45.00, "description": "1 hour virtual training session"}
+        "30min": {"price": 44.99, "description": "30 minute virtual consultation"},
+        "60min": {"price": 67.50, "description": "1 hour virtual training session"}
     },
     "in_person": {
-        "60min": {"price": 179.99, "description": "1 hour in-person training"},
-        "120min": {"price": 320.00, "description": "2 hour in-person session"},
-        "180min": {"price": 420.00, "description": "3 hour intensive training"}
+        "60min": {"price": 150.00, "description": "1 hour home visit (minimum)"},
+        "120min": {"price": 480.00, "description": "2 hour in-person session"},
+        "180min": {"price": 630.00, "description": "3 hour intensive training"}
     },
     "travel": {
         "call_out_fee": 25.00,
         "per_mile": 0.85
     },
-    "admin_fee": 25.00  # For rescheduling
+    "admin_fee": 25.00,  # For rescheduling
+    "k9_risk_equipment_fee": 8.99,  # For dangerous dogs
+    "emergency_24_7": {
+        "price": 1349.99,
+        "description": "24/7 Emergency call out - includes 24-48hr stay by your side",
+        "includes": [
+            "24-48 hour on-site assistance",
+            "Risk assessment and containment",
+            "Dangerous pet management",
+            "Expert advice and support"
+        ]
+    },
+    "rehabilitation": {
+        "available": True,
+        "duration_options": ["1 week", "2 weeks", "4 weeks", "8 weeks", "12 weeks"],
+        "description": "Intensive rehabilitation programs for challenging behaviours - pricing upon request"
+    }
 }
 
 # Training equipment descriptions
