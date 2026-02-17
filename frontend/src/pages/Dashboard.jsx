@@ -561,6 +561,12 @@ export const Dashboard = ({ user }) => {
           </div>
         </div>
       )}
+
+      {/* Welcome Dialog */}
+      <WelcomeDialog 
+        open={showWelcome} 
+        onClose={() => setShowWelcome(false)} 
+      />
     </AppLayout>
   );
 };
