@@ -2838,7 +2838,8 @@ from nasdu_courses_data import (
     TRAINER_PRICING,
     TRAINING_EQUIPMENT,
     BEHAVIOURAL_ISSUES,
-    SUPPORTED_LANGUAGES
+    SUPPORTED_LANGUAGES,
+    DOG_EQUIPMENT_CATALOG
 )
 
 # Pre-test pricing
