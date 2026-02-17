@@ -941,8 +941,26 @@ export const VirtualPet = ({ user }) => {
                       isEating={isEating}
                       isExercising={isExercising}
                       isSleeping={isSleeping}
+                      isResting={isResting}
                       name={pet.name}
+                      action={currentAction}
+                      soundEnabled={soundEnabled}
                     />
+                    
+                    {/* Sound Toggle Button */}
+                    <Button
+                      onClick={toggleSound}
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-4 right-4 z-20 bg-white/80 rounded-full shadow-md hover:bg-white"
+                      data-testid="sound-toggle-btn"
+                    >
+                      {soundEnabled ? (
+                        <Volume2 className="w-5 h-5 text-green-600" />
+                      ) : (
+                        <VolumeX className="w-5 h-5 text-gray-400" />
+                      )}
+                    </Button>
                   </div>
                 </Card>
                 
