@@ -2433,21 +2433,38 @@ async def get_leaderboard(category: str = "overall", limit: int = 20):
         results = await db.virtual_pets.find({}, {"_id": 0, "user_id": 1, "experience_points": 1, "name": 1}).sort("experience_points", -1).limit(limit).to_list(limit)
         results = [{"_id": r["user_id"], "score": r.get("experience_points", 0), "pet_name": r.get("name")} for r in results]
     else:
-        # Overall - combine metrics
+        # Overall - combine metrics using optimized queries
         users = await db.users.find({}, {"_id": 0, "user_id": 1, "name": 1, "picture": 1, "tokens": 1, "total_referrals": 1}).to_list(100)
+        
+        # Pre-fetch all training counts in a single query
+        training_agg = await db.training_enrollments.aggregate([
+            {"$match": {"status": "completed"}},
+            {"$group": {"_id": "$user_id", "count": {"$sum": 1}}}
+        ]).to_list(1000)
+        training_map = {t["_id"]: t["count"] for t in training_agg}
+        
+        # Pre-fetch all achievement counts in a single query
+        achievement_agg = await db.achievements.aggregate([
+            {"$group": {"_id": "$user_id", "count": {"$sum": 1}}}
+        ]).to_list(1000)
+        achievement_map = {a["_id"]: a["count"] for a in achievement_agg}
+        
+        # Pre-fetch all pet XP in a single query
+        pets = await db.virtual_pets.find({}, {"_id": 0, "user_id": 1, "experience_points": 1}).to_list(1000)
+        pet_map = {p["user_id"]: p.get("experience_points", 0) for p in pets}
         
         user_scores = []
         for u in users:
-            training_count = await db.training_enrollments.count_documents({"user_id": u["user_id"], "status": "completed"})
-            achievement_count = await db.achievements.count_documents({"user_id": u["user_id"]})
-            pet = await db.virtual_pets.find_one({"user_id": u["user_id"]}, {"_id": 0})
-            pet_xp = pet.get("experience_points", 0) if pet else 0
+            user_id = u["user_id"]
+            training_count = training_map.get(user_id, 0)
+            achievement_count = achievement_map.get(user_id, 0)
+            pet_xp = pet_map.get(user_id, 0)
             
             # Calculate overall score
             score = (training_count * 10) + (achievement_count * 5) + (pet_xp) + (u.get("total_referrals", 0) * 15)
             
             user_scores.append({
-                "user_id": u["user_id"],
+                "user_id": user_id,
                 "name": u["name"],
                 "picture": u.get("picture"),
                 "score": score,
@@ -2460,19 +2477,22 @@ async def get_leaderboard(category: str = "overall", limit: int = 20):
         user_scores.sort(key=lambda x: x["score"], reverse=True)
         return {"leaderboard": user_scores[:limit], "category": category}
     
-    # Enrich with user data
+    # Enrich with user data - pre-fetch all users at once
+    user_ids = [r["_id"] for r in results]
+    users_list = await db.users.find({"user_id": {"$in": user_ids}}, {"_id": 0, "user_id": 1, "name": 1, "picture": 1}).to_list(limit)
+    users_map = {u["user_id"]: u for u in users_list}
+    
     enriched = []
     for i, r in enumerate(results):
-        user = await db.users.find_one({"user_id": r["_id"]}, {"_id": 0, "name": 1, "picture": 1})
-        if user:
-            enriched.append({
-                "rank": i + 1,
-                "user_id": r["_id"],
-                "name": user.get("name", "Anonymous"),
-                "picture": user.get("picture"),
-                "score": r["score"],
-                "pet_name": r.get("pet_name")
-            })
+        user = users_map.get(r["_id"], {})
+        enriched.append({
+            "rank": i + 1,
+            "user_id": r["_id"],
+            "name": user.get("name", "Anonymous"),
+            "picture": user.get("picture"),
+            "score": r["score"],
+            "pet_name": r.get("pet_name")
+        })
     
     return {"leaderboard": enriched, "category": category}
 
