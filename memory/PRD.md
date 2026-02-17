@@ -243,6 +243,12 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - GET /api/promo-codes/my-discount - Get user's active discount
 - GET /api/promo-codes/my-history - Get redemption history
 
+### VIP & Welcome Messages
+- GET /api/user/vip-status - Check VIP status and benefits
+- GET /api/welcome-message - Get personalized greeting and daily memo
+- POST /api/daily-memo/mark-seen - Mark today's memo as seen
+- POST /api/admin/award-tokens - Award tokens to a user (admin only)
+
 ### Tokens & Payments
 - GET /api/tokens/packages - Get available packages
 - GET /api/tokens/balance - Get user token balance
