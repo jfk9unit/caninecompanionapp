@@ -20,23 +20,16 @@ import {
   Dog,
   Home,
   GraduationCap,
-  Heart,
   PawPrint,
-  Calendar,
-  Activity,
-  Plane,
   BookOpen,
   LogOut,
   Menu,
   ChevronDown,
   Coins,
   Sparkles,
-  Trophy,
-  Mic,
   Flame,
   Shield,
   Award,
-  Bell,
 } from "lucide-react";
 import { MobileNav } from "@/components/MobileNav";
 import { LanguageSelector } from "@/components/LanguageSelector";
