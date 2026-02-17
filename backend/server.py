@@ -1042,7 +1042,8 @@ async def create_promo_code(promo: PromoCodeCreate, user: User = Depends(get_cur
     await db.promo_codes.insert_one(promo_doc)
     
     # Generate shareable link
-    share_link = f"https://caninecompass.app/redeem?code={promo.code.upper()}"
+    app_url = os.environ.get('APP_URL', 'https://caninecompass.app')
+    share_link = f"{app_url}/redeem?code={promo.code.upper()}"
     
     return {
         "success": True,
