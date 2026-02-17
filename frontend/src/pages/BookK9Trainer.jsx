@@ -105,7 +105,7 @@ export const BookK9Trainer = ({ user }) => {
 
     setBooking(true);
     try {
-      const response = await axios.post(`${API}/trainers/book`, {
+      const response = await axios.post(`${API}/trainers/checkout`, {
         trainer_id: selectedTrainer.trainer_id,
         session_type: sessionType,
         duration: duration,
@@ -113,17 +113,14 @@ export const BookK9Trainer = ({ user }) => {
         time: selectedTime,
         from_postcode: sessionType === "in_person" ? fromPostcode : null,
         to_postcode: sessionType === "in_person" ? toPostcode : null,
-        notes: notes
+        notes: notes,
+        success_url: `${window.location.origin}/book-trainer?success=true`,
+        cancel_url: `${window.location.origin}/book-trainer?cancelled=true`
       }, { withCredentials: true });
       
-      toast.success("Booking created successfully!");
-      setShowBookingDialog(false);
-      // Reset form
-      setSelectedTrainer(null);
-      setSelectedDate("");
-      setSelectedTime("");
-      setNotes("");
-      setCostBreakdown(null);
+      if (response.data.checkout_url) {
+        window.location.href = response.data.checkout_url;
+      }
     } catch (error) {
       toast.error(error.response?.data?.detail || "Failed to create booking");
     } finally {
