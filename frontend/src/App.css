@@ -7,3 +7,80 @@
 .App-header {
     display: none;
 }
+
+/* Mobile Safe Areas */
+.safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.h-safe-area-bottom {
+    height: env(safe-area-inset-bottom, 0px);
+}
+
+/* Mobile navigation bottom padding */
+@media (max-width: 768px) {
+    .mobile-content-padding {
+        padding-bottom: 80px;
+    }
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 768px) {
+    button, a, [role="button"] {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
+/* PWA Install prompt styling */
+.pwa-install-prompt {
+    position: fixed;
+    bottom: 80px;
+    left: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    padding: 16px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    z-index: 9999;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { 
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    to { 
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Prevent overscroll bounce on iOS */
+body {
+    overscroll-behavior-y: contain;
+}
+
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Card hover effect for touch devices */
+@media (hover: none) {
+    .card-hover:active {
+        transform: scale(0.98);
+    }
+}
+
