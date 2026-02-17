@@ -815,3 +815,29 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 1. **PWA Install** - Users can install from Chrome browser (Add to Home Screen)
 2. **APK Direct Install** - Build APK and distribute directly
 3. **Google Play Store** - Build signed AAB and submit to Play Console
+
+### 48. Play Store Release Setup (Feb 17, 2026)
+- **Signing Configuration**:
+  - `build-release.sh` - One-click build script (generates keystore, builds APK & AAB)
+  - `keystore.properties.template` - Signing config template
+  - `app/build.gradle` - Updated with signing configs and optimizations
+- **Play Store Assets Generated**:
+  - App Icon: 512x512 PNG
+  - Feature Graphic: 1024x500 PNG
+  - Screenshots (6 total):
+    - Dashboard overview
+    - Training lessons
+    - Equipment shop
+    - K9 trainer booking
+    - Health tracking
+    - Virtual pet game
+- **Store Listing Documentation**:
+  - `PLAY_STORE_LISTING.md` - Complete listing content
+  - Short description (80 chars)
+  - Full description (4000 chars)
+  - Release notes
+  - Submission checklist
+- **Build Outputs**:
+  - Debug APK: `app/build/outputs/apk/debug/app-debug.apk`
+  - Release APK: `app/build/outputs/apk/release/app-release.apk`
+  - Release AAB: `app/build/outputs/bundle/release/app-release.aab`
