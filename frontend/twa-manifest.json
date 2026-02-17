@@ -1,0 +1,91 @@
+{
+  "packageId": "com.caninecompass.app",
+  "host": "pet-token-world.preview.emergentagent.com",
+  "name": "CanineCompass",
+  "launcherName": "CanineCompass",
+  "display": "standalone",
+  "themeColor": "#22c55e",
+  "themeColorDark": "#16a34a",
+  "navigationColor": "#ffffff",
+  "navigationColorDark": "#1f2937",
+  "navigationDividerColor": "#e5e7eb",
+  "navigationDividerColorDark": "#374151",
+  "backgroundColor": "#ffffff",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "/icons/icon-512x512.png",
+  "maskableIconUrl": "/icons/icon-512x512.png",
+  "monochromeIconUrl": "/icons/icon-512x512.png",
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "shortName": "Home",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/icons/shortcut-home.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Training",
+      "shortName": "Train",
+      "url": "/training",
+      "icons": [
+        {
+          "src": "/icons/shortcut-training.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "K9 Security",
+      "shortName": "K9",
+      "url": "/k9-training",
+      "icons": [
+        {
+          "src": "/icons/shortcut-k9.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "signing": {
+    "keyStorePath": "./android.keystore",
+    "keyStorePassword": "REPLACE_WITH_KEYSTORE_PASSWORD",
+    "keyAlias": "caninecompass",
+    "keyPassword": "REPLACE_WITH_KEY_PASSWORD"
+  },
+  "playBilling": {
+    "enabled": false
+  },
+  "locationDelegation": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "orientation": "portrait",
+  "splashScreenFadeOutDuration": 300,
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": {
+      "enabled": false
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableGooglePlayAppSigningRecommendation": true,
+  "serviceAccountJsonFile": "",
+  "minSdkVersion": 21,
+  "appVersionCode": 1,
+  "appVersionName": "1.0.0",
+  "useBrowserOnChromeOS": true,
+  "additionalTrustedOrigins": []
+}
