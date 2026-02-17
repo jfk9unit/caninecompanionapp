@@ -559,12 +559,31 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - Activity sounds: running, drinking, scratching
 - UI feedback sounds: success, coin, levelup
 
+### 32. 24/7 AI Chat Support (NEW - Feb 17, 2026)
+- Floating chat button on dashboard (bottom-right)
+- GPT-4o-mini powered responses via Emergent LLM key (FREE)
+- 5 tokens per message cost
+- Quick question suggestions for new users
+- Token balance display in chat header
+- Chat history stored in MongoDB
+- Fallback responses if AI service unavailable
+- Endpoint: POST /api/chat/support, GET /api/chat/history
+
+### 33. Social Sharing (NEW - Feb 17, 2026)
+- Share to Facebook (web share API)
+- Share to X/Twitter (web share API)
+- Share to TikTok (opens profile page - no direct share API)
+- Share to Instagram (opens profile page - no direct share API)
+- Copy link to clipboard
+- SocialPromoCard on dashboard sidebar
+- ShareDialog component for detailed sharing
+
 ## Tech Stack
 - Frontend: React 19.0.0, Tailwind CSS, shadcn/ui, lucide-react
 - Backend: FastAPI 0.110.1, Motor 3.3.1 (async MongoDB)
 - Database: MongoDB
-- Auth: Emergent-managed Google OAuth + Email/Password + Social Login buttons (Apple, Facebook)
-- AI: OpenAI GPT-5.2 via emergentintegrations
+- Auth: Emergent-managed Google OAuth + Email/Password + Facebook (coming soon)
+- AI: GPT-4o-mini via emergentintegrations (24/7 chat support)
 - Payments: Stripe, PayPal via emergentintegrations
 - Email: Resend for password reset emails
 - Audio: Web Audio API with audioManager.js
