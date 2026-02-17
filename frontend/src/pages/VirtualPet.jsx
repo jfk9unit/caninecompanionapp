@@ -599,7 +599,9 @@ export const VirtualPet = ({ user }) => {
   const [isEating, setIsEating] = useState(false);
   const [isExercising, setIsExercising] = useState(false);
   const [isSleeping, setIsSleeping] = useState(false);
+  const [isResting, setIsResting] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [currentAction, setCurrentAction] = useState(null);
 
   useEffect(() => {
     fetchPet();
