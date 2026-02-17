@@ -513,6 +513,22 @@ export const Dashboard = ({ user }) => {
                 onShare={shareReferral}
               />
 
+              {/* Redeem Code */}
+              <Card className="rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Gift className="w-6 h-6 text-amber-500" />
+                      <div>
+                        <h4 className="font-semibold text-sm">Have a code?</h4>
+                        <p className="text-xs text-muted-foreground">Redeem for rewards</p>
+                      </div>
+                    </div>
+                    <RedeemCodeCard compact onRedeem={fetchData} />
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Achievement Teaser */}
               <Card className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-0">
                 <CardContent className="p-5">
