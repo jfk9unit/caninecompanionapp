@@ -36,9 +36,11 @@ export const DailyRewardCard = ({ onClaim }) => {
   const [claiming, setClaiming] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [claimResult, setClaimResult] = useState(null);
+  const [isVip, setIsVip] = useState(false);
 
   useEffect(() => {
     fetchStatus();
+    checkVipStatus();
   }, []);
 
   const fetchStatus = async () => {
@@ -49,6 +51,15 @@ export const DailyRewardCard = ({ onClaim }) => {
       console.error('Failed to fetch daily reward status:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkVipStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/user/vip-status`, { withCredentials: true });
+      setIsVip(response.data.is_vip);
+    } catch (error) {
+      console.error('Failed to check VIP status:', error);
     }
   };
 
