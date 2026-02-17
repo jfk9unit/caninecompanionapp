@@ -111,13 +111,38 @@ module.exports = {
                 'slide-in': {
                     from: { opacity: '0', transform: 'translateX(-20px)' },
                     to: { opacity: '1', transform: 'translateX(0)' }
+                },
+                'wiggle': {
+                    '0%, 100%': { transform: 'rotate(-3deg)' },
+                    '50%': { transform: 'rotate(3deg)' }
+                },
+                'bounce-slow': {
+                    '0%, 100%': { transform: 'translateY(0)' },
+                    '50%': { transform: 'translateY(-10px)' }
+                },
+                'spin-slow': {
+                    from: { transform: 'rotate(0deg)' },
+                    to: { transform: 'rotate(360deg)' }
+                },
+                'shimmer': {
+                    '0%': { transform: 'translateX(-100%)' },
+                    '100%': { transform: 'translateX(100%)' }
+                },
+                'wag': {
+                    '0%, 100%': { transform: 'rotate(-20deg)' },
+                    '50%': { transform: 'rotate(20deg)' }
                 }
             },
             animation: {
                 'accordion-down': 'accordion-down 0.2s ease-out',
                 'accordion-up': 'accordion-up 0.2s ease-out',
                 'fade-in': 'fade-in 0.4s ease-out forwards',
-                'slide-in': 'slide-in 0.4s ease-out forwards'
+                'slide-in': 'slide-in 0.4s ease-out forwards',
+                'wiggle': 'wiggle 0.5s ease-in-out infinite',
+                'bounce-slow': 'bounce-slow 2s ease-in-out infinite',
+                'spin-slow': 'spin-slow 20s linear infinite',
+                'shimmer': 'shimmer 2s ease-in-out infinite',
+                'wag': 'wag 0.3s ease-in-out infinite'
             }
         }
     },
