@@ -378,6 +378,250 @@ async def logout(request: Request, response: Response):
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out"}
 
+# ==================== EMAIL/PASSWORD AUTH & PASSWORD RESET ====================
+
+@api_router.post("/auth/register")
+async def register_with_email(data: EmailPasswordRegister, response: Response):
+    """Register a new user with email and password"""
+    # Check if email already exists
+    existing = await db.users.find_one({"email": data.email.lower()}, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    user_id = f"user_{uuid.uuid4().hex[:12]}"
+    user_referral_code = f"CC{uuid.uuid4().hex[:8].upper()}"
+    
+    # Check if VIP
+    is_vip = data.email.lower() in [v.lower() for v in VIP_PLAYERS]
+    initial_tokens = 1200 if is_vip else 0
+    
+    new_user = {
+        "user_id": user_id,
+        "email": data.email.lower(),
+        "name": data.name,
+        "picture": None,
+        "password_hash": hash_password(data.password),
+        "auth_type": "email",
+        "tokens": initial_tokens,
+        "referral_code": user_referral_code,
+        "referred_by": None,
+        "total_referrals": 0,
+        "is_vip": is_vip,
+        "vip_bonus_claimed": is_vip,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.users.insert_one(new_user)
+    
+    # Create session
+    session_token = f"sess_{uuid.uuid4().hex}"
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    await db.user_sessions.insert_one({
+        "user_id": user_id,
+        "session_token": session_token,
+        "expires_at": expires_at.isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    response.set_cookie(
+        key="session_token", value=session_token,
+        httponly=True, secure=True, samesite="none",
+        max_age=7 * 24 * 60 * 60, path="/"
+    )
+    
+    return {
+        "user_id": user_id,
+        "email": data.email.lower(),
+        "name": data.name,
+        "tokens": initial_tokens,
+        "message": "Registration successful!"
+    }
+
+@api_router.post("/auth/login")
+async def login_with_email(data: EmailPasswordLogin, response: Response):
+    """Login with email and password"""
+    user = await db.users.find_one({"email": data.email.lower()}, {"_id": 0})
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Check if this is an OAuth-only account
+    if not user.get("password_hash") and user.get("auth_type") != "email":
+        raise HTTPException(status_code=400, detail="This account uses Google login. Please sign in with Google.")
+    
+    if not verify_password(data.password, user.get("password_hash", "")):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Create session
+    session_token = f"sess_{uuid.uuid4().hex}"
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    await db.user_sessions.delete_many({"user_id": user["user_id"]})
+    await db.user_sessions.insert_one({
+        "user_id": user["user_id"],
+        "session_token": session_token,
+        "expires_at": expires_at.isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    response.set_cookie(
+        key="session_token", value=session_token,
+        httponly=True, secure=True, samesite="none",
+        max_age=7 * 24 * 60 * 60, path="/"
+    )
+    
+    return {
+        "user_id": user["user_id"],
+        "email": user["email"],
+        "name": user["name"],
+        "tokens": user.get("tokens", 0),
+        "message": "Login successful!"
+    }
+
+@api_router.post("/auth/password-reset/request")
+async def request_password_reset(data: PasswordResetRequest):
+    """Request a password reset - sends verification code via email"""
+    email = data.email.lower()
+    
+    # Check if user exists
+    user = await db.users.find_one({"email": email}, {"_id": 0})
+    
+    # Always return success to prevent email enumeration
+    if not user:
+        logger.info(f"Password reset requested for non-existent email: {email}")
+        return {"message": "If an account exists with this email, a verification code has been sent."}
+    
+    # Check if this is an OAuth-only account
+    if user.get("auth_type") == "google" and not user.get("password_hash"):
+        return {"message": "This account uses Google login. Please sign in with Google instead."}
+    
+    # Generate 6-digit code
+    code = generate_reset_code()
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
+    
+    # Store reset code
+    await db.password_resets.delete_many({"email": email})
+    await db.password_resets.insert_one({
+        "email": email,
+        "code": code,
+        "expires_at": expires_at.isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "used": False
+    })
+    
+    # Send email
+    if resend.api_key:
+        try:
+            html_content = f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #22c55e, #16a34a); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 24px;">🐕 CanineCompass</h1>
+                    <p style="color: rgba(255,255,255,0.9); margin-top: 8px;">Password Reset Request</p>
+                </div>
+                <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 12px 12px;">
+                    <p style="color: #374151; font-size: 16px;">Hi {user.get('name', 'there')}!</p>
+                    <p style="color: #6b7280; font-size: 14px;">You requested a password reset for your CanineCompass account. Use the code below to reset your password:</p>
+                    <div style="background: white; border: 2px dashed #22c55e; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+                        <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #22c55e;">{code}</span>
+                    </div>
+                    <p style="color: #9ca3af; font-size: 12px; text-align: center;">This code expires in 15 minutes.</p>
+                    <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">If you didn't request this reset, you can safely ignore this email.</p>
+                    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+                    <p style="color: #9ca3af; font-size: 12px; text-align: center;">© 2026 CanineCompass - Your K9 Training Companion</p>
+                </div>
+            </div>
+            """
+            
+            params = {
+                "from": SENDER_EMAIL,
+                "to": [email],
+                "subject": "🐕 Your CanineCompass Password Reset Code",
+                "html": html_content
+            }
+            
+            await asyncio.to_thread(resend.Emails.send, params)
+            logger.info(f"Password reset email sent to {email}")
+        except Exception as e:
+            logger.error(f"Failed to send password reset email: {str(e)}")
+            # Still return success but log the error
+    else:
+        logger.warning("RESEND_API_KEY not configured. Reset code generated but email not sent.")
+        logger.info(f"DEV MODE: Password reset code for {email}: {code}")
+    
+    return {"message": "If an account exists with this email, a verification code has been sent."}
+
+@api_router.post("/auth/password-reset/verify")
+async def verify_password_reset(data: PasswordResetVerify, response: Response):
+    """Verify reset code and set new password"""
+    email = data.email.lower()
+    
+    # Find reset record
+    reset_record = await db.password_resets.find_one({
+        "email": email,
+        "code": data.code,
+        "used": False
+    }, {"_id": 0})
+    
+    if not reset_record:
+        raise HTTPException(status_code=400, detail="Invalid or expired verification code")
+    
+    # Check expiration
+    expires_at = datetime.fromisoformat(reset_record["expires_at"])
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Verification code has expired")
+    
+    # Validate new password
+    if len(data.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    
+    # Update password
+    result = await db.users.update_one(
+        {"email": email},
+        {"$set": {
+            "password_hash": hash_password(data.new_password),
+            "auth_type": "email"
+        }}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Mark code as used
+    await db.password_resets.update_one(
+        {"email": email, "code": data.code},
+        {"$set": {"used": True}}
+    )
+    
+    # Get user and create session
+    user = await db.users.find_one({"email": email}, {"_id": 0})
+    
+    session_token = f"sess_{uuid.uuid4().hex}"
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    await db.user_sessions.delete_many({"user_id": user["user_id"]})
+    await db.user_sessions.insert_one({
+        "user_id": user["user_id"],
+        "session_token": session_token,
+        "expires_at": expires_at.isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    response.set_cookie(
+        key="session_token", value=session_token,
+        httponly=True, secure=True, samesite="none",
+        max_age=7 * 24 * 60 * 60, path="/"
+    )
+    
+    return {
+        "message": "Password reset successful! You are now logged in.",
+        "user_id": user["user_id"],
+        "email": user["email"],
+        "name": user["name"]
+    }
+
 # ==================== DAILY LOGIN REWARDS ====================
 
 STREAK_REWARDS = {
