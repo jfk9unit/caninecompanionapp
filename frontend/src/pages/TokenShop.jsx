@@ -410,7 +410,7 @@ export const TokenShop = ({ user }) => {
             <h2 className="font-heading font-semibold text-xl mb-4">How Tokens Work</h2>
             <div className="grid sm:grid-cols-3 gap-6">
               {[
-                { icon: CreditCard, title: "Purchase Tokens", desc: "Buy token packages with Stripe, PayPal, or bank cards" },
+                { icon: CreditCard, title: "Purchase Tokens", desc: "Buy token packages with Stripe or bank cards" },
                 { icon: Sparkles, title: "Unlock Training", desc: "Use tokens to access premium training lessons (6-25 tokens each)" },
                 { icon: Gift, title: "Earn Rewards", desc: "Refer friends and complete training to earn bonus tokens" }
               ].map((item, index) => (
