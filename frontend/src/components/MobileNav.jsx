@@ -10,7 +10,9 @@ import {
   MoreHorizontal,
   Bell,
   Award,
-  Ticket
+  BookOpen,
+  User,
+  Clock
 } from "lucide-react";
 import {
   Sheet,
