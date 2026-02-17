@@ -220,11 +220,17 @@ export const DailyRewardCard = ({ onClaim }) => {
                       {claimedToday ? "Tomorrow's Reward" : "Today's Reward"}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      +{nextReward.tokens} Tokens, +{nextReward.xp} XP
+                      +{isVip ? 20 : nextReward.tokens} Tokens, +{isVip ? nextReward.xp * 2 : nextReward.xp} XP
+                      {isVip && <span className="text-amber-600 font-medium"> (VIP Bonus!)</span>}
                     </p>
                   </div>
                 </div>
-                {currentStreak >= 7 && (
+                {isVip ? (
+                  <Badge className="bg-amber-100 text-amber-700 rounded-full">
+                    <Star className="w-3 h-3 mr-1" />
+                    VIP
+                  </Badge>
+                ) : currentStreak >= 7 && (
                   <Badge className="bg-purple-100 text-purple-700 rounded-full">
                     <Star className="w-3 h-3 mr-1" />
                     Week Bonus!
