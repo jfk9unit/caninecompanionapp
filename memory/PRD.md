@@ -463,6 +463,12 @@ Build a comprehensive canine training and care app covering all levels of dog tr
   - Terms of Service page at /terms (public route)
   - Footer links on landing page for legal compliance
   - Contact emails: privacy@caninecompass.app, legal@caninecompass.app
+- [x] **TWA (Trusted Web Activity) Setup (Feb 17, 2026)**:
+  - Digital Asset Links file at /.well-known/assetlinks.json
+  - TWA manifest configuration (twa-manifest.json)
+  - Comprehensive TWA Setup Guide (TWA_SETUP_GUIDE.md)
+  - Package ID: com.caninecompass.app
+  - Instructions for Bubblewrap CLI and PWABuilder methods
 
 ## Backlog
 
