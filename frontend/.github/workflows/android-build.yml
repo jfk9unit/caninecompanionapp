@@ -44,6 +44,19 @@ jobs:
     
     - name: Make gradlew executable
       run: chmod +x frontend/android/gradlew
+
+    - name: Decode Keystore
+      run: |
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > frontend/android/caninecompass-release.keystore
+      
+    - name: Create keystore.properties
+      run: |
+        cat > frontend/android/keystore.properties << EOF
+        storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+        keyPassword=${{ secrets.KEY_PASSWORD }}
+        keyAlias=${{ secrets.KEY_ALIAS }}
+        storeFile=caninecompass-release.keystore
+        EOF
     
     - name: Build Debug APK
       run: |
@@ -69,7 +82,7 @@ jobs:
     - name: Upload Release APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-release
+        name: app-release-apk
         path: frontend/android/app/build/outputs/apk/release/app-release.apk
     
     - name: Upload Release AAB
