@@ -17,44 +17,78 @@ import {
   Megaphone,
   Smartphone,
   Check,
-  X
+  X,
+  LogIn,
+  Heart,
+  Zap,
+  PawPrint,
+  Calendar
 } from "lucide-react";
 
 const NOTIFICATION_OPTIONS = [
+  {
+    id: "auto_login_reminder",
+    title: "Daily Login Reminders",
+    description: "Get reminded to log in daily to maintain your streak",
+    icon: LogIn,
+    color: "text-blue-500",
+    category: "reminders"
+  },
+  {
+    id: "pet_care_reminders",
+    title: "Pet Care Reminders",
+    description: "Reminders to feed and play with your virtual K9",
+    icon: Heart,
+    color: "text-pink-500",
+    category: "reminders"
+  },
+  {
+    id: "streak_reminders",
+    title: "Streak Alerts",
+    description: "Don't lose your training streak! Get timely reminders",
+    icon: Zap,
+    color: "text-yellow-500",
+    category: "reminders"
+  },
   {
     id: "training_reminders",
     title: "Training Reminders",
     description: "Get reminded to continue your training sessions",
     icon: GraduationCap,
-    color: "text-purple-500"
+    color: "text-purple-500",
+    category: "training"
   },
   {
     id: "daily_tips",
     title: "Daily Tips",
     description: "Receive helpful dog training tips every day",
     icon: Lightbulb,
-    color: "text-amber-500"
+    color: "text-amber-500",
+    category: "training"
   },
   {
     id: "achievement_alerts",
     title: "Achievement Alerts",
     description: "Be notified when you unlock new achievements",
     icon: Trophy,
-    color: "text-green-500"
+    color: "text-green-500",
+    category: "achievements"
   },
   {
     id: "tournament_updates",
     title: "Tournament Updates",
     description: "Stay updated on seasonal competitions and rankings",
     icon: Flame,
-    color: "text-orange-500"
+    color: "text-orange-500",
+    category: "achievements"
   },
   {
     id: "marketing",
     title: "Promotional Offers",
     description: "Receive special offers and discounts",
     icon: Megaphone,
-    color: "text-pink-500"
+    color: "text-pink-500",
+    category: "other"
   }
 ];
 
