@@ -63,8 +63,7 @@ export const EliteNasduCourses = ({ user }) => {
     try {
       const response = await axios.post(`${API}/nasdu/course/checkout`, {
         course_id: courseId,
-        success_url: `${window.location.origin}/elite-courses?success=true`,
-        cancel_url: `${window.location.origin}/elite-courses?cancelled=true`
+        origin_url: window.location.origin
       }, { withCredentials: true });
       
       if (response.data.checkout_url) {
