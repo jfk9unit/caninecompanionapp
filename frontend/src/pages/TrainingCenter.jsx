@@ -48,6 +48,7 @@ import {
   calculateQuestionnaireResult,
   getLessonVideo
 } from "@/data/trainingVisuals";
+import { MiniVideoPlayer, getVideoUrl } from "@/components/VideoPlayer";
 
 const levelColors = {
   beginner: { bg: 'bg-green-100', text: 'text-green-700', gradient: 'from-green-500 to-emerald-600' },

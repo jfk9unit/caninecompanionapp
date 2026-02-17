@@ -335,6 +335,197 @@ class SoundManager {
     oscillator.start(now);
     oscillator.stop(now + 1);
   }
+
+  // Howl - Long wolf-like howl
+  howl() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.audioContext) return;
+
+    const oscillator = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
+
+    const now = this.audioContext.currentTime;
+    oscillator.type = 'sine';
+    
+    // Start low, rise to peak, hold, then fade
+    oscillator.frequency.setValueAtTime(200, now);
+    oscillator.frequency.exponentialRampToValueAtTime(400, now + 0.3);
+    oscillator.frequency.exponentialRampToValueAtTime(600, now + 0.6);
+    oscillator.frequency.setValueAtTime(600, now + 1.2);
+    oscillator.frequency.exponentialRampToValueAtTime(500, now + 1.5);
+    oscillator.frequency.exponentialRampToValueAtTime(300, now + 2);
+    
+    gainNode.gain.setValueAtTime(0.05, now);
+    gainNode.gain.linearRampToValueAtTime(0.25, now + 0.5);
+    gainNode.gain.setValueAtTime(0.25, now + 1.2);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 2);
+
+    oscillator.start(now);
+    oscillator.stop(now + 2);
+  }
+
+  // Wolf howl - More complex, wilder howl
+  wolfHowl() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.audioContext) return;
+
+    // Create multiple oscillators for richer sound
+    const osc1 = this.audioContext.createOscillator();
+    const osc2 = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
+    const merger = this.audioContext.createChannelMerger(2);
+    
+    osc1.connect(merger, 0, 0);
+    osc2.connect(merger, 0, 1);
+    merger.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
+
+    const now = this.audioContext.currentTime;
+    osc1.type = 'sine';
+    osc2.type = 'triangle';
+    
+    // Primary howl
+    osc1.frequency.setValueAtTime(150, now);
+    osc1.frequency.exponentialRampToValueAtTime(350, now + 0.4);
+    osc1.frequency.exponentialRampToValueAtTime(550, now + 0.8);
+    osc1.frequency.setValueAtTime(550, now + 1.5);
+    osc1.frequency.exponentialRampToValueAtTime(450, now + 2);
+    osc1.frequency.exponentialRampToValueAtTime(250, now + 2.5);
+    
+    // Harmonic layer (slightly detuned for richness)
+    osc2.frequency.setValueAtTime(155, now);
+    osc2.frequency.exponentialRampToValueAtTime(355, now + 0.4);
+    osc2.frequency.exponentialRampToValueAtTime(555, now + 0.8);
+    osc2.frequency.setValueAtTime(555, now + 1.5);
+    osc2.frequency.exponentialRampToValueAtTime(455, now + 2);
+    osc2.frequency.exponentialRampToValueAtTime(255, now + 2.5);
+    
+    gainNode.gain.setValueAtTime(0.05, now);
+    gainNode.gain.linearRampToValueAtTime(0.2, now + 0.6);
+    gainNode.gain.setValueAtTime(0.2, now + 1.5);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 2.5);
+
+    osc1.start(now);
+    osc2.start(now);
+    osc1.stop(now + 2.5);
+    osc2.stop(now + 2.5);
+  }
+
+  // Deep growl - More intense, sustained growl
+  deepGrowl() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.audioContext) return;
+
+    const oscillator = this.audioContext.createOscillator();
+    const oscillator2 = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    oscillator2.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
+
+    const now = this.audioContext.currentTime;
+    oscillator.type = 'sawtooth';
+    oscillator2.type = 'square';
+    
+    // Main growl
+    oscillator.frequency.setValueAtTime(60, now);
+    oscillator.frequency.linearRampToValueAtTime(90, now + 0.3);
+    oscillator.frequency.linearRampToValueAtTime(70, now + 0.6);
+    oscillator.frequency.linearRampToValueAtTime(100, now + 0.9);
+    oscillator.frequency.linearRampToValueAtTime(50, now + 1.2);
+    
+    // Sub harmonics
+    oscillator2.frequency.setValueAtTime(30, now);
+    oscillator2.frequency.linearRampToValueAtTime(45, now + 0.3);
+    oscillator2.frequency.linearRampToValueAtTime(35, now + 0.6);
+    
+    gainNode.gain.setValueAtTime(0.15, now);
+    gainNode.gain.linearRampToValueAtTime(0.25, now + 0.3);
+    gainNode.gain.linearRampToValueAtTime(0.2, now + 0.8);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
+
+    oscillator.start(now);
+    oscillator2.start(now);
+    oscillator.stop(now + 1.2);
+    oscillator2.stop(now + 1.2);
+  }
+
+  // Alert bark - Sharp warning bark
+  alertBark() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.audioContext) return;
+
+    const oscillator = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
+
+    const now = this.audioContext.currentTime;
+    
+    // Sharp, loud bark
+    oscillator.frequency.setValueAtTime(350, now);
+    oscillator.frequency.exponentialRampToValueAtTime(500, now + 0.02);
+    oscillator.frequency.exponentialRampToValueAtTime(250, now + 0.08);
+    
+    gainNode.gain.setValueAtTime(0.4, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+
+    oscillator.start(now);
+    oscillator.stop(now + 0.12);
+    
+    // Double bark for alertness
+    setTimeout(() => {
+      if (!this.enabled) return;
+      const osc2 = this.audioContext.createOscillator();
+      const gain2 = this.audioContext.createGain();
+      osc2.connect(gain2);
+      gain2.connect(this.audioContext.destination);
+      
+      const t = this.audioContext.currentTime;
+      osc2.frequency.setValueAtTime(380, t);
+      osc2.frequency.exponentialRampToValueAtTime(520, t + 0.02);
+      osc2.frequency.exponentialRampToValueAtTime(280, t + 0.08);
+      gain2.gain.setValueAtTime(0.35, t);
+      gain2.gain.exponentialRampToValueAtTime(0.01, t + 0.12);
+      osc2.start(t);
+      osc2.stop(t + 0.12);
+    }, 180);
+  }
+
+  // Playful yip - High-pitched playful sound
+  playfulYip() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.audioContext) return;
+
+    const oscillator = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
+
+    const now = this.audioContext.currentTime;
+    oscillator.type = 'sine';
+    
+    oscillator.frequency.setValueAtTime(600, now);
+    oscillator.frequency.exponentialRampToValueAtTime(900, now + 0.03);
+    oscillator.frequency.exponentialRampToValueAtTime(500, now + 0.08);
+    
+    gainNode.gain.setValueAtTime(0.2, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+
+    oscillator.start(now);
+    oscillator.stop(now + 0.1);
+  }
 }
 
 // Create singleton instance
