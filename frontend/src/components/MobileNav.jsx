@@ -34,6 +34,7 @@ const moreNavItems = [
   { href: "/tokens", label: "Token Shop", icon: Coins },
   { href: "/notifications", label: "Notifications", icon: Bell },
   { href: "/health", label: "Health Hub", icon: Home },
+  { href: "/admin/promo-codes", label: "Promo Codes", icon: Ticket },
 ];
 
 export const MobileNav = () => {
