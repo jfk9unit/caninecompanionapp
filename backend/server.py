@@ -421,8 +421,11 @@ async def claim_daily_reward(user: User = Depends(get_current_user)):
         streak_day = ((new_streak - 1) % 7) + 1  # Cycle through week rewards
     
     reward = STREAK_REWARDS.get(streak_day, STREAK_REWARDS[1])
-    tokens_earned = reward["tokens"]
-    xp_earned = reward["xp"]
+    
+    # VIP players get 20 tokens daily!
+    is_vip = user.email in VIP_PLAYERS
+    tokens_earned = 20 if is_vip else reward["tokens"]
+    xp_earned = reward["xp"] * 2 if is_vip else reward["xp"]  # VIP gets double XP too
     
     # Check for milestone rewards
     milestone_bonus = 0
