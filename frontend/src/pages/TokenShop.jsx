@@ -17,7 +17,6 @@ import {
   Crown,
   Sparkles,
   Gift,
-  Check,
   Users,
   Copy,
   Share2,
@@ -25,7 +24,6 @@ import {
   Percent,
   QrCode,
   Download,
-  Wallet,
   Ticket
 } from "lucide-react";
 import { RedeemCodeCard } from "@/components/RedeemCode";
@@ -294,14 +292,14 @@ export const TokenShop = ({ user }) => {
             <CardContent className="p-6">
               <h3 className="font-semibold mb-4">Accepted Payment Methods</h3>
               <div className="flex flex-wrap gap-4">
-                {['Visa', 'Mastercard', 'Amex', 'PayPal', 'Apple Pay', 'Google Pay', 'Bank Transfer'].map((method) => (
+                {['Visa', 'Mastercard', 'Amex', 'Apple Pay', 'Google Pay', 'Bank Transfer'].map((method) => (
                   <Badge key={method} variant="outline" className="rounded-full px-4 py-2">
                     {method}
                   </Badge>
                 ))}
               </div>
               <p className="text-sm text-muted-foreground mt-4">
-                All payments are processed securely. Your card details are never stored on our servers.
+                All payments are processed securely via Stripe. Your card details are never stored on our servers.
               </p>
             </CardContent>
           </Card>
