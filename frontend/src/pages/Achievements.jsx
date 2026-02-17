@@ -275,25 +275,23 @@ export const Achievements = ({ user }) => {
                             
                             <div className="flex gap-2">
                               <Button
-                                onClick={() => shareAchievement(achievement)}
-                                disabled={sharing === achievement.achievement_id}
+                                onClick={() => previewCertificate(achievement)}
                                 variant="outline"
                                 size="sm"
                                 className="flex-1 rounded-full"
-                                data-testid={`share-${achievement.achievement_id}`}
+                                data-testid={`preview-${achievement.achievement_id}`}
                               >
-                                <Share2 className="w-3 h-3 mr-1" />
-                                {achievement.shared ? 'Shared' : 'Share'}
+                                <Eye className="w-3 h-3 mr-1" />
+                                Preview
                               </Button>
                               <Button
-                                onClick={() => downloadCertificate(achievement)}
-                                variant="outline"
+                                onClick={() => handleDownloadCertificate(achievement)}
+                                className="flex-1 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-black font-semibold"
                                 size="sm"
-                                className="flex-1 rounded-full"
                                 data-testid={`download-${achievement.achievement_id}`}
                               >
                                 <Download className="w-3 h-3 mr-1" />
-                                Certificate
+                                Gold Cert
                               </Button>
                             </div>
                           </CardContent>
