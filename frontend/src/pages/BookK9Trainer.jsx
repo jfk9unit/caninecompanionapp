@@ -440,15 +440,23 @@ export const BookK9Trainer = ({ user }) => {
                           {/* Session Type */}
                           <div className="space-y-2">
                             <Label>Session Type</Label>
-                            <Tabs value={sessionType} onValueChange={setSessionType}>
-                              <TabsList className="w-full">
-                                <TabsTrigger value="virtual" className="flex-1">
-                                  <Video className="w-4 h-4 mr-2" />
+                            <Tabs value={sessionType} onValueChange={(val) => {
+                              setSessionType(val);
+                              if (val === 'emergency') setDuration('emergency');
+                              else setDuration('60min');
+                            }}>
+                              <TabsList className="w-full grid grid-cols-3">
+                                <TabsTrigger value="virtual" className="text-xs sm:text-sm">
+                                  <Video className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                                   Virtual
                                 </TabsTrigger>
-                                <TabsTrigger value="in_person" className="flex-1">
-                                  <Car className="w-4 h-4 mr-2" />
-                                  In-Person
+                                <TabsTrigger value="in_person" className="text-xs sm:text-sm">
+                                  <Car className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                                  Home Visit
+                                </TabsTrigger>
+                                <TabsTrigger value="emergency" className="text-xs sm:text-sm text-red-600 data-[state=active]:text-red-600">
+                                  <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                                  24/7
                                 </TabsTrigger>
                               </TabsList>
                             </Tabs>
