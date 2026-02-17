@@ -3175,10 +3175,16 @@ class CourseCheckoutRequest(BaseModel):
 @api_router.post("/trainers/checkout")
 async def trainer_checkout(request: TrainerCheckoutRequest, http_request: Request, user: User = Depends(get_current_user)):
     """Create Stripe checkout for trainer booking"""
-    # Verify trainer exists
-    trainer = next((t for t in APPROVED_K9_TRAINERS if t["trainer_id"] == request.trainer_id), None)
+    # Check our team first, then approved trainers
+    trainer = next((t for t in OUR_K9_TEAM if t["trainer_id"] == request.trainer_id), None)
+    if not trainer:
+        trainer = next((t for t in APPROVED_K9_TRAINERS if t["trainer_id"] == request.trainer_id), None)
     if not trainer:
         raise HTTPException(status_code=404, detail="Trainer not found")
+    
+    # Check if trying to book approved trainer (coming soon)
+    if trainer.get("trainer_id", "").startswith("trainer_"):
+        raise HTTPException(status_code=400, detail="3rd party approved trainers coming soon. Please book from Our K9 Team.")
     
     # Calculate cost - amounts defined on backend only for security
     if request.session_type == "emergency":
