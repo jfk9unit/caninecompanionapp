@@ -176,7 +176,9 @@ export const Dashboard = ({ user }) => {
   const [newDog, setNewDog] = useState({
     name: '',
     breed: '',
+    age_years: '',
     age_months: '',
+    age_days: '',
     weight_kg: '',
     size: 'medium'
   });
@@ -211,12 +213,14 @@ export const Dashboard = ({ user }) => {
     try {
       await axios.post(`${API}/dogs`, {
         ...newDog,
-        age_months: parseInt(newDog.age_months) || 12,
+        age_years: parseInt(newDog.age_years) || 0,
+        age_months: parseInt(newDog.age_months) || 0,
+        age_days: parseInt(newDog.age_days) || 0,
         weight_kg: parseFloat(newDog.weight_kg) || 10
       }, { withCredentials: true });
       toast.success(`${newDog.name} added to your pack!`);
       setAddDogOpen(false);
-      setNewDog({ name: '', breed: '', age_months: '', weight_kg: '', size: 'medium' });
+      setNewDog({ name: '', breed: '', age_years: '', age_months: '', age_days: '', weight_kg: '', size: 'medium' });
       fetchData();
     } catch (error) {
       toast.error('Failed to add dog');
