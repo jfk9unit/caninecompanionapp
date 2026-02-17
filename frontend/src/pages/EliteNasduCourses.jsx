@@ -345,21 +345,16 @@ export const EliteNasduCourses = ({ user }) => {
                         <DialogFooter>
                           <Button 
                             onClick={() => handleEnroll(course.course_id)}
-                            disabled={enrolling || !pretestStatus?.has_passed}
+                            disabled={enrolling}
                             className="w-full rounded-full bg-amber-500 hover:bg-amber-600 text-black font-semibold"
                             data-testid={`enroll-course-${course.course_id}`}
                           >
-                            {!pretestStatus?.has_passed ? (
-                              <>
-                                <FileCheck className="w-4 h-4 mr-2" />
-                                Pass Pre-Test to Enroll
-                              </>
-                            ) : enrolling ? (
+                            {enrolling ? (
                               "Processing..."
                             ) : (
                               <>
-                                <GraduationCap className="w-4 h-4 mr-2" />
-                                Enroll Now - £{course.commission_price.toLocaleString()}
+                                <CreditCard className="w-4 h-4 mr-2" />
+                                Pay & Enroll - £{course.commission_price.toLocaleString()}
                               </>
                             )}
                           </Button>
