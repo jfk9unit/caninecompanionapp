@@ -49,7 +49,7 @@ export const TokenShop = ({ user }) => {
   const [balance, setBalance] = useState({ tokens: 0, referral_code: "", total_referrals: 0 });
   const [loading, setLoading] = useState(null);
   const [searchParams] = useSearchParams();
-  const [paymentMethod, setPaymentMethod] = useState("stripe");
+  const [paymentMethod] = useState("stripe");
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [isFirstPurchase, setIsFirstPurchase] = useState(false);
   const [qrCodeData, setQrCodeData] = useState(null);
