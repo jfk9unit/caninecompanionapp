@@ -599,3 +599,26 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - Payments: Stripe, PayPal via emergentintegrations
 - Email: Resend for password reset emails
 - Audio: Browser Speech Synthesis API for training guides (FREE)
+
+### 36. Creator Analytics Dashboard (NEW - Feb 17, 2026)
+- Comprehensive analytics page at /analytics
+- Key metrics: Total users, revenue, active users, retention rate
+- Revenue breakdown: Token purchases, premium features, referrals
+- User activity: Training sessions, lessons completed, pet interactions, chat messages
+- Growth tracking with period comparisons
+- User segments: Free, token buyers, VIP
+- Engagement metrics: DAU, WAU, MAU rates
+- Token economy overview
+- Time range selector (7d, 30d, 90d, 365d)
+- Demo data fallback for non-admin users
+
+### 37. Revenue Projection Report (Feb 17, 2026)
+- 5-year financial analysis document at /app/REVENUE_PROJECTIONS.md
+- Based on 50 users/quarter with 10% annual growth
+- Detailed quarterly projections through 2030
+- Revenue breakdown by stream
+- Cost analysis and profit margins
+- Growth scenarios (conservative to aggressive)
+- Key KPIs to track
+- Break-even analysis
+- Investment considerations
