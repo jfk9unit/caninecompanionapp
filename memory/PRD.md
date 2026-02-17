@@ -792,3 +792,26 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - Free standard shipping over £75
 - 0.05% Pay Now discount at checkout
 - Variable delivery by category (£2.99-£18.99)
+
+### 47. Android App Setup (Feb 17, 2026)
+- **PWA Enhancement**: Already configured with:
+  - Full manifest.json with app icons (72px-512px)
+  - Service worker for offline support
+  - Push notification support
+  - App shortcuts for quick actions
+  - Splash screens
+- **Capacitor Android Integration**:
+  - Capacitor 5.x configured
+  - Android project created at `/frontend/android/`
+  - App ID: `com.caninecompass.app`
+  - Build scripts added to package.json:
+    - `yarn android:build` - Build web + sync Android
+    - `yarn android:sync` - Sync web assets to Android
+    - `yarn android:open` - Open in Android Studio
+  - Android resources configured (colors, styles, permissions)
+- **Build Guide**: `/frontend/ANDROID_BUILD.md`
+
+## Android Distribution Options
+1. **PWA Install** - Users can install from Chrome browser (Add to Home Screen)
+2. **APK Direct Install** - Build APK and distribute directly
+3. **Google Play Store** - Build signed AAB and submit to Play Console
