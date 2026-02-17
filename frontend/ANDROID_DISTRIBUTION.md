@@ -1,5 +1,35 @@
 # CanineCompass - Complete Android Distribution Guide
 
+## ⚠️ Important Note
+Android APK/AAB builds require x86_64 architecture. The Emergent platform runs on ARM64, so builds must be done:
+1. **Locally** on Windows/Mac/Linux with Android Studio
+2. **Via GitHub Actions** (automated, free)
+3. **Via cloud build services** (Codemagic, Bitrise, etc.)
+
+## Option 1: GitHub Actions (Recommended - Free & Automatic)
+
+A GitHub Actions workflow is included that will automatically build your APK when you push to GitHub.
+
+### Setup Steps:
+1. Push your code to GitHub using "Save to Github" in Emergent
+2. Go to your repository > Actions tab
+3. Click "Android Build" workflow
+4. Click "Run workflow"
+5. Wait ~5 minutes for build to complete
+6. Download APK from "Artifacts" section
+
+### Workflow Location:
+`.github/workflows/android-build.yml`
+
+### Output Artifacts:
+- `app-debug.apk` - For testing
+- `app-release.apk` - For direct distribution
+- `app-release.aab` - For Google Play Store
+
+---
+
+## Option 2: Local Build
+
 ## Download Package
 📦 **Download**: `caninecompass-android.zip` (31 MB)
 
