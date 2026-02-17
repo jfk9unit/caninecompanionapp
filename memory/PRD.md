@@ -685,3 +685,26 @@ Build a comprehensive canine training and care app covering all levels of dog tr
 - Key KPIs to track
 - Break-even analysis
 - Investment considerations
+
+### 43. Trainer Segregation UI (Feb 17, 2026)
+- BookK9Trainer page now displays two trainer sections:
+  - **Our K9 Team**: 3 trainers with "Available Now" badge and green "Book Now" buttons
+  - **Approved 3rd Party Trainers**: 5 trainers with "Coming Soon" badge, grayscale effect, and disabled buttons
+- Backend `/api/trainers` returns `our_team` and `approved_contractors` arrays
+- 3rd party trainers marked as Coming Soon in the UI
+- Booking is only enabled for Our K9 Team members
+
+## Deployment Status (Feb 17, 2026)
+- All services running via Supervisor (backend, frontend, mongodb)
+- Backend health check: HEALTHY (132 breeds, 90 lessons)
+- Frontend: PWA-ready with manifest, service worker
+- E2E testing: 100% pass rate (22/22 backend tests, all frontend features verified)
+- Stripe integration: Working via emergentintegrations library
+- NASDU Courses: 6 courses available with Stripe checkout
+- K9 Trainer Booking: Working with Our K9 Team (3 trainers)
+
+## Known Mocked/Coming Soon Features
+1. NASDU Pre-Assessment Test - Coming Soon
+2. 3rd Party Trainer Booking - Coming Soon
+3. Multi-language support - UI only (selector exists but no translations)
+4. Realistic pet sounds - Using synthesized Web Audio API sounds
