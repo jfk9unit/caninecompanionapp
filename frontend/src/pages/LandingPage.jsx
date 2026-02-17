@@ -14,10 +14,11 @@ import {
 } from "lucide-react";
 
 export const LandingPage = () => {
-  // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+  // Use environment variable for auth URL
   const handleLogin = () => {
     const redirectUrl = window.location.origin + '/dashboard';
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+    const authUrl = process.env.REACT_APP_AUTH_URL || 'https://auth.emergentagent.com';
+    window.location.href = `${authUrl}?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
   const features = [
