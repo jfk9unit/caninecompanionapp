@@ -151,6 +151,70 @@ export const Leaderboard = ({ user }) => {
             )}
           </div>
 
+          {/* Seasonal Tournament Banner */}
+          {tournament && (
+            <Card className={`rounded-2xl overflow-hidden border-0`} data-testid="tournament-banner">
+              <div className={`bg-gradient-to-r ${TOURNAMENT_THEMES[tournament.tournament?.theme]?.color || 'from-purple-600 to-indigo-700'} p-6 sm:p-8`}>
+                <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="p-4 bg-white/20 rounded-2xl">
+                      {(() => {
+                        const Icon = TOURNAMENT_THEMES[tournament.tournament?.theme]?.icon || Trophy;
+                        return <Icon className="w-10 h-10 text-white" />;
+                      })()}
+                    </div>
+                    <div className="text-white">
+                      <Badge className="bg-white/20 text-white rounded-full mb-2">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        {tournament.days_remaining} days left
+                      </Badge>
+                      <h2 className="font-heading font-bold text-2xl">{tournament.tournament?.name}</h2>
+                      <p className="text-white/80 text-sm mt-1">{tournament.tournament?.description}</p>
+                    </div>
+                  </div>
+                  
+                  {myTournamentPos && (
+                    <div className="bg-white/10 rounded-2xl p-4 text-white text-center min-w-[140px]">
+                      <p className="text-white/70 text-xs mb-1">Your Position</p>
+                      <p className="text-4xl font-bold">#{myTournamentPos.rank}</p>
+                      <p className="text-sm text-white/80">{myTournamentPos.score} pts</p>
+                      {myTournamentPos.prize_tier && (
+                        <Badge className="mt-2 bg-yellow-400 text-yellow-900 rounded-full text-xs">
+                          <Gift className="w-3 h-3 mr-1" />
+                          {myTournamentPos.potential_prize?.tokens} tokens prize
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Tournament Top 3 */}
+                {tournament.leaderboard?.length >= 3 && (
+                  <div className="mt-6 pt-6 border-t border-white/20">
+                    <p className="text-white/70 text-sm mb-3">Top Competitors</p>
+                    <div className="flex gap-4 flex-wrap">
+                      {tournament.leaderboard.slice(0, 3).map((player, idx) => (
+                        <div key={player.user_id} className="flex items-center gap-3 bg-white/10 rounded-xl p-3">
+                          <span className="text-2xl font-bold text-white/60">#{idx + 1}</span>
+                          <Avatar className="w-10 h-10 border-2 border-white/30">
+                            <AvatarImage src={player.picture} />
+                            <AvatarFallback className="bg-white/20 text-white">
+                              {player.name?.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-white font-medium text-sm">{player.name}</p>
+                            <p className="text-white/60 text-xs">{player.score} pts</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
           {/* Weekly Challenges */}
           <div>
             <div className="flex items-center justify-between mb-4">
