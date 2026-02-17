@@ -1238,7 +1238,7 @@ export const VirtualPet = ({ user }) => {
                       label="Happy Bark"
                       sublabel="Cheerful bark! 🐕"
                       color="bg-gradient-to-r from-green-500 to-emerald-600"
-                      onClick={() => { if (soundEnabled) soundManager.bark('happy'); toast.success(`${pet.name} is happy!`); }}
+                      onClick={() => { if (soundEnabled) audioManager.barkHappy(); toast.success(`${pet.name} is happy!`); }}
                       disabled={isSleeping || !soundEnabled}
                       loading={false}
                     />
