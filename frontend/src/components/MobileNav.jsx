@@ -9,7 +9,8 @@ import {
   Coins,
   MoreHorizontal,
   Bell,
-  Award
+  Award,
+  Ticket
 } from "lucide-react";
 import {
   Sheet,
