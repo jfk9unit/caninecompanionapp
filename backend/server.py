@@ -18,7 +18,6 @@ from emergentintegrations.payments.stripe.checkout import StripeCheckout, Checko
 import qrcode
 from io import BytesIO
 import base64
-import paypalrestsdk
 import resend
 from passlib.context import CryptContext
 
