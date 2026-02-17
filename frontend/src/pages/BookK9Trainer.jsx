@@ -114,8 +114,7 @@ export const BookK9Trainer = ({ user }) => {
         from_postcode: sessionType === "in_person" ? fromPostcode : null,
         to_postcode: sessionType === "in_person" ? toPostcode : null,
         notes: notes,
-        success_url: `${window.location.origin}/book-trainer?success=true`,
-        cancel_url: `${window.location.origin}/book-trainer?cancelled=true`
+        origin_url: window.location.origin
       }, { withCredentials: true });
       
       if (response.data.checkout_url) {
