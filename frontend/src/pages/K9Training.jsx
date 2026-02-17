@@ -566,26 +566,11 @@ export const K9Training = ({ user }) => {
                         </Card>
                       )}
 
-                      {/* Video Tutorial Section - K9 Training */}
-                      <Card className="bg-gradient-to-r from-red-50 to-rose-50 border-red-200 rounded-xl overflow-hidden">
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="p-2 rounded-full bg-red-100">
-                              <Video className="w-5 h-5 text-red-600" />
-                            </div>
-                            <div>
-                              <h4 className="font-medium text-red-800">K9 Training Video</h4>
-                              <p className="text-xs text-red-600">{selectedLesson.title} • Expert Demo</p>
-                            </div>
-                          </div>
-                          <MiniVideoPlayer
-                            videoUrl={getVideoUrl(selectedLesson.lesson_id)}
-                            title={selectedLesson.title}
-                            thumbnail={skillImage}
-                          />
-                          <p className="text-xs text-red-600 mt-2">Professional K9 training demonstration. Always work with a certified trainer!</p>
-                        </CardContent>
-                      </Card>
+                      {/* Audio Training Guide - K9 Training */}
+                      <AudioTrainingGuide 
+                        lessonId={selectedLesson.lesson_id}
+                        lessonTitle={selectedLesson.title}
+                      />
 
                       {/* Training Steps */}
                       <div className="bg-slate-50 rounded-xl p-4">
