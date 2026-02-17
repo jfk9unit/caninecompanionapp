@@ -804,7 +804,7 @@ export const VirtualPet = ({ user }) => {
     setTimeout(() => {
       setIsResting(false);
       setCurrentAction(null);
-      if (soundEnabled) soundManager.bark('normal');
+      if (soundEnabled) audioManager.barkHappy();
     }, 3000);
   };
 
@@ -812,8 +812,8 @@ export const VirtualPet = ({ user }) => {
     setCurrentAction('treat');
     
     if (soundEnabled) {
-      soundManager.bark('happy');
-      setTimeout(() => soundManager.bark('eating'), 200);
+      audioManager.barkHappy();
+      setTimeout(() => audioManager.play('eat'), 200);
     }
     
     toast.success(`${pet.name} loves the treat! 🍪`);
@@ -822,43 +822,43 @@ export const VirtualPet = ({ user }) => {
 
   const playMusic = () => {
     if (soundEnabled) {
-      soundManager.bark('sleepy');
+      audioManager.whine();
     }
     toast.success(`${pet.name} is enjoying calm music... 🎵`);
   };
 
-  // New sound actions
+  // Realistic sound actions with actual audio files
   const doHowl = () => {
     if (soundEnabled) {
-      soundManager.howl();
+      audioManager.howlLong();
     }
     toast.success(`${pet.name} lets out a beautiful howl! 🐺🎶`);
   };
 
   const doWolfHowl = () => {
     if (soundEnabled) {
-      soundManager.wolfHowl();
+      audioManager.howlWolf();
     }
     toast.success(`${pet.name} howls like a wild wolf! 🐺🌙`);
   };
 
   const doGrowl = () => {
     if (soundEnabled) {
-      soundManager.deepGrowl();
+      audioManager.growlDeep();
     }
     toast.success(`${pet.name} shows their fierce side! 😤`);
   };
 
   const doAlertBark = () => {
     if (soundEnabled) {
-      soundManager.alertBark();
+      audioManager.barkAlert();
     }
     toast.success(`${pet.name} is on alert! 🚨`);
   };
 
   const doPlayfulYip = () => {
     if (soundEnabled) {
-      soundManager.playfulYip();
+      audioManager.yip();
     }
     toast.success(`${pet.name} is feeling playful! 🎉`);
   };
@@ -868,7 +868,7 @@ export const VirtualPet = ({ user }) => {
     
     // Bark when starting training
     if (soundEnabled) {
-      soundManager.bark('normal');
+      audioManager.barkAlert();
     }
     
     try {
