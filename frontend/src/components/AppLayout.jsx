@@ -35,7 +35,9 @@ import {
   Mic,
   Flame,
   Shield,
+  Award,
 } from "lucide-react";
+import { MobileNav } from "@/components/MobileNav";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
