@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>CanineCompass</string>
+	<string>CanineCompass</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -45,5 +45,30 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<!-- Camera Permission -->
+	<key>NSCameraUsageDescription</key>
+	<string>CanineCompass needs camera access to take photos of your dog for profiles and health tracking.</string>
+	<!-- Photo Library Permission -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CanineCompass needs photo library access to select photos of your dog.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>CanineCompass needs permission to save photos to your library.</string>
+	<!-- Location Permission (for trainer booking) -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>CanineCompass uses your location to find nearby K9 trainers and calculate travel costs.</string>
+	<!-- Push Notifications -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+	<!-- Status Bar Style -->
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleLightContent</string>
+	<!-- App Transport Security -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
