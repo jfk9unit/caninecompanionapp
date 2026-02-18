@@ -116,6 +116,38 @@ export const PrivacyPolicy = ({ user }) => {
               </p>
             </section>
 
+            {/* Camera Permission Usage */}
+            <section>
+              <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                <Eye className="w-5 h-5 text-green-600" />
+                Camera Permission Usage
+              </h2>
+              <div className="space-y-3 text-gray-700">
+                <p className="leading-relaxed">
+                  CanineCompass requests access to your device's camera for the following purposes:
+                </p>
+                <ul className="list-disc list-inside space-y-2 ml-4">
+                  <li>
+                    <strong>Training Documentation:</strong> Capture photos and videos of your dog's training progress
+                  </li>
+                  <li>
+                    <strong>Dog Profile Photos:</strong> Upload profile pictures for your registered dogs
+                  </li>
+                  <li>
+                    <strong>Behavior Tracking:</strong> Document behavioral observations with visual evidence
+                  </li>
+                  <li>
+                    <strong>Achievement Sharing:</strong> Create shareable content of your training milestones
+                  </li>
+                </ul>
+                <p className="leading-relaxed mt-3">
+                  <strong>Important:</strong> Camera access is optional and the app can be used without granting 
+                  this permission. You can revoke camera access at any time through your device settings. 
+                  We never access your camera without your explicit action and consent.
+                </p>
+              </div>
+            </section>
+
             {/* Data Sharing */}
             <section>
               <h2 className="text-xl font-semibold mb-3">Data Sharing</h2>
