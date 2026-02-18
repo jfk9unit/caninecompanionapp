@@ -184,6 +184,19 @@ export const AppLayout = ({ user, children }) => {
                     <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                   </div>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/notifications')} data-testid="settings-link">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/privacy')} data-testid="privacy-policy-link">
+                    <ShieldCheck className="w-4 h-4 mr-2" />
+                    Privacy Policy
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/terms')} data-testid="terms-link">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Terms of Service
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} data-testid="logout-btn">
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
