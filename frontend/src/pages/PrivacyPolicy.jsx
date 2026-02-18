@@ -2,11 +2,11 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, Lock, Eye, Database, Mail, Globe } from "lucide-react";
+import { ArrowLeft, Shield, Lock, Eye, Database, Mail, Globe, Camera } from "lucide-react";
 
 export const PrivacyPolicy = ({ user }) => {
   const navigate = useNavigate();
-  const lastUpdated = "February 17, 2026";
+  const lastUpdated = "December 19, 2025";
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
