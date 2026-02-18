@@ -68,6 +68,15 @@ export const PrivacyPolicy = ({ user }) => {
                   </ul>
                 </div>
                 <div>
+                  <h3 className="font-medium mb-2">Camera & Media Access</h3>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>Camera access is used solely to capture photos of your dog for training documentation</li>
+                    <li>Photos are stored securely and are only accessible by you</li>
+                    <li>You can delete your photos at any time from the app</li>
+                    <li>We do not share your photos with third parties without your explicit consent</li>
+                  </ul>
+                </div>
+                <div>
                   <h3 className="font-medium mb-2">Payment Information</h3>
                   <ul className="list-disc list-inside space-y-1 ml-4">
                     <li>Transaction history for token purchases</li>
