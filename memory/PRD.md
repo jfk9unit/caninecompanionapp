@@ -943,3 +943,33 @@ yarn ios:open        # Open Xcode
 | Android | Windows/Mac/Linux + Android Studio |
 | iOS | Mac only + Xcode 15+ |
 | PWA | No build needed (already deployed) |
+
+
+### 51. Google Play Store Fixes (Dec 19, 2025)
+- **Version Code Increment**:
+  - Updated `versionCode` from 1 to 2 in `frontend/android/app/build.gradle`
+  - Updated `versionName` to "1.0.1"
+  - Required because Play Store doesn't allow reusing version codes
+- **Privacy Policy Enhancement**:
+  - Enhanced existing `/privacy` page with Camera Permission section
+  - Added detailed explanation of camera usage:
+    - Training documentation
+    - Dog profile photos
+    - Behavior tracking
+    - Achievement sharing
+  - Emphasized camera access is optional and revocable
+  - Updated "Last updated" date to December 19, 2025
+- **Settings Menu Enhancement**:
+  - Added Settings, Privacy Policy, and Terms of Service links to user dropdown menu
+  - Settings → /notifications (Notification Settings page)
+  - Privacy Policy → /privacy
+  - Terms of Service → /terms
+- **Status**: Ready for user to push to GitHub and rebuild via GitHub Actions
+
+## Next Steps for Play Store Submission
+1. Push code changes to GitHub repository
+2. GitHub Actions workflow will automatically build new AAB with versionCode 2
+3. Download the new `app-release.aab` from GitHub Actions artifacts
+4. Upload to Google Play Console
+5. Provide the Privacy Policy URL in Play Console: `https://canine-games-mobile.preview.emergentagent.com/privacy`
+
