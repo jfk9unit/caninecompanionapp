@@ -33,7 +33,7 @@ npm install -g @bubblewrap/cli
 ### Step 2: Initialize Project
 ```bash
 mkdir caninecompass-twa && cd caninecompass-twa
-bubblewrap init --manifest https://k9-elite-hub.preview.emergentagent.com/manifest.json
+bubblewrap init --manifest https://canine-games-mobile.preview.emergentagent.com/manifest.json
 ```
 
 Configuration:
@@ -66,7 +66,7 @@ Outputs: app-release-bundle.aab (Play Store) and app-release-signed.apk (testing
 ## Method 2: PWABuilder (Easier)
 
 1. Go to https://www.pwabuilder.com/
-2. Enter: https://k9-elite-hub.preview.emergentagent.com
+2. Enter: https://canine-games-mobile.preview.emergentagent.com
 3. Click Start
 4. Select Android package
 5. Download and follow instructions
@@ -80,7 +80,7 @@ Outputs: app-release-bundle.aab (Play Store) and app-release-signed.apk (testing
 - Short Description: Train, care, and bond with your dog through AI-powered lessons.
 - Category: Lifestyle
 - Content Rating: Everyone
-- Privacy Policy: https://k9-elite-hub.preview.emergentagent.com/privacy
+- Privacy Policy: https://canine-games-mobile.preview.emergentagent.com/privacy
 
 ### Required Assets
 - App Icon: 512x512 PNG

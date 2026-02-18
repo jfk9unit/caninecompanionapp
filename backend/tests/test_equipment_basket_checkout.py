@@ -281,7 +281,7 @@ class TestEquipmentCheckoutAPI:
                 {"product_id": "harness_001", "quantity": 1}
             ],
             "delivery_type": "standard",
-            "origin_url": "https://k9-elite-hub.preview.emergentagent.com"
+            "origin_url": "https://canine-games-mobile.preview.emergentagent.com"
         }
         
         response = auth_session.post(f"{BASE_URL}/api/equipment/checkout", json=payload)
@@ -307,7 +307,7 @@ class TestEquipmentCheckoutAPI:
                 {"product_id": "bed_001", "quantity": 1}  # £112.20
             ],
             "delivery_type": "standard",
-            "origin_url": "https://k9-elite-hub.preview.emergentagent.com"
+            "origin_url": "https://canine-games-mobile.preview.emergentagent.com"
         }
         
         response = auth_session.post(f"{BASE_URL}/api/equipment/checkout", json=payload)
@@ -336,7 +336,7 @@ class TestEquipmentCheckoutAPI:
         payload = {
             "items": [{"product_id": "harness_001", "quantity": 1}],
             "delivery_type": "standard",
-            "origin_url": "https://k9-elite-hub.preview.emergentagent.com"
+            "origin_url": "https://canine-games-mobile.preview.emergentagent.com"
         }
         
         response = requests.post(f"{BASE_URL}/api/equipment/checkout", json=payload)
@@ -352,7 +352,7 @@ class TestEquipmentCheckoutAPI:
                 {"product_id": "toy_001", "quantity": 2}  # £39.60, toys express: £6.99
             ],
             "delivery_type": "express",
-            "origin_url": "https://k9-elite-hub.preview.emergentagent.com"
+            "origin_url": "https://canine-games-mobile.preview.emergentagent.com"
         }
         
         response = auth_session.post(f"{BASE_URL}/api/equipment/checkout", json=payload)
