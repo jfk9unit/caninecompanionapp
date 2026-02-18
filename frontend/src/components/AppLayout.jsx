@@ -31,6 +31,9 @@ import {
   Shield,
   Award,
   ShoppingBag,
+  Settings,
+  ShieldCheck,
+  FileText,
 } from "lucide-react";
 import { MobileNav } from "@/components/MobileNav";
 import { LanguageSelector } from "@/components/LanguageSelector";
